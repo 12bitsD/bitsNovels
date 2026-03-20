@@ -1,0 +1,124 @@
+# EPIC 4 共享上下文要统一任务类型、项目配置、结果 Schema 与注入优先级
+
+## 读者确认
+- 核心读者：前后端开发、产品、后续维护 Parser 的开发者
+- 已具备背景：已了解 Epic 2 Parser、Epic 4 AI 写作功能、项目级设置体系
+- 最关心：哪些类型和字段是跨模块共享的，哪些上下文规则必须保持一致
+
+## 问题定义
+一句话问题：Epic 4 需要一份可复用的共享上下文定义，保证 FE、BE、EPIC2 Parser 对 AI 任务类型、项目配置、结果结构和 Token 裁剪逻辑有同一套约定。
+
+## 核心结论
+1. `AITaskType` 必须同时覆盖 Epic 4 写作任务与 EPIC2 的 `parse`，否则项目级 AI 配置无法复用。- 证据：US-4.8 说明 Parser 与续写、润色等任务共用项目级 AI 配置。
+2. `AIProjectConfig` 只描述项目级覆盖值，最终生效值仍需通过“项目级 > 用户级 > 系统默认”解析。- 证据：US-4.8 AC#3 明确给出三级覆盖机制。
+3. `AIResult` 要兼容流式文本、Diff、建议列表、名字列表与错误态，这样前后端才能共享任务状态机。- 证据：US-4.1~US-4.7 输出形态不同，但都属于同一 AI 任务域。
+
+## 共享 TypeScript 定义
+
+```typescript
+// AI 任务类型
+type AITaskType =
+  | 'continue'    // 续写
+  | 'polish'      // 润色
+  | 'expand'      // 扩写
+  | 'summarize'   // 缩写
+  | 'dialogue'    // 对话生成
+  | 'outline'     // 大纲建议
+  | 'name_gen'    // 起名
+  | 'advice'      // 写作建议
+  | 'parse'       // Parser（EPIC2 共享）
+
+// AI 配置（项目级，EPIC4/US-4.8）
+interface AIProjectConfig {
+  projectId: string
+  model?: string              // 不填则用全局
+  temperature?: number        // 0.1~1.0
+  maxLength?: number          // 100~5000 字
+  parseDepth?: 'fast' | 'standard' | 'deep'
+  useGlobalAsDefault: boolean
+  updatedAt: string
+}
+
+// AI 生成结果
+interface AIResult {
+  taskId: string
+  type: AITaskType
+  status: 'generating' | 'done' | 'stopped' | 'failed'
+  content?: string       // 润色/扩写/缩写/对话/建议的内容
+  diff?: AIDiffChange[]  // Diff 格式
+  suggestions?: string[] // 大纲建议列表
+  names?: string[]       // 起名候选列表
+  error?: string
+  createdAt: string
+}
+
+interface AIDiffChange {
+  type: 'insert' | 'delete'
+  content: string
+}
+```
+
+## 共享约束说明
+
+### `AITaskType` 的职责是统一任务路由，不是替代每个任务自己的参数模型
+- `continue`、`dialogue` 归类为流式正文生成任务。
+- `polish`、`expand`、`summarize` 归类为 Diff 输出任务。
+- `outline`、`name_gen`、`advice` 归类为结构化结果任务。
+- `parse` 由 EPIC2 使用，但必须保留在同一枚举里，因为它共享项目级 AI 配置与模型选择。
+
+### `AIProjectConfig` 只存项目级覆盖值，最终生效值要由配置解析器计算
+- `model`、`temperature`、`maxLength`、`parseDepth` 任一字段为空时，表示该字段继续继承全局或系统默认。
+- `useGlobalAsDefault` 表示项目仍以全局偏好为基线，而不是脱离全局独立运作。
+- 配置保存后只影响新任务；正在执行中的任务继续使用创建时快照。
+
+### `AIResult` 要兼容不同结果形态，但状态语义必须固定
+- `generating`：只用于流式任务或仍在生成中的任务。
+- `done`：生成成功，且结果可被采纳或展示。
+- `stopped`：用户主动中止，允许保留部分结果。
+- `failed`：任务失败，需附带 `error`。
+
+## 上下文注入规则
+
+### US-4.1 的上下文优先级必须成为共享规则，因为它是 Epic 4 的核心能力
+1. 固定注入项：系统指令、任务指令、项目级生效配置、当前章节全文、前一章末尾 2000 字、相关知识库条目、世界观设定。
+2. Token 超限时的保留顺序固定为：当前章节全文 > 知识库条目（含世界观设定） > 前一章末尾。
+3. 当前章节全文仍然过长时，只能最后裁剪，并且优先保留光标附近段落的原文。
+4. 知识库条目应按相关度排序后再裁剪，避免低相关设定挤掉核心人物或世界观信息。
+5. 前一章末尾属于最低优先级，可先缩短后移除。
+
+### 其它任务按“最小必要上下文”复用同一规则框架
+- `polish` / `expand` / `summarize`：原选中文本 + 当前章节全文。
+- `dialogue`：当前章节全文 + 角色画像 + 场景描述 + 光标附近正文。
+- `outline`：前文章节摘要 + 知识库 + 未回收伏笔列表。
+- `name_gen`：世界观风格约束 + 用户输入的类型/风格/性别/附加要求。
+- `advice`：当前章节全文 + 段落索引映射。
+- `parse`：沿用 EPIC2 解析链路，但读取同一项目级 AI 配置。
+
+## 共享字段补充建议
+
+### 如果后续要增强结构化结果，建议在不破坏当前 Schema 的前提下新增扩展字段
+- 大纲建议可在 `suggestions` 之外补充服务端内部结构，例如标题、要点、涉及角色。
+- 写作建议若要支持定位跳转，建议后续增加段落索引字段。
+- Diff 若需更细粒度高亮，可在 `AIDiffChange` 之外新增可选位置信息，但当前版本先保持最小集。
+
+## Epic 4 覆盖检查
+
+| US | context.md 对应内容 |
+| --- | --- |
+| US-4.1 | `continue` 类型、`AIResult.status`、流式结果、上下文优先级 |
+| US-4.2 | `polish` 类型、Diff Schema |
+| US-4.3 | `expand` / `summarize` 类型、Diff Schema |
+| US-4.4 | `dialogue` 类型、流式结果 |
+| US-4.5 | `outline` 类型、建议列表 |
+| US-4.6 | `name_gen` 类型、名字列表 |
+| US-4.7 | `advice` 类型、结果状态与内容承载 |
+| US-4.8 | `AIProjectConfig`、三级覆盖说明 |
+| EPIC2 共享 | `parse` 类型、`parseDepth` 配置 |
+
+## 下一步
+
+| 行动 | 负责人 | 截止时间 |
+| --- | --- | --- |
+| 将本文件中的共享类型沉淀为前后端共用类型包或接口文档 | 前端 + 后端 | API 冻结前 |
+| 把 Token 裁剪顺序写进后端单元测试与联调用例 | 后端 | 开发启动前 |
+| 在 EPIC2 Parser 设计中引用同一 `AIProjectConfig` 与 `AITaskType` | 后端 | Parser 联调前 |
