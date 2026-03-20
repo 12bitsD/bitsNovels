@@ -66,7 +66,7 @@
 
 ### 完成标准（Definition of Done）
 
-- [ ] 技术选型已记录至 DECISIONS.md（含 Why）
+- [ ] 技术选型已记录至 `../design/DECISIONS.md`（含 Why）
 - [ ] 项目骨架搭建完成（可运行的最简系统）
 - [ ] 第一个 US 完成 TDD 循环（auth / US-1.1）
 

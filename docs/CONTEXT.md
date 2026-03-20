@@ -30,11 +30,11 @@ bitsNovels 是一个**融合了 AI 知识管理的专业长篇小说写作工作
 
 | 文件 | 内容 |
 |---|---|
-| `USER_STORIES.md` | 完整产品需求（6 Epic、34 User Story） |
-| `DESIGN_SYSTEM.md` | 视觉与交互设计规范 |
-| `DECISIONS.md` | 重要设计决策的 Why |
-| `CONSTRAINTS.md` | 非功能约束表（NFR） |
-| `DOC_ORGANIZATION.md` | 本文档体系使用指南 |
+| `../specs/USER_STORIES.md` | 完整产品需求（6 Epic、34 User Story） |
+| `../design/DESIGN_SYSTEM.md` | 视觉与交互设计规范 |
+| `../design/DECISIONS.md` | 重要设计决策的 Why |
+| `../process/CONSTRAINTS.md` | 非功能约束表（NFR） |
+| `../process/DOC_ORGANIZATION.md` | 本文档体系使用指南 |
 
 ### 下一步
 
@@ -43,7 +43,7 @@ bitsNovels 是一个**融合了 AI 知识管理的专业长篇小说写作工作
 2. 实现登录注册模块（Epic 1 · US-1.1）
 3. 实现项目列表与仪表盘（Epic 1 · US-1.2）
 
-详细开发顺序见 `PROCESS_TDD.md`。
+详细开发顺序见 `../process/PROCESS_TDD.md`。
 
 ------
 
