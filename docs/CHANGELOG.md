@@ -4,6 +4,26 @@
 
 ------
 
+## v0.1.1（2026-03-20）
+
+**变更类型：** 技术栈决策
+
+### 前端技术栈确认
+
+- 确认 **React + TypeScript** 为前端框架
+- 确认 **TipTap 核心**（免费开源）为编辑器引擎，Diff/批注自研
+- 确认 **Tailwind CSS** 为 CSS 方案
+- 新增 `docs/research/EDITOR_ENGINE_RESEARCH.md` — TipTap vs Slate 深度调研
+
+决策依据：调研文档 8 维度对比，TipTap 在 AI 写作集成、维护性、React+TS 体验均优于 Slate。
+
+### 文档更新
+
+- `docs/CONTEXT.md` — 技术栈表格更新为已确认状态
+- `design/FRONTEND.md` — 技术栈占位章节更新为已确认
+
+---
+
 ## v0.1.0（2026-03-20）
 
 **变更类型：** 新增文档架构

@@ -15,8 +15,9 @@
 - [x] 确定文档架构（per-Epic FE/BE/context 拆分）
 - [x] 完成全部 6 个 Epic 的需求拆分文档
 - [x] 建立 TDD 工作流和 NFR 约束文档
-- [ ] 完成技术栈选型决策（FE 框架 / BE 框架 / AI 服务）
-- [ ] 确认架构设计（design/FRONTEND.md / design/BACKEND.md）
+- [x] 完成 FE 技术栈选型决策
+- [ ] 完成 BE 技术栈选型决策（后端框架 / AI 服务）
+- [ ] 确认架构设计（design/BACKEND.md）
 
 ### 已完成
 
@@ -29,18 +30,20 @@
 | 设计文档框架 | design/FRONTEND.md, design/BACKEND.md | 2026-03-20 |
 | CHANGELOG 和 Sprint 跟踪 | docs/CHANGELOG.md, docs/SPRINT_LOG.md | 2026-03-20 |
 | 根目录文档（INDEX + README） | INDEX.md, README.md | 2026-03-20 |
+| FE 技术栈确认（React+TS + TipTap + Tailwind） | docs/CONTEXT.md, design/FRONTEND.md | 2026-03-20 |
+| TipTap vs Slate 深度调研 | docs/research/EDITOR_ENGINE_RESEARCH.md | 2026-03-20 |
 
 ### 进行中
 
 | 进行项 | 负责人 | 状态 |
 |--------|--------|------|
-| 技术栈选型决策 | Tech Lead | 等待 |
+| BE 技术栈决策（后端框架 / AI 服务） | Tech Lead | 🔄 进行中 |
 
 ### 阻塞项
 
 | 阻塞项 | 影响 | 解决方案 |
 |--------|------|----------|
-| 技术栈未确定 | 无法完善 design/BACKEND.md 和 design/FRONTEND.md 中的框架选型章节 | Tech Lead 评审后决策 |
+| BE 技术栈未确定 | 无法完善 design/BACKEND.md | Tech Lead 决策后更新 |
 
 ### 决策记录
 
@@ -48,6 +51,9 @@
 |------|------|------|
 | 文档架构采用 per-Epic FE/BE/context 拆分 | 解决 Agent 上下文窗口爆炸问题 | ✅ 已确认 |
 | Epic 开发顺序：EPIC1→3→2→4→5→6 | EPIC3 是基础，EPIC2 依赖 EPIC3 | ✅ 已确认 |
+| 前端框架：React + TypeScript | 生态最大，AI coding 工具支持最好 | ✅ 已确认 |
+| 编辑器引擎：TipTap 核心（开源自研 Diff/批注） | 8 维度调研对比，AI 写作集成成本最低 | ✅ 已确认 |
+| CSS 方案：Tailwind CSS | AI 生成效率最高，与 React 集成最佳 | ✅ 已确认 |
 | V1 不支持跨项目搜索、多人协作、移动端 | Scope 控制，降低复杂度 | ✅ 已确认 |
 
 ------

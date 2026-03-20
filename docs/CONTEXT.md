@@ -38,17 +38,18 @@ EPIC5（导出备份）     → 依赖 EPIC3 编辑器
 EPIC6（系统设置）    → 无业务依赖，最后做
 ```
 
-## 技术栈（待 Sprint 0 确认）
+## 技术栈（Sprint 0 决策）
 
-| 层级 | 候选方向 | 状态 |
-|---|---|---|
-| 前端框架 | React+TS / Vue+TS | 待定 |
-| 编辑器引擎 | Slate / ProseMirror / TipTap | 待定 |
-| 后端框架 | Node.js / Go / Bun | 待定 |
-| 数据库 | PostgreSQL + 向量库 | 待定 |
-| AI 服务 | OpenAI / Claude / 本地模型 | 待定 |
+| 层级 | 决策 | 状态 | 备注 |
+|---|---|---|---|
+| 前端框架 | **React + TypeScript** | ✅ 确认 | AI 生成质量最稳，生态最大 |
+| 编辑器引擎 | **TipTap 核心** | ✅ 确认 | ProseMirror 底层，开源免费；Diff/批注自研 |
+| CSS 方案 | **Tailwind CSS** | ✅ 确认 | AI 写起来最快 |
+| 后端框架 | Node.js / Go / Bun | 🔄 待定 | — |
+| 数据库 | PostgreSQL + 向量库 | 🔄 待定 | — |
+| AI 服务 | OpenAI / Claude / 本地模型 | 🔄 待定 | — |
 
-技术栈确认后记录至 `design/BACKEND.md` 和 `design/FRONTEND.md`。
+决策记录：`design/FRONTEND.md`（FE），`design/BACKEND.md`（BE）。
 
 ## V1 Scope 声明
 
