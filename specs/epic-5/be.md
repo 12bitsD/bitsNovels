@@ -9,7 +9,7 @@
 
 | 能力 | 目标 | 输出格式 | 数据范围 | 典型入口 |
 | --- | --- | --- | --- | --- |
-| US-5.1 导出作品 | 投稿、分享 | DOCX / TXT / PDF / EPUB | 仅正文，可选备注/批注，不含知识库 | 工作台“导出” |
+| US-5.1 导出作品 | 投稿、分享 | DOCX / TXT / PDF / Markdown | 仅正文，可选备注/批注，不含知识库 | 工作台“导出” |
 | US-5.4 知识库导出 | 跨项目复用世界观 | JSON | 仅知识库条目与关系 | 知识库面板 |
 | US-5.5 项目备份 | 长期存档、迁移、恢复 | ZIP | 全量项目数据 | 项目设置“备份与恢复” |
 
@@ -28,7 +28,7 @@
 ### 格式生成器
 - `DOCX`：支持字体、字号、行距、卷标题页、章节编号。
 - `PDF`：共享排版参数，但走独立渲染器输出固定版式文件。
-- `EPUB`：写入元数据、生成目录、按章节拆分内容文件。
+- `Markdown`：富文本内容转换为标准 Markdown 语法输出 .md 文件。
 - `TXT`：处理编码和章节分隔策略。
 
 ### 存储与历史
@@ -118,7 +118,7 @@
 ## 推荐模块划分
 - `export-task-service`：创建任务、更新进度、发通知、生成下载链接。
 - `content-exporter`：正文范围解析、备注/批注拼装。
-- `format-generators`：DOCX、PDF、TXT、EPUB 独立生成器。
+- `format-generators`：DOCX、PDF、TXT、Markdown 独立生成器。
 - `kb-transfer-service`：知识库 JSON 导出、schema 校验、冲突合并。
 - `project-backup-service`：全量数据聚合、ZIP 打包、恢复导入。
 - `backup-scheduler`：24 小时轮询、变更检测、保留清理、归档跳过。

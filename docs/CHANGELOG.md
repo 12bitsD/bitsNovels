@@ -4,6 +4,39 @@
 
 ------
 
+## v0.2.0（2026-03-23）
+
+**变更类型：** Sprint 0 关闭 · 全栈技术选型完成 · 文档结构优化
+
+### 后端技术栈确认
+
+- 确认 **Python 3.11+ + FastAPI** 为后端运行时与框架
+- 确认 **ARQ + Redis** 为任务队列方案
+- 确认 **pgvector**（PostgreSQL 扩展）为向量检索方案，V1 不引入独立向量服务
+- 确认 **openapi-typescript** 为前后端类型同步方案
+- 新增 `docs/research/BACKEND_TECH_STACK_RESEARCH.md` — Node.js vs Python vs Bun 深度调研
+
+### 编辑器功能新增
+
+- 确认编辑器集成 **`@tiptap/extension-markdown`**，支持 Markdown 语法实时渲染（类 Typora）
+- 更新 `specs/EPIC/EPIC3/FE.md` US-3.1 AC，补充 Markdown 实时渲染说明
+- 更新 `design/FRONTEND.md` 技术栈章节
+
+### 导出格式变更
+
+- **V1 去除 EPUB 导出**，新增 **Markdown 导出**
+- 导出格式变更为：DOCX / TXT / PDF / Markdown
+- 更新 `specs/EPIC/EPIC5/FE.md`、`BE.md`、`context.md`，`design/BACKEND.md`
+
+### 文档结构优化
+
+- **删除根目录 `USER_STORIES.md`**，以 `specs/EPIC/` 为唯一需求真相源（方案 B）
+- 删除旧版 `docs/research/BACKEND_FRAMEWORK_RESEARCH.md`（已被新调研覆盖）
+- 更新 `docs/CONTEXT.md`：技术栈全部标记为 ✅，阶段更新为 Sprint 1
+- 更新 `docs/SPRINT_LOG.md`：Sprint 0 标记完成，Sprint 1 正式开始
+
+---
+
 ## v0.1.1（2026-03-20）
 
 **变更类型：** 技术栈决策

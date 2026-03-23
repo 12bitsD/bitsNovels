@@ -21,7 +21,7 @@ interface ExportTask {
   id: string
   projectId: string
   userId: string
-  format: 'docx' | 'txt' | 'pdf' | 'epub'
+  format: 'docx' | 'txt' | 'pdf' | 'markdown'
   scope: 'all' | 'volume' | 'chapter'
   scopeIds?: string[]    // 指定卷/章节 ID
   status: 'pending' | 'generating' | 'done' | 'failed'
@@ -36,7 +36,7 @@ interface ExportTemplate {
   id: string
   userId: string
   name: string
-  format: 'docx' | 'txt' | 'pdf' | 'epub'
+  format: 'docx' | 'txt' | 'pdf' | 'markdown'
   options: {
     font?: string
     fontSize?: string
@@ -45,11 +45,6 @@ interface ExportTemplate {
     includeChapterNumber?: boolean
     includeNotes?: boolean
     includeAnnotations?: boolean
-    epubMetadata?: {
-      title: string
-      author: string
-      description?: string
-    }
     txtEncoding?: 'utf8' | 'gbk'
     txtSeparator?: 'blank' | 'line' | 'none'
   }
@@ -134,9 +129,10 @@ interface ProjectBackup {
 ## 导出配置模板结构说明
 - 模板只保存格式与导出选项，不保存范围。
 - `font / fontSize / lineSpacing` 仅对 `docx` 和 `pdf` 有效。
-- `epubMetadata` 仅对 `epub` 有效。
 - `txtEncoding / txtSeparator` 仅对 `txt` 有效。
+- `markdown` 格式无特有配置项，只受 `includeNotes / includeAnnotations` 控制。
 - `includeNotes / includeAnnotations` 属于跨格式的正文附加内容开关。
+- V1 不支持 EPUB 导出。
 
 ## 知识库 JSON schema 约束
 
