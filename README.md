@@ -33,10 +33,35 @@
 
 ---
 
+## 当前工程状态
+
+- 已完成 Sprint 1 脚手架：monorepo、FastAPI 健康检查、React 应用壳、OpenAPI → TypeScript 类型生成、CI
+- 所有工程代码统一收敛到：`workspace/`
+- 当前前端目录：`workspace/apps/web/`
+- 当前后端目录：`workspace/server/`
+- 当前共享类型包：`workspace/packages/api-types/`
+- 工作区说明见 `docs/ENGINEERING_WORKSPACE.md`
+
+---
+
+## 快速开始
+
+```bash
+cd workspace
+npm install
+python3 -m venv .venv
+. .venv/bin/activate
+pip install .[dev]
+npm run generate:api-types
+npm run check
+```
+
+---
+
 ## 如果你是 Agent
 
 → 先读 **`AGENTS.md`**，里面有当前任务看板和文件读取规则。
 
 ## 如果你是开发者
 
-→ 先读 **`docs/decisions/tech-stack.md`** 了解技术选型，再读对应 Epic 的 `specs/epic-N/` 目录。
+→ 先读 **`docs/ENGINEERING_WORKSPACE.md`** 了解目录分工，再读 **`docs/decisions/tech-stack.md`** 和对应 Epic 的 `specs/epic-N/` 目录。

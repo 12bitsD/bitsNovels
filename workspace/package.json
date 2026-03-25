@@ -1,0 +1,24 @@
+{
+  "name": "bitsnovels",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run generate:api-types && npm run -w @bitsnovels/web build",
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "generate:api-types": "node scripts/run_export_openapi.mjs && openapi-typescript server/openapi.json -o packages/api-types/src/generated.ts",
+    "lint": "npm run -w @bitsnovels/web lint && node scripts/run_python.mjs -m ruff check server",
+    "test": "npm run test:backend && npm run test:web && npm run test:api-types",
+    "test:api-types": "node scripts/validate_api_types.mjs",
+    "test:backend": "node scripts/run_python.mjs -m pytest",
+    "test:web": "npm run -w @bitsnovels/web test",
+    "typecheck": "npm run -w @bitsnovels/web typecheck && node scripts/run_python.mjs -m mypy server",
+    "verify:generated": "git diff --exit-code -- server/openapi.json packages/api-types/src/generated.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1"
+  }
+}

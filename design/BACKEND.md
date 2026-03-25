@@ -161,6 +161,8 @@ SSE 逐字推送 → 前端展示 AI 生成内容（带标记）
 
 ## 6. 项目目录结构（约定）
 
+> 下列目录是目标结构。当前脚手架阶段已落地 `server/main.py`、`server/config.py`、`server/tests/`、`server/openapi.json` 与类型生成链路，其余模块按 Sprint 逐步补齐。
+
 ```
 server/
 ├── main.py                 ← FastAPI app 入口

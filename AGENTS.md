@@ -2,6 +2,8 @@
 
 > 所有 Agent 每次任务前必须先读本文件。它告诉你：现在在做什么、该读哪些文件、做完算什么。
 
+> 工程代码统一放在根目录 `workspace/` 下；根目录只保留文档、规范和项目说明文件。
+
 ## ⚠️ 开发铁律：本项目严格遵循 TDD
 
 **任何功能实现，必须先写测试，再写实现。无例外。**
@@ -26,10 +28,11 @@
 
 | 任务 | 描述 | BE | FE | 备注 |
 |------|------|----|----|------|
-| 脚手架 | FE+BE 项目初始化、CI/CD 基础、openapi-typescript 流水线 | 🔲 | 🔲 | 最先做，其他任务前置依赖 |
-| US-1.1 | 注册 / 登录 / OAuth | 🔲 | 🔲 | BE 先做，契约冻结后 FE 跟进 |
-| US-1.2 | 项目列表与仪表盘 | 🔲 | 🔲 | 依赖 US-1.1 |
-| US-1.3 | 创建新项目 | 🔲 | 🔲 | 依赖 US-1.2 |
+| 脚手架 | FE+BE 项目初始化、CI/CD 基础、openapi-typescript 流水线 | ✅ | ✅ | 已完成 monorepo、工程层测试、CI、OpenAPI 类型生成 |
+| Sprint 1 测试基建 | 平台 + US-1.1/1.2/1.3 首批失败测试、Mock/Fixture 基座 | ✅ | ✅ | 已落地红灯测试集，MSW 拦截层搭建完毕 |
+| US-1.1 | 注册 / 登录 / OAuth | ✅ | ✅ | FE 纯 Mock 版已完工（TDD/覆盖率达标，注入设计规范） |
+| US-1.2 | 项目列表与仪表盘 | ✅ | ✅ | FE 纯 Mock 版已完工 |
+| US-1.3 | 创建新项目 | ✅ | ✅ | FE 纯 Mock 版已完工 |
 
 ---
 
@@ -78,7 +81,7 @@
 specs/epic-N/be.md          ← 本次任务的 AC 和实现要求
 specs/epic-N/contract.md    ← 数据类型 + API 端点约定
 process/dod.md              ← 完成标准（DoD）
-design/backend.md           ← 架构规范（API 格式/队列/存储）
+design/BACKEND.md           ← 架构规范（API 格式/队列/存储）
 ```
 
 ### FE Agent 任务包（固定 4 文件）
@@ -87,7 +90,7 @@ design/backend.md           ← 架构规范（API 格式/队列/存储）
 specs/epic-N/fe.md          ← 本次任务的 AC 和交互要求
 specs/epic-N/contract.md    ← 数据类型 + API 端点约定
 process/dod.md              ← 完成标准（DoD）
-design/frontend.md          ← 视觉规范（色彩/字体/组件）
+design/FRONTEND.md          ← 视觉规范（色彩/字体/组件）
 ```
 
 > **规则**：每个任务最多读 4 个文件。需要跨 Epic 共享类型时，读 `specs/shared/cross-epic-types.md`（替换上面某一个文件）。
@@ -124,8 +127,9 @@ BE 实现完成 → FE 替换 Mock 为真实 API → 联调
 | 某个 US 的具体要求 | `specs/epic-N/fe.md` 或 `be.md` |
 | 数据类型 / API 格式 | `specs/epic-N/contract.md` |
 | 完成标准 | `process/dod.md` |
-| 视觉规范 | `design/frontend.md` |
-| 架构规范 | `design/backend.md` |
-| NFR 数值约束 | `process/constraints.md` |
+| 视觉规范 | `design/FRONTEND.md` |
+| 架构规范 | `design/BACKEND.md` |
+| NFR 数值约束 | `process/CONSTRAINTS.md` |
 | 跨 Epic 共享类型 | `specs/shared/cross-epic-types.md` |
 | 技术选型依据 | `docs/decisions/tech-stack.md` |
+| 工程目录结构 | `docs/ENGINEERING_WORKSPACE.md` |

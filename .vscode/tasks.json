@@ -1,0 +1,48 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "后端测试: pytest",
+            "type": "shell",
+            "command": "npm run test:backend",
+            "options": {
+                "cwd": "${workspaceFolder}/workspace"
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "后端检查: mypy",
+            "type": "shell",
+            "command": "npm run typecheck",
+            "options": {
+                "cwd": "${workspaceFolder}/workspace"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "后端检查: ruff",
+            "type": "shell",
+            "command": "npm run lint",
+            "options": {
+                "cwd": "${workspaceFolder}/workspace"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

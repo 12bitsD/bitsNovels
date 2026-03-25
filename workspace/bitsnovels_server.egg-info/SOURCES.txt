@@ -1,0 +1,10 @@
+pyproject.toml
+setup.py
+bitsnovels_server.egg-info/PKG-INFO
+bitsnovels_server.egg-info/SOURCES.txt
+bitsnovels_server.egg-info/dependency_links.txt
+bitsnovels_server.egg-info/requires.txt
+bitsnovels_server.egg-info/top_level.txt
+server/__init__.py
+server/config.py
+server/main.py

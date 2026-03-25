@@ -21,7 +21,7 @@
 
 ## 核心依赖清单
 
-### 后端（requirements.txt）
+### 后端（当前以 `pyproject.toml` 管理依赖）
 ```
 fastapi>=0.111.0
 uvicorn[standard]>=0.29.0
