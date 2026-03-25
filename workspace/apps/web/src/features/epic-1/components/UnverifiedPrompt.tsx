@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { client } from '../../../api/client';
 
 export default function UnverifiedPrompt({ email }: { email: string }) {
@@ -11,7 +11,7 @@ export default function UnverifiedPrompt({ email }: { email: string }) {
         body: { email }
       });
       setStatus('success');
-    } catch (e) {
+    } catch {
       setStatus('idle');
     }
   };

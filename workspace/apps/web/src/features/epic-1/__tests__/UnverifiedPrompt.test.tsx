@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import UnverifiedPrompt from '../components/UnverifiedPrompt';
@@ -13,7 +12,7 @@ describe('UnverifiedPrompt', () => {
   });
 
   it('calls POST /api/auth/resend-verification on click', async () => {
-    let requestBody: any;
+    let requestBody: unknown;
     server.use(
       http.post('/api/auth/resend-verification', async ({ request }) => {
         requestBody = await request.json();

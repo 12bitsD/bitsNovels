@@ -37,12 +37,12 @@ export default function RegisterPage() {
       });
       
       if (apiError) {
-        throw new Error((apiError as any).detail || '注册失败');
+        throw new Error((apiError as { detail?: string }).detail || '注册失败');
       }
       
       setStatus('success');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '注册失败');
     } finally {
       setLoading(false);
     }
@@ -134,9 +134,10 @@ export default function RegisterPage() {
 
             <button
               type="submit"
+              disabled={loading}
               className="btn-primary mt-2"
             >
-              注册
+              {loading ? '注册中...' : '注册'}
             </button>
             
             <div className="text-sm text-ink-light text-center mt-6">

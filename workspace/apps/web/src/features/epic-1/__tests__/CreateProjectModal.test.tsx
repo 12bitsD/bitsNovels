@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { server } from '../../../mocks/server';
@@ -38,7 +38,7 @@ describe('CreateProjectModal', () => {
   });
 
   it('should navigate through steps and submit on step 3', async () => {
-    let requestBody: any;
+    let requestBody: unknown;
     server.use(
       http.post('/api/projects', async ({ request }) => {
         requestBody = await request.json();

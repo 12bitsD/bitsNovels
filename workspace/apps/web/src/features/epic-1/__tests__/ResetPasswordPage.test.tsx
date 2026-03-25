@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import ResetPasswordPage from '../components/ResetPasswordPage';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
@@ -31,7 +31,7 @@ describe('ResetPasswordPage', () => {
   });
 
   it('calls POST /api/auth/reset-password and shows success message', async () => {
-    let requestBody: any;
+    let requestBody: unknown;
     server.use(
       http.post('/api/auth/reset-password', async ({ request }) => {
         requestBody = await request.json();

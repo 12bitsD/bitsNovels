@@ -21,15 +21,15 @@ export default function LoginPage() {
       });
       
       if (apiError) {
-        throw new Error((apiError as any).detail || '登录失败');
+        throw new Error((apiError as { detail?: string }).detail || '登录失败');
       }
       
       if (data && data.token) {
         localStorage.setItem('token', data.token);
         navigate('/dashboard');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '登录失败');
     } finally {
       setLoading(false);
     }

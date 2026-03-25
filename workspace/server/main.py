@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, timezone
 import re
+from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, Optional, Union
 
 from fastapi import Body, FastAPI, Header
@@ -82,7 +82,7 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 def _now() -> datetime:
     clock = getattr(app.state, "session_clock", None)
     if clock is not None:
-        return clock.now
+        return clock.now  # type: ignore[no-any-return]
     return datetime.now(timezone.utc)
 
 
@@ -128,7 +128,7 @@ def _next_id(counter_key: str, prefix: str) -> str:
 def _ensure_user(email: str, password: str, auth_provider: str = "email") -> dict[str, Any]:
     existing_user_id = app.state.email_index.get(email)
     if existing_user_id is not None:
-        return app.state.auth_users[existing_user_id]
+        return app.state.auth_users[existing_user_id]  # type: ignore[no-any-return]
     user_id = _next_id("user_counter", "user")
     now_iso = _iso_z(_now())
     user = {
@@ -150,7 +150,7 @@ def _resolve_user_id(authorization: Optional[str]) -> Optional[str]:
     if not authorization or not authorization.startswith("Bearer "):
         return None
     token = authorization.split(" ", 1)[1]
-    return app.state.sessions.get(token)
+    return app.state.sessions.get(token)  # type: ignore[no-any-return]
 
 
 def _require_user_id(authorization: Optional[str]) -> Union[str, JSONResponse]:
