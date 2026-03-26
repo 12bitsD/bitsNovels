@@ -26,11 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!token && !!user;
 
-  // Sync token to API client's getter
+  // Sync token to API client's getter — always set, including null on logout
   useEffect(() => {
-    if (token !== null) {
-      setAuthTokenGetter(() => token);
-    }
+    setAuthTokenGetter(() => token);
   }, [token]);
 
   // Fetch user profile on mount if token exists

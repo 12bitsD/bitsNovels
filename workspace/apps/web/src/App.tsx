@@ -40,7 +40,7 @@ function App() {
         <a href="#main-content" className="skip-to-content">
           跳转到主要内容
         </a>
-        <div id="main-content" tabIndex={-1} />
+        <main id="main-content">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
@@ -51,6 +51,7 @@ function App() {
           <Route path="/dashboard" element={<ProjectDashboard />} />
           <Route path="/projects/new" element={<DashboardWithModal />} />
         </Routes>
+        </main>
       </AuthProvider>
       <DevNavigation />
     </BrowserRouter>

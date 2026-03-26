@@ -23,6 +23,12 @@ export function useFocusTrap(
     const focusableElements = Array.from(
       ref.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)
     );
+
+    if (focusableElements.length === 0) {
+      // No focusable elements — trap is non-functional; do nothing
+      return;
+    }
+
     const firstEl = focusableElements[0];
     const lastEl = focusableElements[focusableElements.length - 1];
 

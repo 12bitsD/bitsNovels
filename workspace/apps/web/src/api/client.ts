@@ -2,7 +2,7 @@ type RequestOptions = {
   body?: unknown;
 };
 
-let authTokenRef: { get: () => string | null } = {
+const authTokenRef: { get: () => string | null } = {
   get: () => localStorage.getItem('token'),
 };
 
