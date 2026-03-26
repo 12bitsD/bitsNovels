@@ -1,4 +1,6 @@
+import os
 import re
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, Optional, Union
 
@@ -8,11 +10,41 @@ from pydantic import BaseModel
 
 from server.config import get_settings
 
+
+class _FakeDb:
+    def __init__(self) -> None:
+        self.projects: list[dict[str, Any]] = []
+        self.failpoints: set[str] = set()
+
+
+def _reset_app_state() -> None:
+    app.state.fake_db = _FakeDb()
+    app.state.auth_users: dict[str, Any] = {}
+    app.state.email_index: dict[str, str] = {}
+    app.state.sessions: dict[str, str] = {}
+    app.state.verify_tokens: dict[str, Any] = {}
+    app.state.verify_token_first_seen: set[str] = set()
+    app.state.reset_tokens: dict[str, Any] = {}
+    app.state.archived_project_ids: set[str] = set()
+    app.state.state_counter = 0
+    app.state.session_counter = 0
+    app.state.project_counter = 0
+    app.state.user_counter = 0
+
+
+@asynccontextmanager
+async def lifespan(fapp: FastAPI):  # type: ignore[type-arg]
+    if not hasattr(fapp.state, "email_index"):
+        _reset_app_state()
+    yield
+
+
 settings = get_settings()
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
+    lifespan=lifespan,
 )
 
 
@@ -601,3 +633,11 @@ def create_project(
             "importedEntryCount": 0,
         },
     )
+
+
+if os.getenv("TESTING") == "true":
+
+    @app.post("/api/test/reset")
+    def test_reset() -> dict[str, bool]:
+        _reset_app_state()
+        return {"ok": True}
