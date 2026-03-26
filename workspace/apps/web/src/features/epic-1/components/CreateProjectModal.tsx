@@ -193,7 +193,7 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
               </h3>
               <div className="border-2 border-dashed border-border/70 rounded-xl p-10 text-center bg-parchment/30 hover:bg-parchment/60 transition-colors group cursor-pointer">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-2xl text-amber">📁</span>
+                  <span className="text-amber"><Icons.Folder size={32} /></span>
                 </div>
                 <p className="text-ink font-medium mb-2">拖拽 JSON 模板文件到此处，或点击上传</p>
                 <p className="text-sm text-ink-light mb-6">支持导入角色、世界观等预设设定</p>

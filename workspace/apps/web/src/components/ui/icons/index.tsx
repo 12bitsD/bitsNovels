@@ -1,7 +1,7 @@
 import {
   PenLine, Sparkles, Search, X, XCircle, CheckCircle,
   Loader2, BookOpen, Plus, Check, Feather, Scroll,
-  GitBranch, Clock, MapPin, Compass, Archive, AlertCircle
+  GitBranch, Clock, MapPin, Compass, Archive, AlertCircle, Folder
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
@@ -33,6 +33,7 @@ export const Icons = {
   Feather: (props: LucideProps) => <Feather {...props} color={amber} strokeWidth={1.5} />,
   Scroll: (props: LucideProps) => <Scroll {...props} color={amber} strokeWidth={1.5} />,
   Archive: (props: LucideProps) => <Archive {...props} color={amber} strokeWidth={1.5} />,
+  Folder: (props: LucideProps) => <Folder {...props} color={amber} strokeWidth={1.5} />,
 
   // UI
   GitBranch: (props: LucideProps) => <GitBranch {...props} color={inkLight} strokeWidth={1.5} />,
