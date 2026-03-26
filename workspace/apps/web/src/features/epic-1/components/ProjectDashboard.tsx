@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { client } from '../../../api/client';
+import { SkeletonLoader } from '../../../components/ui/SkeletonLoader';
+import { Icons } from '../../../components/ui/icons';
 
 type Project = {
   id: string;
@@ -39,7 +41,7 @@ export default function ProjectDashboard() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-48 bg-white/40 border border-white/60 animate-pulse rounded-lg"></div>
+            <SkeletonLoader key={i} variant="card" />
           ))}
         </div>
       </div>
@@ -88,7 +90,7 @@ export default function ProjectDashboard() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-base w-64 pl-10 bg-white"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light opacity-50">🔍</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2"><Icons.Search size={16} /></span>
           </div>
           <div className="flex gap-2 bg-white/50 p-1 rounded-md border border-border/50">
             <button 
