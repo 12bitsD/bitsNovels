@@ -2,8 +2,16 @@ type RequestOptions = {
   body?: unknown;
 };
 
+const authTokenRef: { get: () => string | null } = {
+  get: () => localStorage.getItem('token'),
+};
+
+export function setAuthTokenGetter(getter: () => string | null) {
+  authTokenRef.get = getter;
+}
+
 const request = async (method: 'GET' | 'POST', path: string, options?: RequestOptions) => {
-  const token = localStorage.getItem('token');
+  const token = authTokenRef.get();
   const response = await fetch(path, {
     method,
     headers: {

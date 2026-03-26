@@ -3,6 +3,8 @@ import { beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { server } from '../mocks/server';
 
+export { server };
+
 beforeAll(() => {
   Object.defineProperty(window, 'localStorage', {
     value: {

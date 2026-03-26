@@ -3,11 +3,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../components/LoginPage';
+import { AuthProvider } from '../../../contexts/AuthContext';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+  return render(<BrowserRouter><AuthProvider>{ui}</AuthProvider></BrowserRouter>);
 };
 
 describe('LoginPage', () => {

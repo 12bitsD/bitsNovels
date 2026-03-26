@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useFocusTrap } from '../../../hooks';
 import { client } from '../../../api/client';
+import { Icons } from '../../../components/ui/icons';
+import { FormInput } from '../../../components/ui/FormInput';
+import { ErrorAlert } from '../../../components/ui/ErrorAlert';
+import { LoadingButton } from '../../../components/ui/LoadingButton';
 
 type ProjectType = 'novel' | 'medium' | 'short';
 
@@ -18,6 +23,8 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, true);
 
   const handleNext = () => {
     if (step === 1) {
@@ -77,7 +84,7 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
+    <div ref={modalRef} className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
       <div 
         className="bg-white rounded-xl w-full max-w-2xl overflow-hidden font-sans text-ink transform transition-all duration-300 scale-100 opacity-100"
         style={{ boxShadow: 'var(--shadow-modal)' }}
@@ -85,12 +92,12 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
         <div className="p-6 border-b border-border/30 flex justify-between items-center bg-ivory/50">
           <h2 className="text-xl font-bold">新建项目</h2>
           <button onClick={onClose} className="text-ink-light hover:text-ink transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-parchment">
-            ✕
+            <Icons.Close size={16} />
           </button>
         </div>
 
         <div className="p-8 min-h-[400px]">
-          {error && <div className="bg-error/10 text-error p-3 rounded-md mb-6 text-sm border border-error/20 shadow-sm">{error}</div>}
+          {error && <ErrorAlert error={error} onDismiss={() => setError('')} className="mb-6" />}
           
           {step === 1 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -98,18 +105,14 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
                 <span className="w-6 h-6 rounded-full bg-amber/10 flex items-center justify-center text-sm">1</span>
                 基本信息
               </h3>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-ink-light mb-1.5">
-                  项目名称 <span className="text-warning text-xs">●</span>
-                </label>
-                <input
-                  id="name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="input-base"
-                  placeholder="最多 50 个字符"
-                />
-              </div>
+              <FormInput
+                id="name"
+                label="项目名称"
+                value={name}
+                onChange={setName}
+                placeholder="最多 50 个字符"
+                required
+              />
               
               <div>
                 <label htmlFor="type" className="block text-sm font-medium text-ink-light mb-1.5">类型</label>
@@ -190,7 +193,7 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
               </h3>
               <div className="border-2 border-dashed border-border/70 rounded-xl p-10 text-center bg-parchment/30 hover:bg-parchment/60 transition-colors group cursor-pointer">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                  <span className="text-2xl text-amber">📁</span>
+                  <span className="text-amber"><Icons.Folder size={32} /></span>
                 </div>
                 <p className="text-ink font-medium mb-2">拖拽 JSON 模板文件到此处，或点击上传</p>
                 <p className="text-sm text-ink-light mb-6">支持导入角色、世界观等预设设定</p>
@@ -215,18 +218,13 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
               下一步
             </button>
           ) : (
-            <button 
-              onClick={handleSubmit} 
-              disabled={loading}
-              className="btn-primary w-auto px-8 flex items-center gap-2"
+            <LoadingButton 
+              loading={loading}
+              onClick={handleSubmit}
+              className="w-auto px-8 flex items-center gap-2"
             >
-              {loading ? (
-                <>
-                  <span className="animate-spin">◷</span>
-                  创建中...
-                </>
-              ) : '跳过并创建'}
-            </button>
+              跳过并创建
+            </LoadingButton>
           )}
         </div>
       </div>
