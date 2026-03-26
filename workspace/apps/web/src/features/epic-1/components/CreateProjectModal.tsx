@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useFocusTrap } from '../../../hooks';
 import { client } from '../../../api/client';
 import { Icons } from '../../../components/ui/icons';
 import { FormInput } from '../../../components/ui/FormInput';
@@ -22,6 +23,8 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, true);
 
   const handleNext = () => {
     if (step === 1) {
@@ -81,7 +84,7 @@ export default function CreateProjectModal({ onClose }: CreateProjectModalProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
+    <div ref={modalRef} className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
       <div 
         className="bg-white rounded-xl w-full max-w-2xl overflow-hidden font-sans text-ink transform transition-all duration-300 scale-100 opacity-100"
         style={{ boxShadow: 'var(--shadow-modal)' }}

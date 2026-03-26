@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import LoginPage from './features/epic-1/components/LoginPage';
 import RegisterPage from './features/epic-1/components/RegisterPage';
 import ForgotPasswordPage from './features/epic-1/components/ForgotPasswordPage';
@@ -35,16 +36,22 @@ function DevNavigation() {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/verify" element={<VerificationResultPage />} />
-        <Route path="/dashboard" element={<ProjectDashboard />} />
-        <Route path="/projects/new" element={<DashboardWithModal />} />
-      </Routes>
+      <AuthProvider>
+        <a href="#main-content" className="skip-to-content">
+          跳转到主要内容
+        </a>
+        <div id="main-content" tabIndex={-1} />
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify" element={<VerificationResultPage />} />
+          <Route path="/dashboard" element={<ProjectDashboard />} />
+          <Route path="/projects/new" element={<DashboardWithModal />} />
+        </Routes>
+      </AuthProvider>
       <DevNavigation />
     </BrowserRouter>
   );
