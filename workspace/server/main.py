@@ -2,7 +2,7 @@ import os
 import re
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
-from typing import Any, Literal, Optional, Union
+from typing import Any, AsyncGenerator, Literal, Optional, Union
 
 from fastapi import Body, FastAPI, Header
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -19,13 +19,13 @@ class _FakeDb:
 
 def _reset_app_state() -> None:
     app.state.fake_db = _FakeDb()
-    app.state.auth_users: dict[str, Any] = {}
-    app.state.email_index: dict[str, str] = {}
-    app.state.sessions: dict[str, str] = {}
-    app.state.verify_tokens: dict[str, Any] = {}
-    app.state.verify_token_first_seen: set[str] = set()
-    app.state.reset_tokens: dict[str, Any] = {}
-    app.state.archived_project_ids: set[str] = set()
+    app.state.auth_users = {}
+    app.state.email_index = {}
+    app.state.sessions = {}
+    app.state.verify_tokens = {}
+    app.state.verify_token_first_seen = set()
+    app.state.reset_tokens = {}
+    app.state.archived_project_ids = set()
     app.state.state_counter = 0
     app.state.session_counter = 0
     app.state.project_counter = 0
@@ -33,7 +33,7 @@ def _reset_app_state() -> None:
 
 
 @asynccontextmanager
-async def lifespan(fapp: FastAPI):  # type: ignore[type-arg]
+async def lifespan(fapp: FastAPI) -> AsyncGenerator[None, None]:
     if not hasattr(fapp.state, "email_index"):
         _reset_app_state()
     yield
