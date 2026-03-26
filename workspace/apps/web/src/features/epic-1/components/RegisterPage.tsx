@@ -7,28 +7,21 @@ import { ErrorAlert } from '../../../components/ui/ErrorAlert';
 import { SuccessView } from '../../../components/ui/SuccessView';
 import { LoadingButton } from '../../../components/ui/LoadingButton';
 import { Icons } from '../../../components/ui/icons';
-
-const validatePassword = (pwd: string) => {
-  if (pwd.length < 8) return false;
-  if (!/[A-Z]/.test(pwd)) return false;
-  if (!/[a-z]/.test(pwd)) return false;
-  if (!/[0-9]/.test(pwd)) return false;
-  return true;
-};
+import { usePasswordValidation } from '../../../hooks';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'success'>('idle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { password, setPassword: setPasswordAndValidate, isValid } = usePasswordValidation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validatePassword(password)) {
+    if (!isValid) {
       setError('密码长度至少 8 位，且同时包含大写字母、小写字母、数字');
       return;
     }
@@ -56,8 +49,8 @@ export default function RegisterPage() {
   };
 
   const handlePasswordChange = (val: string) => {
-    setPassword(val);
-    if (val && !validatePassword(val)) {
+    const validation = setPasswordAndValidate(val);
+    if (val && !validation.isValid) {
       setError('密码长度至少 8 位，且同时包含大写字母、小写字母、数字');
     } else {
       setError('');
