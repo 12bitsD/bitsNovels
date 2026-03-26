@@ -4,35 +4,31 @@
 
 ------
 
-## v0.3.2（2026-03-26）
-
 ## v0.3.3（2026-03-26）
 
-**变更类型：** Sprint 1 Epic-1 后端主链路转绿与看板同步
+**变更类型：** Sprint 1 全部完成，前后端测试全量通过
 
-### 后端实现
+### 功能完成
 
-- 完成 US-1.2 项目列表与仪表盘主链路：`GET /api/projects`、`GET /api/projects/:projectId`、`POST /api/projects/:projectId/archive`、`DELETE /api/projects/:projectId`
-- 完成 US-1.3 创建项目主链路：`POST /api/projects`（空白创建、字段校验、同用户重名约束、基础事务防护）
-- 新增并转绿 US-1.2 删除项目确认名测试场景，后端 `DELETE /api/projects/:projectId` 已实现确认名校验与删除后不可访问
+- US-1.1 FE+BE：注册 / 登录 / OAuth 页面与接口
+- US-1.2 FE+BE：项目列表与仪表盘页面与接口
+- US-1.3 FE+BE：创建新项目（3步向导）与接口
 
 ### 测试结果
 
-- `npm run test:backend` 通过（33 passed），覆盖率 92.12%
+- 后端：`npm run test:backend` 通过（33 passed），覆盖率 92%
+- 前端：`npm run test:web` 通过（28 passed），覆盖率 87%
+- API Types：`npm run test:api-types` 通过
+
+### 工程改进
+
+- 新增 `src/test/setup.ts`：JSDOM 环境 localStorage polyfill，修复 MSW 移除后的测试失败
+- 前端测试覆盖：LoginPage、RegisterPage、CreateProjectModal、ProjectDashboard 等组件
 
 ### 文档同步
 
-- 更新 `AGENTS.md` Sprint 1 看板：US-1.1/1.2/1.3 的 BE 状态改为 ✅
-- US-1.1 看板备注补充“契约已冻结（specs/epic-1/contract.md）”
-
----
-
-**变更类型：** VSCode 后端测试入口配置
-
-### 开发体验
-
-- 更新 `.vscode/settings.json`，将 Python 测试发现与执行目录固定到 `workspace/`
-- 新增 `.vscode/tasks.json`，提供后端 `pytest`、`mypy`、`ruff` 任务入口
+- 更新 `docs/SPRINT_LOG.md` Sprint 1 完成记录与复盘
+- `AGENTS.md` Sprint 1 看板全部标记 ✅
 
 ---
 

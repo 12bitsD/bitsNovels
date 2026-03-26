@@ -64,7 +64,7 @@
 
 **时间：** 2026-03-23 起（预计 2 周）
 
-**状态：** 🔄 进行中
+**状态：** ✅ 已完成
 
 ### Sprint Goal
 
@@ -76,11 +76,27 @@
 - [x] 配置 OpenAPI → openapi-typescript 类型生成流水线
 - [x] 搭建 CI/CD 基础流水线
 - [x] US-1.1 BE：注册 / 登录 / OAuth
-- [ ] US-1.1 FE：注册 / 登录页面
+- [x] US-1.1 FE：注册 / 登录页面
 - [x] US-1.2 BE：项目列表接口
-- [ ] US-1.2 FE：项目列表与仪表盘
+- [x] US-1.2 FE：项目列表与仪表盘
 - [x] US-1.3 BE：创建项目接口
-- [ ] US-1.3 FE：创建项目流程
+- [x] US-1.3 FE：创建项目流程
+
+### 已完成
+
+| 完成项 | 涉及文件 | 日期 |
+| --- | --- | --- |
+| US-1.1 FE：注册/登录/OAuth 页面 | src/features/epic-1/components/* | 2026-03-26 |
+| US-1.2 FE：项目列表与仪表盘 | src/features/epic-1/components/ProjectDashboard.tsx | 2026-03-26 |
+| US-1.3 FE：创建项目流程（3步向导） | src/features/epic-1/components/CreateProjectModal.tsx | 2026-03-26 |
+| 前端测试基建：MSW mock、localStorage polyfill | src/test/setup.ts, src/mocks/* | 2026-03-26 |
+| Sprint 1 前后端全链路测试通过 | npm test 全量通过 | 2026-03-26 |
+
+### 复盘
+
+- 做得好：BE+FE 并行开发，契约先行，TDD 基线已建立
+- 可改进：本地环境依赖安装繁琐（pip/python 版本），后续需优化
+- 下个 Sprint 调整：Sprint 2 可直接开始 US-1.4，基线已校准
 
 ### 开发支撑
 
