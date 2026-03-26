@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Frontend (Vite)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "--prefix", "workspace/apps/web", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "Backend (uvicorn)",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["--noprofile", "--norc", "-c", "cd workspace && /usr/bin/python3 -m uvicorn server.main:app --host 127.0.0.1 --port 8000 --reload"],
+      "port": 8000
+    }
+  ]
+}
