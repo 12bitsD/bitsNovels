@@ -4,6 +4,45 @@
 
 ------
 
+## v0.3.4（2026-03-26）
+
+**变更类型：** Sprint 1.5 前端架构重构（代号 A+B+C）
+
+### 前端重构完成
+
+- 新增 7 个共享 UI 组件（FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons）
+- 新增 3 个自定义 Hook（useApi、usePasswordValidation、useFocusTrap）
+- 新增 AuthContext + AuthProvider + useAuth() 全局认证状态管理
+- 8 个页面迁移至共享组件，消除 ~40% 代码重复
+- Emoji 图标全面替换为 Lucide React（琥珀色主题）
+- 新增跳过内容链接（WCAG 无障碍）、Modal 焦点陷阱
+
+### 测试结果
+
+- 前端：`npm run test` 通过（79 passed），覆盖率 84.5%
+- TypeScript：0 错误
+
+### 质量门禁修复
+
+- AuthContext logout 安全漏洞：登出后 API 客户端仍发送旧 Bearer token（已修复）
+- useFocusTrap 空 Modal 静默失焦（已修复）
+- 跳过链接目标为空 div（已修复）
+- prefer-const lint 错误（已修复）
+
+### 新增文件
+
+- `src/components/ui/` — 共享 UI 组件库
+- `src/hooks/` — 自定义 Hook（useApi、usePasswordValidation、useFocusTrap）
+- `src/contexts/AuthContext.tsx` — 全局认证 Context
+- `src/api/client.ts` — 新增 `setAuthTokenGetter()` 模式
+
+### 文档同步
+
+- 更新 `docs/superpowers/plans/2026-03-26-frontend-refactor.md` — 重构实施计划
+- 更新 `docs/superpowers/specs/2026-03-26-frontend-refactor-design.md` — 重构设计规范
+
+---
+
 ## v0.3.3（2026-03-26）
 
 **变更类型：** Sprint 1 全部完成，前后端测试全量通过

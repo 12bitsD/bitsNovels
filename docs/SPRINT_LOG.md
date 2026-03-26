@@ -116,6 +116,58 @@
 
 ***
 
+## Sprint 1.5 · 前端架构重构
+
+**时间：** 2026-03-26（半天）
+
+**状态：** ✅ 已完成
+
+### Sprint Goal
+
+将 Sprint 1 前端从"功能可用但粗糙"（6/10）提升至"专业质量"（8/10）。消除代码重复，建立共享组件库和全局状态管理。
+
+### 计划目标
+
+- [x] Round 1：共享 UI 组件层（FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons）
+- [x] Round 1：迁移 8 个页面至共享组件
+- [x] Round 2：自定义 Hook（useApi、usePasswordValidation）
+- [x] Round 3：AuthContext + AuthProvider + useAuth()
+- [x] Round 4：Lucide 图标全面替换 + 无障碍改进（跳过链接、焦点陷阱）
+
+### 已完成
+
+| 完成项 | 涉及文件 | 日期 |
+| --- | --- | --- |
+| 7 个共享 UI 组件（TDD 模式） | src/components/ui/ | 2026-03-26 |
+| 3 个自定义 Hook | src/hooks/ | 2026-03-26 |
+| AuthContext 全局认证状态 | src/contexts/AuthContext.tsx | 2026-03-26 |
+| 8 个页面迁移至共享组件 | src/features/epic-1/components/* | 2026-03-26 |
+| Lucide Icons + 无障碍 | src/components/ui/icons/, src/hooks/useFocusTrap.ts | 2026-03-26 |
+| 4 轮质量门禁评估 | subagent code review | 2026-03-26 |
+| 关键 bug 修复后合并至 main | — | 2026-03-26 |
+
+### 质量评估结果
+
+| Round | 质量评分 | 关键问题 |
+| --- | --- | --- |
+| R1 共享组件 | 6.5/10 | lint 错误、硬编码颜色、缺 autoComplete |
+| R2 Hooks | 5.5/10 | useApi 无 unmount guard、类型不安全 |
+| R3 AuthContext | 5.5/10 | **logout 后 token 泄漏（安全漏洞）** |
+| R4 A11y | 6/10 | 跳过链接为空 div、空 Modal 失焦 |
+| **合并前** | **全部修复** | 4 个关键 bug 已修复 |
+
+### 测试结果
+
+- 前端：`npm run test` — 79 passed，84.5% 覆盖率
+- TypeScript：`npm run typecheck` — 0 错误
+
+### 复盘
+
+- 做得好：4 轮渐进式迁移，每轮有质量门禁评估；子 agent 并行评估效率高
+- 可改进：质量评估在执行后补做，应在计划阶段就内置质量标准；部分 minor issue（autoComplete、hardcoded color）可随任务自然修复而非遗留
+
+***
+
 ## Sprint 2 · Epic 1 项目管理完整可用
 
 **预计时间：** Week 3-4

@@ -20,19 +20,36 @@
 
 ---
 
-## 当前任务看板（Sprint 1 · 校准 Sprint）
+## 当前任务看板（Sprint 1.5 · 前端架构重构）
 
 > 状态说明：🔲 待开始 / 🔄 进行中 / ✅ 完成 / 🚫 阻塞
 >
 > Sprint 1 目标：搭建脚手架 + 完成 US-1.1~1.3，用于校准 Agent 开发速度基线。
+> Sprint 1.5 目标：前端重构 A+B+C — 共享组件 + Hooks + AuthContext + Lucide + 无障碍。
 
 | 任务 | 描述 | BE | FE | 备注 |
 |------|------|----|----|------|
 | 脚手架 | FE+BE 项目初始化、CI/CD 基础、openapi-typescript 流水线 | ✅ | ✅ | 已完成 monorepo、工程层测试、CI、OpenAPI 类型生成 |
 | Sprint 1 测试基建 | 平台 + US-1.1/1.2/1.3 首批失败测试、Mock/Fixture 基座 | ✅ | ✅ | 已落地红灯测试集，MSW 拦截层搭建完毕 |
-| US-1.1 | 注册 / 登录 / OAuth | ✅ | ✅ | FE 纯 Mock 版已完工（TDD/覆盖率达标，注入设计规范） |
-| US-1.2 | 项目列表与仪表盘 | ✅ | ✅ | FE 纯 Mock 版已完工 |
-| US-1.3 | 创建新项目 | ✅ | ✅ | FE 纯 Mock 版已完工 |
+| US-1.1 | 注册 / 登录 / OAuth | ✅ | ✅ | FE+BE 均已完工（TDD/覆盖率达标，注入设计规范；FE 默认对接真实 BE API，MSW 仅用于测试） |
+| US-1.2 | 项目列表与仪表盘 | ✅ | ✅ | FE+BE 均已完工 |
+| US-1.3 | 创建新项目 | ✅ | ✅ | FE+BE 均已完工 |
+
+### Sprint 1.5 任务
+
+| 任务 | 描述 | FE | 备注 |
+|------|------|----|------|
+| 脚手架 | FE+BE 项目初始化、CI/CD 基础、openapi-typescript 流水线 | ✅ | 已完成 monorepo、工程层测试、CI、OpenAPI 类型生成 |
+| Sprint 1 测试基建 | 平台 + US-1.1/1.2/1.3 首批失败测试、Mock/Fixture 基座 | ✅ | 已落地红灯测试集，MSW 拦截层搭建完毕 |
+| US-1.1 | 注册 / 登录 / OAuth | ✅ | FE+BE 均已完工（TDD/覆盖率达标，注入设计规范） |
+| US-1.2 | 项目列表与仪表盘 | ✅ | FE+BE 均已完工 |
+| US-1.3 | 创建新项目 | ✅ | FE+BE 均已完工 |
+| R1 共享组件 | FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons | ✅ | 7 个组件，全部 TDD，79 测试通过 |
+| R2 Hooks | useApi、usePasswordValidation | ✅ | usePasswordValidation 优秀；useApi 需后续增强 unmount guard |
+| R3 AuthContext | AuthProvider + useAuth() + setAuthTokenGetter | ✅ | 含安全漏洞修复（logout token 泄漏） |
+| R4 无障碍 | 跳过内容链接、useFocusTrap、Lucide 全面替换 emoji | ✅ | 含 2 个 a11y bug 修复 |
+| 质量门禁 | 4 轮 subagent code review + 关键 bug 修复 | ✅ | 发现 4 个 critical issues，全部修复后合并 |
+| 合并至 main | feat/frontend-refactor → main | ✅ | 2026-03-26 |
 
 ---
 
@@ -41,6 +58,7 @@
 | Sprint | 时间 | US | 关键里程碑 |
 |--------|------|-----|----------|
 | **S1** | Week 1-2 | 脚手架 + US-1.1~1.3 | 校准 Sprint，跑出 Agent 开发速度基线 |
+| **S1.5** | 半天 | 前端重构 A+B+C | 共享组件 + Hooks + AuthContext + Lucide + 无障碍 |
 | **S2** | Week 3-4 | US-1.4 + 1.5 + 1.6 + 1.8 | Epic 1 项目管理完整可用 |
 | **S3** | Week 5-6 | **US-3.1（编辑器核心）** + **US-6.6（通知中心）** | 最高风险 US，独占 Sprint；通知基础设施同步建设 |
 | **S4** | Week 7-8 | US-3.2~3.6 + **US-2.1（Parser）** | 章节管理 + 知识库解析引擎上线 |
