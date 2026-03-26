@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { client } from '../../../api/client';
+import { useAuth } from '../../../contexts/AuthContext';
 import { Icons } from '../../../components/ui/icons';
 import { AuthCard } from '../../../components/ui/AuthCard';
 import { FormInput } from '../../../components/ui/FormInput';
@@ -12,31 +12,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     
     try {
-      const { data, error: apiError } = await client.POST('/api/auth/login', {
-        body: { email, password, remember_me: rememberMe }
-      });
-      
-      if (apiError) {
-        throw new Error((apiError as { detail?: string }).detail || '登录失败');
-      }
-      
-      if (data && data.token) {
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard');
-      }
+      await login(email, password, rememberMe);
+      navigate('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '登录失败');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -126,7 +113,7 @@ export default function LoginPage() {
 
         {error && <ErrorAlert error={error} />}
 
-        <LoadingButton loading={loading} loadingText="登录中...">
+        <LoadingButton loading={isLoading} loadingText="登录中...">
           登录
         </LoadingButton>
       </form>
