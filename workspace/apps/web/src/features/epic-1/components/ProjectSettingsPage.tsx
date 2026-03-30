@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckIcon } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { client } from '../../../api/client';
 import { FormInput } from '../../../components/ui/FormInput';
 import { ErrorAlert } from '../../../components/ui/ErrorAlert';
@@ -177,7 +177,7 @@ export default function ProjectSettingsPage() {
         {error && <ErrorAlert error={error} onDismiss={() => setError('')} className="mb-6" />}
         {success && (
           <div className="bg-success/10 text-success p-3 rounded-md text-sm border border-success/20 mb-6 flex items-center gap-2">
-            <CheckIcon size={16} />
+            <Check size={16} />
             {success}
           </div>
         )}
