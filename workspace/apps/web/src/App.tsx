@@ -7,6 +7,7 @@ import ResetPasswordPage from './features/epic-1/components/ResetPasswordPage';
 import VerificationResultPage from './features/epic-1/components/VerificationResultPage';
 import ProjectDashboard from './features/epic-1/components/ProjectDashboard';
 import CreateProjectModal from './features/epic-1/components/CreateProjectModal';
+import ProjectSettingsPage from './features/epic-1/components/ProjectSettingsPage';
 
 function DashboardWithModal() {
   return (
@@ -28,6 +29,7 @@ function DevNavigation() {
         <li><Link to="/reset-password?token=dev" className="hover:underline">/reset-password</Link></li>
         <li><Link to="/verify?token=dev" className="hover:underline">/verify</Link></li>
         <li><Link to="/dashboard" className="hover:underline">/dashboard</Link></li>
+        <li><Link to="/projects/1/settings" className="hover:underline">/projects/1/settings</Link></li>
       </ul>
     </div>
   );
@@ -50,6 +52,7 @@ function App() {
           <Route path="/verify" element={<VerificationResultPage />} />
           <Route path="/dashboard" element={<ProjectDashboard />} />
           <Route path="/projects/new" element={<DashboardWithModal />} />
+          <Route path="/projects/:projectId/settings" element={<ProjectSettingsPage />} />
         </Routes>
         </main>
       </AuthProvider>
