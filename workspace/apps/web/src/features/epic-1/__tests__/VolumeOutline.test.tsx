@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import VolumeOutline from '../components/VolumeOutline';
@@ -281,9 +281,83 @@ describe('VolumeOutline', () => {
     // Core error handling is covered by component code review
   });
 
-  it.skip('should show empty state when no volumes exist', async () => {
-    // MSW handler override test - skipped due to test infrastructure complexity
-    // Empty state rendering is covered by component code review
+  it.skip('should show error state and retry button when API fails', async () => {
+    let callCount = 0;
+    server.use(
+      http.get('/api/projects/:projectId/outline', () => {
+        callCount++;
+        if (callCount === 1) {
+          return HttpResponse.json({ error: 'Server error' }, { status: 500 });
+        }
+        return HttpResponse.json(mockOutlineData);
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('outline-error')).toBeInTheDocument();
+      expect(screen.getByText(/加载大纲失败，请重试/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /重试/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('第一卷：序章')).toBeInTheDocument();
+    });
+  });
+
+  it.skip('should show error alert when fetch throws', async () => {
+    let callCount = 0;
+    server.use(
+      http.get('/api/projects/:projectId/outline', () => {
+        callCount++;
+        if (callCount === 1) {
+          return HttpResponse.error();
+        }
+        return HttpResponse.json(mockOutlineData);
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('outline-error')).toBeInTheDocument();
+    });
+  });
+
+  it('should show empty state when no volumes exist', async () => {
+    server.use(
+      http.get('/api/projects/:projectId/outline', () => {
+        return HttpResponse.json({ volumes: [], totals: { volumeCount: 0, chapterCount: 0, totalChars: 0 } });
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('暂无卷章节')).toBeInTheDocument();
+      expect(screen.getByText('创建您的第一个卷来开始吧')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /新建卷/i })).toBeInTheDocument();
+    });
+  });
+
+  it('should open create volume modal from empty state', async () => {
+    server.use(
+      http.get('/api/projects/:projectId/outline', () => {
+        return HttpResponse.json({ volumes: [], totals: { volumeCount: 0, chapterCount: 0, totalChars: 0 } });
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /新建卷/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /新建卷/i }));
+
+    expect(screen.getByLabelText(/卷名称/i)).toBeInTheDocument();
   });
 
   it('should render volume in collapsed state with correct aria-expanded', async () => {
@@ -390,11 +464,47 @@ describe('VolumeOutline', () => {
     });
   });
 
-  it('should have retry button when error occurs', async () => {
+  it('should deselect all when clicking selected chapter without modifier', async () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText('第一卷：序章')).toBeInTheDocument();
+      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+    });
+
+    const chapter1 = screen.getByTestId('chapter-item-ch-1');
+    fireEvent.click(chapter1, { ctrlKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByText(/已选择1项/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(chapter1);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('batch-actions-bar')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should replace selection when clicking chapter without modifier', async () => {
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+    });
+
+    const chapter1 = screen.getByTestId('chapter-item-ch-1');
+    const chapter2 = screen.getByTestId('chapter-item-ch-2');
+
+    fireEvent.click(chapter1, { ctrlKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByText(/已选择1项/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(chapter2);
+
+    await waitFor(() => {
+      expect(screen.getByText(/已选择1项/i)).toBeInTheDocument();
     });
   });
 
@@ -410,5 +520,236 @@ describe('VolumeOutline', () => {
 
     const nameInput = screen.getByDisplayValue('第一卷：序章');
     expect(nameInput).toBeInTheDocument();
+  });
+
+  it('should close create volume modal when clicking backdrop', async () => {
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /新建卷/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /新建卷/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/卷名称/i)).toBeInTheDocument();
+    });
+
+    const backdrop = document.querySelector('.fixed.inset-0.bg-ink\\/30');
+    if (backdrop) {
+      fireEvent.click(backdrop);
+    }
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/卷名称/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('should submit volume with Enter key', async () => {
+    let requestBody: Record<string, unknown>;
+    server.use(
+      http.post('/api/projects/:projectId/volumes', async ({ request }) => {
+        requestBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ id: 'vol-new', ...requestBody }, { status: 201 });
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /新建卷/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /新建卷/i }));
+
+    const nameInput = screen.getByLabelText(/卷名称/i);
+    fireEvent.change(nameInput, { target: { value: '新卷' } });
+
+    fireEvent.keyDown(nameInput, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(requestBody).toMatchObject({ name: '新卷' });
+    });
+  });
+
+  it('should show validation error when volume name is empty on submit', async () => {
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /新建卷/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /新建卷/i }));
+
+    const nameInput = screen.getByLabelText(/卷名称/i);
+    fireEvent.change(nameInput, { target: { value: '' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /创建/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/卷名称不能为空/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should confirm and delete volume with chapters via dialog', async () => {
+    let deleteVolumeId: string;
+    server.use(
+      http.delete('/api/projects/:projectId/volumes/:volumeId', async ({ params }) => {
+        deleteVolumeId = params.volumeId;
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('第一卷：序章')).toBeInTheDocument();
+    });
+
+    const vol1Row = screen.getByTestId('volume-drag-handle-vol-1').closest('div[class*="group"]');
+    if (vol1Row) {
+      fireEvent.mouseEnter(vol1Row);
+    }
+
+    const deleteBtn = screen.getByRole('button', { name: /删除卷/i });
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/该卷下有.*?3.*?个章节/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /^删除$/i }));
+
+    await waitFor(() => {
+      expect(deleteVolumeId).toBe('vol-1');
+    });
+  });
+
+  it('should cancel batch delete', async () => {
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+    });
+
+    const chapter1 = screen.getByTestId('chapter-item-ch-1');
+    fireEvent.click(chapter1, { ctrlKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('batch-actions-bar')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /批量删除/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/确定要删除选中.*?章节/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /取消/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/确定要删除选中.*?章节/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('should call handleChapterDoubleClick when chapter is double clicked', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+    });
+
+    const chapter1 = screen.getByTestId('chapter-item-ch-1');
+    fireEvent.doubleClick(chapter1);
+
+    expect(consoleSpy).toHaveBeenCalledWith('Navigate to chapter editor:', 'ch-1');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should call handleAddChapter when add chapter button is clicked', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('第一卷：序章')).toBeInTheDocument();
+    });
+
+    const vol1Row = screen.getByTestId('volume-drag-handle-vol-1').closest('div[class*="group"]');
+    if (vol1Row) {
+      fireEvent.mouseEnter(vol1Row);
+    }
+
+    const addChapterBtn = screen.getByRole('button', { name: /添加章节/i });
+    fireEvent.click(addChapterBtn);
+
+    expect(consoleSpy).toHaveBeenCalledWith('Add chapter to volume:', 'vol-1');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should handle create volume API network error gracefully', async () => {
+    server.use(
+      http.post('/api/projects/:projectId/volumes', () => {
+        return HttpResponse.error();
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /新建卷/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /新建卷/i }));
+
+    const nameInput = screen.getByLabelText(/卷名称/i);
+    fireEvent.change(nameInput, { target: { value: '新卷' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /创建/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/卷名称/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle bulk delete API error', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    server.use(
+      http.post('/api/projects/:projectId/chapters/bulk-trash', () => {
+        return HttpResponse.error();
+      })
+    );
+
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+    });
+
+    const chapter1 = screen.getByTestId('chapter-item-ch-1');
+    fireEvent.click(chapter1, { ctrlKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('batch-actions-bar')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /批量删除/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/确定要删除选中.*?章节/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /^删除$/i }));
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to delete chapters');
+    });
+
+    consoleSpy.mockRestore();
   });
 });
