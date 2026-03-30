@@ -4,6 +4,25 @@
 
 ------
 
+## v0.3.6（2026-03-30）
+
+**变更类型：** Sprint 2 - US-1.8 项目归档 API
+
+### 后端新增
+
+- `POST /api/projects/:projectId/unarchive` — 取消归档，恢复项目为 active 状态
+- `server/routes/us18_archive.py` — US-1.8 路由模块
+- `server/tests/epic_1/test_us18_archive_red.py` — 6 个红灯测试（全部通过）
+- 归档项目默认在列表中隐藏（`status=archived` 时才可见）
+- 归档后 PATCH 请求返回 409 Conflict
+
+### 测试覆盖
+
+- 后端测试：38 passed（Sprint 2 epic_1）
+- us18_archive.py 覆盖率：89%
+
+---
+
 ## v0.3.5（2026-03-30）
 
 **变更类型：** Sprint 1.5 收尾质量加固
