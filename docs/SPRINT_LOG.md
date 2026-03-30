@@ -145,6 +145,7 @@
 | Lucide Icons + 无障碍 | src/components/ui/icons/, src/hooks/useFocusTrap.ts | 2026-03-26 |
 | 4 轮质量门禁评估 | subagent code review | 2026-03-26 |
 | 关键 bug 修复后合并至 main | — | 2026-03-26 |
+| Sprint 1.5 收尾：lint 修复 + 测试用例补充 | src/contexts/, src/hooks/ | 2026-03-30 |
 
 ### 质量评估结果
 
@@ -158,8 +159,9 @@
 
 ### 测试结果
 
-- 前端：`npm run test` — 79 passed，84.5% 覆盖率
+- 前端：`npm run test` — 90 passed，覆盖率 88.5% statement / 87.38% branch / 75.51% funcs / 89.58% lines
 - TypeScript：`npm run typecheck` — 0 错误
+- 新增 11 个测试用例（79 → 90 passed）
 
 ### 复盘
 

@@ -89,6 +89,54 @@ describe('CreateProjectModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /跳过并创建/i }));
 
     expect(await screen.findByText(/已有同名项目，请修改名称/)).toBeInTheDocument();
-    // Should bump back to step 1 automatically or show error
+  });
+
+  it('should go back from step 2 to step 1', async () => {
+    renderWithRouter(<CreateProjectModal onClose={() => {}} />);
+    
+    fireEvent.change(screen.getByLabelText(/项目名称/), { target: { value: 'My Novel' } });
+    fireEvent.click(screen.getByRole('button', { name: /下一步/i }));
+    expect(await screen.findByText(/项目结构/)).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByRole('button', { name: /返回上一步/i }));
+    expect(await screen.findByText(/基本信息/)).toBeInTheDocument();
+  });
+
+  it('should select template structure mode', async () => {
+    renderWithRouter(<CreateProjectModal onClose={() => {}} />);
+    
+    fireEvent.change(screen.getByLabelText(/项目名称/), { target: { value: 'My Novel' } });
+    fireEvent.click(screen.getByRole('button', { name: /下一步/i }));
+    
+    const templateOption = screen.getByText(/从模板开始/i).closest('div');
+    fireEvent.click(templateOption!);
+  });
+
+  it('should show error when API returns non-409 error', async () => {
+    server.use(
+      http.post('/api/projects', () => {
+        return new HttpResponse(JSON.stringify({ detail: '服务器内部错误' }), { status: 500 });
+      })
+    );
+
+    renderWithRouter(<CreateProjectModal onClose={() => {}} />);
+    
+    fireEvent.change(screen.getByLabelText(/项目名称/), { target: { value: 'Test Project' } });
+    fireEvent.click(screen.getByRole('button', { name: /下一步/i }));
+    fireEvent.click(screen.getByRole('button', { name: /下一步/i }));
+    fireEvent.click(screen.getByRole('button', { name: /跳过并创建/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/服务器内部错误/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should show validation error when name is only whitespace', async () => {
+    renderWithRouter(<CreateProjectModal onClose={() => {}} />);
+    
+    fireEvent.change(screen.getByLabelText(/项目名称/), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: /下一步/i }));
+    
+    expect(await screen.findByText(/项目名称不能为空/i)).toBeInTheDocument();
   });
 });

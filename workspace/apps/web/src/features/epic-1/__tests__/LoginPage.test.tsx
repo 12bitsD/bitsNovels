@@ -70,4 +70,29 @@ describe('LoginPage', () => {
 
     expect(await screen.findByText(/邮箱或密码错误/i)).toBeInTheDocument();
   });
+
+  it('navigates to register page when clicking "去注册"', async () => {
+    renderWithRouter(<LoginPage />);
+    const registerLink = screen.getByRole('link', { name: /去注册/i });
+    expect(registerLink).toHaveAttribute('href', '/register');
+  });
+
+  it('handles OAuth Google button click', async () => {
+    renderWithRouter(<LoginPage />);
+    const googleBtn = screen.getByRole('button', { name: /Google/i });
+    expect(googleBtn).toBeInTheDocument();
+  });
+
+  it('shows error and stays on page when login fails with generic error', async () => {
+    server.use(
+      http.post('/api/auth/login', () => {
+        return new HttpResponse(JSON.stringify({ detail: '登录失败' }), { status: 500 });
+      })
+    );
+    renderWithRouter(<LoginPage />);
+    fireEvent.change(screen.getByLabelText(/邮箱/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/密码/i), { target: { value: 'Password123' } });
+    fireEvent.click(screen.getByRole('button', { name: /^登录$/i }));
+    expect(await screen.findByText(/登录失败/i)).toBeInTheDocument();
+  });
 });

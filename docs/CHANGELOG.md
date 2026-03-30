@@ -4,6 +4,29 @@
 
 ------
 
+## v0.3.5（2026-03-30）
+
+**变更类型：** Sprint 1.5 收尾质量加固
+
+### 代码质量修复
+
+- AuthContext 重构：logout 时清除 token 泄漏漏洞（独立文件 `src/contexts/AuthContext.tsx`）
+- useFocusTrap 修复：空 Modal 场景静默失焦问题
+- useAuth Hook 拆分：从 AuthContext 独立，职责更清晰
+
+### 测试覆盖提升
+
+- 新增 11 个测试用例（79 → 90 passed）
+- 覆盖率提升：88.5% statement, 87.38% branch, 75.51% funcs, 89.58% lines
+- 所有 lint 错误已清除
+
+### 新增文件
+
+- `src/contexts/AuthContext.tsx` — 认证 Context 独立文件（含 logout token 泄漏修复）
+- `src/hooks/useAuth.ts` — useAuth Hook 独立文件
+
+---
+
 ## v0.3.4（2026-03-26）
 
 **变更类型：** Sprint 1.5 前端架构重构（代号 A+B+C）
