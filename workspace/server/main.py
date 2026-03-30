@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from server.config import get_settings
-from server.routes import us14_settings, us18_archive
+from server.routes import us14_settings, us15_outline, us16_goals, us18_archive
 
 
 class _FakeDb:
@@ -679,6 +679,8 @@ def create_project(
 
 
 app.include_router(us14_settings.router)
+app.include_router(us15_outline.router)
+app.include_router(us16_goals.router)
 app.include_router(us18_archive.router)
 
 
