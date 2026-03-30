@@ -1,22 +1,11 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { client, setAuthTokenGetter } from '../api/client';
+import { AuthContext } from './AuthContextValue';
 
 interface User {
   id: string;
   email: string;
 }
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  isVerified: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  logout: () => void;
-}
-
-export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -26,12 +15,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!token && !!user;
 
-  // Sync token to API client's getter — always set, including null on logout
   useEffect(() => {
     setAuthTokenGetter(() => token);
   }, [token]);
 
-  // Fetch user profile on mount if token exists
   useEffect(() => {
     if (!token) return;
 
@@ -84,5 +71,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-
