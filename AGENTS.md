@@ -57,7 +57,7 @@
 
 **时间：** Week 3-4（2026-03-30 起）
 
-**状态：** 🔄 进行中
+**状态：** ✅ 已完成
 
 ### Sprint 2 任务
 
@@ -68,9 +68,9 @@
 | US-1.5 | 卷章目录管理（卷CRUD/排序/软删除、章CRUD/跨卷移动/批量操作） | ✅ | ✅ | Task 4+7 完成，commit 667e43e |
 | US-1.6 | 写作目标设定（每日/总字数目标、截止日期、进度统计） | ✅ | ✅ | Task 5+8 完成，commit f2e412b |
 | US-1.8 | 项目归档（归档/取消归档、归档后只读） | ✅ | ✅ | Task 3+8 完成，commit 9d67cae |
-| E2E 测试 | US-1.4/1.5/1.8 E2E 覆盖 | — | 🔲 | Task 9 |
-| 质量门禁 | 4 轮 subagent code review + 关键 bug 修复 | 🔲 | 🔲 | |
-| 合并至 main | feat/sprint-2 → main | 🔲 | 🔲 | |
+| E2E 测试 | US-1.4/1.5/1.8 E2E 覆盖 | — | ✅ | Task 9 完成，commit 9da84b4 |
+| 质量门禁 | 4 轮 subagent code review + 关键 bug 修复 | ✅ | ✅ | Task 10 |
+| 合并至 main | feat/sprint-2 → main | ✅ | ✅ | 2026-03-30 |
 
 ---
 
