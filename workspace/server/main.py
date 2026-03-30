@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from server.config import get_settings
-from server.routes import us14_settings
+from server.routes import us14_settings, us18_archive
 
 
 class _FakeDb:
@@ -485,6 +485,8 @@ def list_projects(
         projects = [p for p in projects if p.get("type", "novel") == type]
     if status is not None:
         projects = [p for p in projects if p.get("status", "active") == status]
+    else:
+        projects = [p for p in projects if p.get("status", "active") != "archived"]
     if search:
         projects = [p for p in projects if search in p.get("name", "")]
     if sort in {"updatedAt", "createdAt", "name", "totalChars"}:
@@ -677,6 +679,7 @@ def create_project(
 
 
 app.include_router(us14_settings.router)
+app.include_router(us18_archive.router)
 
 
 if os.getenv("TESTING") == "true":
