@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import LoginPage from './features/epic-1/components/LoginPage';
 import RegisterPage from './features/epic-1/components/RegisterPage';
@@ -8,6 +8,7 @@ import VerificationResultPage from './features/epic-1/components/VerificationRes
 import ProjectDashboard from './features/epic-1/components/ProjectDashboard';
 import CreateProjectModal from './features/epic-1/components/CreateProjectModal';
 import ProjectSettingsPage from './features/epic-1/components/ProjectSettingsPage';
+import VolumeOutline from './features/epic-1/components/VolumeOutline';
 
 function DashboardWithModal() {
   return (
@@ -16,6 +17,12 @@ function DashboardWithModal() {
       <CreateProjectModal onClose={() => window.history.back()} />
     </>
   );
+}
+
+function OutlinePage() {
+  const { projectId } = useParams<{ projectId: string }>();
+  if (!projectId) return null;
+  return <VolumeOutline projectId={projectId} />;
 }
 
 function DevNavigation() {
@@ -30,6 +37,7 @@ function DevNavigation() {
         <li><Link to="/verify?token=dev" className="hover:underline">/verify</Link></li>
         <li><Link to="/dashboard" className="hover:underline">/dashboard</Link></li>
         <li><Link to="/projects/1/settings" className="hover:underline">/projects/1/settings</Link></li>
+        <li><Link to="/projects/1/outline" className="hover:underline">/projects/1/outline</Link></li>
       </ul>
     </div>
   );
@@ -53,6 +61,7 @@ function App() {
           <Route path="/dashboard" element={<ProjectDashboard />} />
           <Route path="/projects/new" element={<DashboardWithModal />} />
           <Route path="/projects/:projectId/settings" element={<ProjectSettingsPage />} />
+          <Route path="/projects/:projectId/outline" element={<OutlinePage />} />
         </Routes>
         </main>
       </AuthProvider>
