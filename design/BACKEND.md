@@ -161,7 +161,7 @@ SSE 逐字推送 → 前端展示 AI 生成内容（带标记）
 
 ## 6. 项目目录结构
 
-### 当前已落地（脚手架 + Sprint 1）
+### 当前已落地（脚手架 + Sprint 1 + Sprint 2）
 
 ```
 server/
@@ -169,18 +169,27 @@ server/
 ├── config.py               ← 环境变量 + 配置（Pydantic Settings）
 ├── openapi.json            ← 自动生成 OpenAPI 文档
 ├── __init__.py
+├── routes/                 ← 路由模块（Sprint 2 拆分）
+│   ├── us14_settings.py   ← 项目设置
+│   ├── us15_outline.py    ← 卷章目录
+│   ├── us16_goals.py      ← 写作目标
+│   └── us18_archive.py    ← 项目归档
 └── tests/                  ← 测试（FakeDb + TestClient）
-    ├── conftest.py          ← Pytest fixtures
+    ├── conftest.py          ← Pytest fixtures（已扩展 volumes/chapters/goals/writing_stats/trash）
     ├── test_app.py          ← 健康检查
-    ├── epic_1/              ← US-1.1~1.3 红灯测试
+    ├── epic_1/              ← US-1.1~1.8 红灯测试
     │   ├── test_us11_auth_red.py
     │   ├── test_us12_projects_list_red.py
-    │   └── test_us13_create_project_red.py
+    │   ├── test_us13_create_project_red.py
+    │   ├── test_us14_settings_red.py
+    │   ├── test_us15_outline_red.py
+    │   ├── test_us16_goals_red.py
+    │   └── test_us18_archive_red.py
     └── engineering/
         └── test_platform_contract_red.py
 ```
 
-> **说明**：当前使用内存 FakeDb 模拟数据库，待 Sprint 2+ 接入真实 PostgreSQL 后补充 `database.py`。
+> **说明**：当前使用内存 FakeDb 模拟数据库，待 V2 接入真实 PostgreSQL 后补充 `database.py`。
 
 ### 目标结构（后续 Sprint 逐步实现）
 

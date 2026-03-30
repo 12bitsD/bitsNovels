@@ -54,6 +54,7 @@ bitsNovels/
 
 - 应用入口：`workspace/server/main.py`
 - 环境配置：`workspace/server/config.py`
+- 路由模块（Sprint 2 拆分）：`workspace/server/routes/`（含 us14~18）
 - 健康检查契约来源：`workspace/server/openapi.json`
 - 测试入口：`workspace/server/tests/test_app.py`
 - Python 依赖与 pytest/mypy/ruff 配置：`workspace/pyproject.toml`
