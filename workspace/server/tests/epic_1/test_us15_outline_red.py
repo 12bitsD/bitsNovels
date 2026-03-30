@@ -49,6 +49,15 @@ def test_outline_returns_volumes_and_totals(client: TestClient) -> None:
         assert "order" in v
         assert "chapterCount" in v
         assert "totalChars" in v
+        for c in v.get("chapters", []):
+            assert "id" in c
+            assert "projectId" in c
+            assert "volumeId" in c
+            assert "title" in c
+            assert "order" in c
+            assert "chars" in c
+            assert "lastEditedAt" in c
+            assert "parserStatus" in c
 
 
 # ─── 2. POST /volumes ────────────────────────────────────────────────────────

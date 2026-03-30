@@ -211,7 +211,7 @@ def test_get_writing_stats_requires_auth(client: TestClient) -> None:
 
 
 def test_get_writing_stats_returns_required_fields(client: TestClient) -> None:
-    """Returns todayWrittenChars, trend30d, totalProgress."""
+    """Returns todayWrittenChars, trend30d, totalProgress, totalWrittenChars, totalTarget."""
     response = client.get(
         "/api/projects/project-a-1/writing-stats?range=30d",
         headers={"Authorization": "Bearer token-of-user-a"},
@@ -221,6 +221,8 @@ def test_get_writing_stats_returns_required_fields(client: TestClient) -> None:
     assert "todayWrittenChars" in body
     assert "trend30d" in body
     assert "totalProgress" in body
+    assert "totalWrittenChars" in body
+    assert "totalTarget" in body
     assert isinstance(body["trend30d"], list)
 
 

@@ -333,6 +333,8 @@ def get_writing_stats(
             "todayProgressPercent": today_progress_percent,
             "trend30d": trend30d,
             "totalProgress": total_progress,
+            "totalWrittenChars": total_chars,
+            "totalTarget": total_word_target,
             "estimatedCompletionDate": estimated_completion_date,
         },
     )

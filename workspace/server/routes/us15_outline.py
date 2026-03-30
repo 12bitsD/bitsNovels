@@ -91,10 +91,13 @@ def _volume_response(volume: dict[str, Any]) -> dict[str, Any]:
         "chapters": [
             {
                 "id": c["id"],
+                "projectId": c["projectId"],
+                "volumeId": c["volumeId"],
                 "title": c["title"],
                 "order": c["order"],
                 "chars": c.get("chars", 0),
                 "lastEditedAt": c.get("lastEditedAt"),
+                "parserStatus": c.get("parserStatus", "empty"),
             }
             for c in sorted(chapters, key=lambda x: x["order"])
         ],
