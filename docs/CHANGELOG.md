@@ -13,17 +13,26 @@
 - AuthContext 重构：logout 时清除 token 泄漏漏洞（独立文件 `src/contexts/AuthContext.tsx`）
 - useFocusTrap 修复：空 Modal 场景静默失焦问题
 - useAuth Hook 拆分：从 AuthContext 独立，职责更清晰
+- ProjectDashboard 修复：API 返回 `{ items: [] }` 格式兼容
 
 ### 测试覆盖提升
 
-- 新增 11 个测试用例（79 → 90 passed）
-- 覆盖率提升：88.5% statement, 87.38% branch, 75.51% funcs, 89.58% lines
-- 所有 lint 错误已清除
+- 前端单元测试：90 passed（79 → 90）
+  - 新增 11 个测试用例（RegisterPage、LoginPage、CreateProjectModal）
+  - 覆盖率：88.55% Stmts, 84.48% Branch, 75.51% Funcs, 89.69% Lines
+- E2E 联调测试：14 passed（新增 Playwright）
+  - US-1.1 Auth：7 tests（登录/注册/导航/真实 API）
+  - US-1.2/1.3 Dashboard + CreateProject：7 tests
+  - E2E 通过 Vite 代理直连真实后端，验证 FE→BE 全链路
+- 后端测试：33 passed
 
 ### 新增文件
 
-- `src/contexts/AuthContext.tsx` — 认证 Context 独立文件（含 logout token 泄漏修复）
+- `src/contexts/AuthContext.tsx` — 认证 Context 独立文件
 - `src/hooks/useAuth.ts` — useAuth Hook 独立文件
+- `e2e/auth.spec.ts` — Playwright E2E 认证测试
+- `e2e/projects.spec.ts` — Playwright E2E 项目测试
+- `playwright.config.ts` — Playwright 配置
 
 ---
 
