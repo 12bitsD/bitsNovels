@@ -559,7 +559,10 @@ def archive_project(
     project["status"] = "archived"
     project["archivedAt"] = _iso_z(_now())
     app.state.archived_project_ids.add(project_id)
-    return JSONResponse(status_code=200, content={"ok": True, "status": "archived"})
+    return JSONResponse(
+        status_code=200,
+        content={"ok": True, "status": "archived", "archivedAt": project["archivedAt"]},
+    )
 
 
 @app.patch("/api/projects/{project_id}")

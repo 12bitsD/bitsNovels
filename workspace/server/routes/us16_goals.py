@@ -316,10 +316,21 @@ def get_writing_stats(
                 est_date = now.date() + timedelta(days=days_needed)
                 estimated_completion_date = est_date.isoformat()
 
+    daily_word_target = goals.get("dailyWordTarget")
+    today_target = daily_word_target
+    if daily_word_target and daily_word_target > 0:
+        today_progress_percent = min(
+            100.0, (today_written_chars / daily_word_target) * 100
+        )
+    else:
+        today_progress_percent = None
+
     return JSONResponse(
         status_code=200,
         content={
             "todayWrittenChars": today_written_chars,
+            "todayTarget": today_target,
+            "todayProgressPercent": today_progress_percent,
             "trend30d": trend30d,
             "totalProgress": total_progress,
             "estimatedCompletionDate": estimated_completion_date,

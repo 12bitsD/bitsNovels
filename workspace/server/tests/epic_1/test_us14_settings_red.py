@@ -15,11 +15,20 @@ def test_get_settings_returns_project_and_stats(client: TestClient) -> None:
     body = response.json()
     assert "project" in body
     assert "stats" in body
+    assert "tabs" in body
     stats = body["stats"]
     assert "volumeCount" in stats
     assert "chapterCount" in stats
     assert "totalChars" in stats
     assert "kbEntryCount" in stats
+    tabs = body["tabs"]
+    assert isinstance(tabs, list)
+    assert len(tabs) == 4
+    tab_ids = [t["id"] for t in tabs]
+    assert "basic" in tab_ids
+    assert "goals" in tab_ids
+    assert "ai" in tab_ids
+    assert "backup" in tab_ids
 
 
 def test_patch_project_updates_name(client: TestClient) -> None:

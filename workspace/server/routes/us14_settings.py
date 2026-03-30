@@ -55,10 +55,18 @@ def get_project_settings(
         "kbEntryCount": kb_entries,
     }
 
+    tabs = [
+        {"id": "basic", "label": "基本信息"},
+        {"id": "goals", "label": "写作目标"},
+        {"id": "ai", "label": "AI 配置"},
+        {"id": "backup", "label": "备份与恢复"},
+    ]
+
     return JSONResponse(
         status_code=200,
         content={
             "project": _project_response_item(project),
             "stats": stats,
+            "tabs": tabs,
         },
     )
