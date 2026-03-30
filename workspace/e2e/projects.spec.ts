@@ -135,6 +135,47 @@ test.describe('US-1.4 Project Settings', () => {
     await expect(page.getByRole('button', { name: /归档项目/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /删除项目/i })).toBeVisible();
   });
+
+  test('edit project name and save successfully', async ({ page }) => {
+    const timestamp = Date.now();
+    const newProjectName = `测试项目_${timestamp}`;
+    
+    await page.goto('/projects/1/settings');
+    await page.waitForLoadState('networkidle');
+    
+    // Clear the input and enter new name
+    const nameInput = page.getByLabel(/项目名称/i);
+    await nameInput.clear();
+    await nameInput.fill(newProjectName);
+    
+    // Click save button
+    await page.getByRole('button', { name: /保存更改/i }).click();
+    
+    // Wait for success message
+    await expect(page.getByText(/项目信息已更新/i)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('edited project name appears in dashboard', async ({ page }) => {
+    const timestamp = Date.now();
+    const newProjectName = `仪表盘验证_${timestamp}`;
+    
+    // First, edit the project name in settings
+    await page.goto('/projects/1/settings');
+    await page.waitForLoadState('networkidle');
+    
+    const nameInput = page.getByLabel(/项目名称/i);
+    await nameInput.clear();
+    await nameInput.fill(newProjectName);
+    await page.getByRole('button', { name: /保存更改/i }).click();
+    await expect(page.getByText(/项目信息已更新/i)).toBeVisible({ timeout: 5000 });
+    
+    // Navigate to dashboard
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
+    
+    // Verify the new name appears in the project list
+    await expect(page.getByText(newProjectName)).toBeVisible();
+  });
 });
 
 test.describe('US-1.5 Volume Outline', () => {
