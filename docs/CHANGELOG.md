@@ -32,8 +32,8 @@
 
 ### 前端测试
 
-- 新增组件测试：VolumeOutline（21 tests）、WritingGoalPanel（12 tests）、ProjectSettingsPage（12 tests）
-- 前端覆盖率：~74%
+- 新增组件测试：VolumeOutline（27 tests）、WritingGoalPanel（12 tests）、ProjectSettingsPage（12 tests）
+- 前端覆盖率：79.63%
 
 ### 后端新增（US-1.4/1.5/1.6/1.8）
 
