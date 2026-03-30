@@ -44,7 +44,7 @@
 | US-1.1 | 注册 / 登录 / OAuth | ✅ | FE+BE 均已完工（TDD/覆盖率达标，注入设计规范） |
 | US-1.2 | 项目列表与仪表盘 | ✅ | FE+BE 均已完工 |
 | US-1.3 | 创建新项目 | ✅ | FE+BE 均已完工 |
-| R1 共享组件 | FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons | ✅ | 7 个组件，全部 TDD，79 测试通过 |
+| R1 共享组件 | FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons | ✅ | 7 个组件，全部 TDD，90 测试通过（v0.3.5 更新） |
 | R2 Hooks | useApi、usePasswordValidation | ✅ | usePasswordValidation 优秀；useApi 需后续增强 unmount guard |
 | R3 AuthContext | AuthProvider + useAuth() + setAuthTokenGetter | ✅ | 含安全漏洞修复（logout token 泄漏） |
 | R4 无障碍 | 跳过内容链接、useFocusTrap、Lucide 全面替换 emoji | ✅ | 含 2 个 a11y bug 修复 |
