@@ -6,7 +6,34 @@
 
 ## v0.3.6（2026-03-30）
 
-**变更类型：** Sprint 2 - Epic 1 项目管理 BE API 完成
+**变更类型：** Sprint 2 - Epic 1 项目管理完整可用（BE + FE）
+
+### 前端新增（US-1.4/1.5/1.6/1.8）
+
+**US-1.4 项目设置页面：**
+- `ProjectSettingsPage.tsx` — 4 Tab 导航（基本信息/写作目标/AI配置/备份恢复）
+- 基本信息表单 + 只读统计
+- 危险操作区：归档/删除按钮（二次确认）
+
+**US-1.5 卷章大纲：**
+- `VolumeOutline.tsx` — 树形结构 + @dnd-kit 拖拽排序
+- `VolumeItem.tsx` / `ChapterItem.tsx` — 可排序列表项
+- 支持跨卷移动、批量选择、展开/折叠
+
+**US-1.6 写作目标：**
+- `WritingGoalPanel.tsx` — 目标设置面板
+- `WritingTrendChart.tsx` — 30天趋势折线图（recharts）
+- `GoalProgressRing.tsx` — 总进度环形图
+- 目标达成轻量动画
+
+**US-1.8 归档 UI：**
+- 归档/取消归档按钮
+- 归档后黄色只读横幅
+
+### 前端测试
+
+- 新增组件测试：VolumeOutline（21 tests）、WritingGoalPanel（12 tests）、ProjectSettingsPage（12 tests）
+- 前端覆盖率：~74%
 
 ### 后端新增（US-1.4/1.5/1.6/1.8）
 
