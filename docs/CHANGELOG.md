@@ -6,20 +6,43 @@
 
 ## v0.3.6（2026-03-30）
 
-**变更类型：** Sprint 2 - US-1.8 项目归档 API
+**变更类型：** Sprint 2 - Epic 1 项目管理 BE API 完成
 
-### 后端新增
+### 后端新增（US-1.4/1.5/1.6/1.8）
 
-- `POST /api/projects/:projectId/unarchive` — 取消归档，恢复项目为 active 状态
-- `server/routes/us18_archive.py` — US-1.8 路由模块
-- `server/tests/epic_1/test_us18_archive_red.py` — 6 个红灯测试（全部通过）
+**US-1.4 项目设置：**
+- `GET /api/projects/:projectId/settings` — 获取项目设置与统计
+- `PATCH /api/projects/:projectId` — 更新项目基本信息
+- `DELETE /api/projects/:projectId` — 删除项目（含确认名校验）
+
+**US-1.5 卷章目录管理：**
+- `GET /api/projects/:projectId/outline` — 获取卷章大纲与统计
+- `POST /api/projects/:projectId/volumes` — 创建卷
+- `PATCH /api/projects/:projectId/volumes/:volumeId` — 更新卷
+- `DELETE /api/projects/:projectId/volumes/:volumeId` — 删除卷（章节移入回收站）
+- `POST /api/projects/:projectId/outline/reorder-volumes` — 卷排序
+- `POST /api/projects/:projectId/volumes/:volumeId/chapters` — 创建章节
+- `PATCH /api/projects/:projectId/chapters/:chapterId` — 更新章节
+- `POST /api/projects/:projectId/chapters/reorder` — 章节排序/跨卷移动
+- `POST /api/projects/:projectId/chapters/bulk-move` — 批量移动章节
+- `POST /api/projects/:projectId/chapters/bulk-trash` — 批量删除章节
+
+**US-1.6 写作目标设定：**
+- `GET /api/projects/:projectId/goals` — 获取写作目标
+- `PUT /api/projects/:projectId/goals` — 设置/更新目标（含范围校验）
+- `DELETE /api/projects/:projectId/goals` — 清除目标
+- `GET /api/projects/:projectId/writing-stats?range=30d` — 写作统计（趋势/进度/预计完成日期）
+
+**US-1.8 项目归档：**
+- `POST /api/projects/:projectId/archive` — 归档项目
+- `POST /api/projects/:projectId/unarchive` — 取消归档，恢复 active 状态
 - 归档项目默认在列表中隐藏（`status=archived` 时才可见）
 - 归档后 PATCH 请求返回 409 Conflict
 
 ### 测试覆盖
 
-- 后端测试：38 passed（Sprint 2 epic_1）
-- us18_archive.py 覆盖率：89%
+- 后端测试： Sprint 2 epic_1 全部通过
+- 新增路由模块：us14_settings.py, us15_outline.py, us16_goals.py, us18_archive.py
 
 ---
 
