@@ -22,7 +22,10 @@ export default function ProjectDashboard() {
 
   useEffect(() => {
     client.GET('/api/projects').then(({ data }) => {
-      if (data) setProjects(data);
+      if (data) {
+        const projectList = Array.isArray(data) ? data : (data.items || data.data || []);
+        setProjects(projectList);
+      }
       setLoading(false);
     });
   }, []);
