@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
 import { Icons } from '../../../components/ui/icons';
 import { AuthCard } from '../../../components/ui/AuthCard';
 import { FormInput } from '../../../components/ui/FormInput';

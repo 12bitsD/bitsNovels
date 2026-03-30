@@ -49,9 +49,10 @@ export function useFocusTrap(
       }
     };
 
-    ref.current.addEventListener('keydown', handleKeyDown);
+    const node = ref.current;
+    node.addEventListener('keydown', handleKeyDown);
     return () => {
-      ref.current?.removeEventListener('keydown', handleKeyDown);
+      node.removeEventListener('keydown', handleKeyDown);
       previousFocusRef.current?.focus();
     };
   }, [ref, active]);

@@ -1,6 +1,7 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../AuthContext';
+import { AuthProvider } from '../AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../test/setup';
 
