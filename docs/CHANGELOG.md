@@ -4,6 +4,55 @@
 
 ------
 
+## v0.3.7（2026-03-31）
+
+**变更类型：** Sprint 3 - 编辑器核心 + 通知基础设施（BE + FE）
+
+### 前端新增（US-3.1/6.6）
+
+**US-3.1 编辑器核心：**
+- `Editor.tsx` — TipTap 富文本编辑器（@tiptap/react + @tiptap/starter-kit）
+- `useAutoSave.ts` — 3秒防抖自动保存 + Ctrl+S手动保存
+- `StatusBar.tsx` — 实时字数统计 + 保存状态指示
+- `EditorWorkspace.tsx` — 编辑器工作区整合
+- Markdown 实时渲染（@tiptap/extension-markdown）
+- 撤销/重做 200步历史，500ms合并
+
+**US-6.6 通知中心：**
+- `NotificationBell.tsx` — 铃铛图标 + 红色未读角标
+- `NotificationPanel.tsx` — 下拉面板 + 5分类Tab
+- `NotificationItem.tsx` — 单条通知（13种类型图标）
+- `useNotifications.ts` — 分页查询 + 已读/删除管理
+- 无限滚动加载（每页20条）
+
+### 前端测试
+
+- 新增组件测试：useAutoSave（11 tests）、NotificationBell（12 tests）、NotificationPanel（15 tests）、NotificationItem（18 tests）
+- 前端覆盖率：71.19%（epic-3组件需补充测试）
+
+### 后端新增（US-3.1/6.6）
+
+**US-3.1 编辑器核心：**
+- `GET /api/projects/:projectId/chapters/:chapterId` — 获取章节内容与元数据
+- `PATCH /api/projects/:projectId/chapters/:chapterId` — 保存章节内容（auto/manual）
+- 服务端字数计算（中文+英文字符+数字）
+- 归档项目写入保护（409错误）
+
+**US-6.6 通知中心：**
+- `GET /api/me/notifications` — 分页查询通知（支持分类筛选）
+- `POST /api/me/notifications/:id/read` — 单条标记已读
+- `POST /api/me/notifications/read-all` — 全部标记已读
+- `DELETE /api/me/notifications/:id` — 删除单条通知
+- `DELETE /api/me/notifications?scope=read` — 清空已读通知
+- `GET /api/me/notifications/unread-count` — 获取未读数
+
+### 后端测试
+
+- 新增测试：test_us31_editor_red.py（7 tests）、test_us66_notifications_red.py（13 tests）
+- 后端覆盖率：92.41%
+
+------
+
 ## v0.3.6（2026-03-30）
 
 **变更类型：** Sprint 2 - Epic 1 项目管理完整可用（BE + FE）
