@@ -83,6 +83,12 @@ class FakeDB:
     writing_stats: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     trash_items: list[dict[str, Any]] = field(default_factory=list)
     failpoints: set[str] = field(default_factory=set)
+    # Sprint 3 fixtures: chapter_contents, notifications, snapshots
+    chapter_contents: dict[str, dict[str, Any]] = field(default_factory=dict)
+    notifications: list[dict[str, Any]] = field(default_factory=list)
+    snapshots: list[dict[str, Any]] = field(default_factory=list)
+    notification_counter: int = 0
+    snapshot_counter: int = 0
 
     def add_failpoint(self, name: str) -> None:
         self.failpoints.add(name)
@@ -181,6 +187,12 @@ def app_state(
     app.state.trash_items = []
     app.state.volume_counter = 0
     app.state.chapter_counter = 0
+    # Sprint 3 fixtures: chapter_contents, notifications, snapshots
+    app.state.chapter_contents = {}
+    app.state.notifications = []
+    app.state.notification_counter = 0
+    app.state.snapshots = []
+    app.state.snapshot_counter = 0
     # Default data for user-a project-a-1: one volume with one chapter
     now_iso = session_clock.now.isoformat().replace("+00:00", "Z")
     fake_db.volumes = [
@@ -220,6 +232,52 @@ def app_state(
         ]
     }
     fake_db.trash_items = []
+    now_iso = session_clock.now.isoformat().replace("+00:00", "Z")
+    fake_db.notifications = [
+        {
+            "id": "notif-a-1",
+            "userId": "user-a",
+            "type": "parse_done",
+            "title": "解析完成",
+            "body": "《A-1》知识库解析已完成",
+            "projectId": "project-a-1",
+            "read": False,
+            "createdAt": now_iso,
+            "actionTarget": {"kind": "project_settings", "projectId": "project-a-1"},
+        },
+        {
+            "id": "notif-a-2",
+            "userId": "user-a",
+            "type": "backup_done",
+            "title": "备份完成",
+            "body": "自动备份已完成",
+            "read": True,
+            "createdAt": now_iso,
+            "actionTarget": {"kind": "download"},
+        },
+        {
+            "id": "notif-a-3",
+            "userId": "user-a",
+            "type": "storage_warning",
+            "title": "存储空间警告",
+            "body": "存储使用率超过80%",
+            "read": False,
+            "createdAt": now_iso,
+            "actionTarget": {"kind": "storage_settings"},
+        },
+        {
+            "id": "notif-b-1",
+            "userId": "user-b",
+            "type": "parse_failed",
+            "title": "解析失败",
+            "body": "《B-1》知识库解析失败",
+            "projectId": "project-b-1",
+            "read": False,
+            "createdAt": now_iso,
+            "actionTarget": {"kind": "project_settings", "projectId": "project-b-1"},
+        },
+    ]
+    fake_db.notification_counter = 4
 
 
 @pytest.fixture

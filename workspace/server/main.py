@@ -9,7 +9,14 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from server.config import get_settings
-from server.routes import us14_settings, us15_outline, us16_goals, us18_archive
+from server.routes import (
+    us14_settings,
+    us15_outline,
+    us16_goals,
+    us18_archive,
+    us31_editor,
+    us66_notifications,
+)
 
 
 class _FakeDb:
@@ -685,6 +692,8 @@ app.include_router(us14_settings.router)
 app.include_router(us15_outline.router)
 app.include_router(us16_goals.router)
 app.include_router(us18_archive.router)
+app.include_router(us31_editor.router)
+app.include_router(us66_notifications.router)
 
 
 if os.getenv("TESTING") == "true":
