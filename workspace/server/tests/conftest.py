@@ -77,6 +77,11 @@ class SessionClock:
 class FakeDB:
     users: list[dict[str, str]] = field(default_factory=list)
     projects: list[dict[str, str]] = field(default_factory=list)
+    volumes: list[dict[str, Any]] = field(default_factory=list)
+    chapters: list[dict[str, Any]] = field(default_factory=list)
+    goals: dict[str, dict[str, Any]] = field(default_factory=dict)
+    writing_stats: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    trash_items: list[dict[str, Any]] = field(default_factory=list)
     failpoints: set[str] = field(default_factory=set)
 
     def add_failpoint(self, name: str) -> None:
@@ -168,6 +173,53 @@ def app_state(
     app.state.session_counter = 0
     app.state.project_counter = 100
     app.state.user_counter = 100
+    # Sprint 2 fixtures: volumes, chapters, goals, writing_stats, trash_items
+    app.state.volumes = []
+    app.state.chapters = []
+    app.state.goals = {}
+    app.state.writing_stats = {}
+    app.state.trash_items = []
+    app.state.volume_counter = 0
+    app.state.chapter_counter = 0
+    # Default data for user-a project-a-1: one volume with one chapter
+    now_iso = session_clock.now.isoformat().replace("+00:00", "Z")
+    fake_db.volumes = [
+        {
+            "id": "volume-a-1",
+            "projectId": "project-a-1",
+            "name": "第一卷",
+            "description": "",
+            "order": 0,
+            "ownerId": "user-a",
+        }
+    ]
+    fake_db.chapters = [
+        {
+            "id": "chapter-a-1",
+            "projectId": "project-a-1",
+            "volumeId": "volume-a-1",
+            "title": "第一章",
+            "order": 0,
+            "chars": 5000,
+            "lastEditedAt": now_iso,
+            "parserStatus": "parsed",
+        }
+    ]
+    fake_db.goals = {
+        "project-a-1": {
+            "dailyWordTarget": 3000,
+            "totalWordTarget": 500000,
+            "deadline": "2026-12-31",
+        }
+    }
+    # Writing stats for project-a-1: last 2 days
+    fake_db.writing_stats = {
+        "project-a-1": [
+            {"date": "2026-03-25", "writtenChars": 3500},
+            {"date": "2026-03-26", "writtenChars": 2800},
+        ]
+    }
+    fake_db.trash_items = []
 
 
 @pytest.fixture

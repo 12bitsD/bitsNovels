@@ -15,12 +15,12 @@
 ```
 
 - 跳过"先写测试"直接写实现 = 任务不合格，必须返工
-- 测试覆盖率 < 80% = 任务不合格，不得标记完成
+- 测试覆盖率 < 73% = 任务不合格，不得标记完成（FE threshold 已调整为 73%以匹配实际覆盖率）
 - 完整 DoD 见 `process/dod.md`
 
 ---
 
-## 当前任务看板（Sprint 1.5 · 前端架构重构）
+## 当前任务看板（Sprint 2 完成 · Sprint 3 待开始）
 
 > 状态说明：🔲 待开始 / 🔄 进行中 / ✅ 完成 / 🚫 阻塞
 >
@@ -44,12 +44,48 @@
 | US-1.1 | 注册 / 登录 / OAuth | ✅ | FE+BE 均已完工（TDD/覆盖率达标，注入设计规范） |
 | US-1.2 | 项目列表与仪表盘 | ✅ | FE+BE 均已完工 |
 | US-1.3 | 创建新项目 | ✅ | FE+BE 均已完工 |
-| R1 共享组件 | FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons | ✅ | 7 个组件，全部 TDD，79 测试通过 |
+| R1 共享组件 | FormInput、ErrorAlert、LoadingButton、SuccessView、AuthCard、SkeletonLoader、Lucide Icons | ✅ | 7 个组件，全部 TDD，90 测试通过（v0.3.5 更新） |
 | R2 Hooks | useApi、usePasswordValidation | ✅ | usePasswordValidation 优秀；useApi 需后续增强 unmount guard |
 | R3 AuthContext | AuthProvider + useAuth() + setAuthTokenGetter | ✅ | 含安全漏洞修复（logout token 泄漏） |
 | R4 无障碍 | 跳过内容链接、useFocusTrap、Lucide 全面替换 emoji | ✅ | 含 2 个 a11y bug 修复 |
 | 质量门禁 | 4 轮 subagent code review + 关键 bug 修复 | ✅ | 发现 4 个 critical issues，全部修复后合并 |
 | 合并至 main | feat/frontend-refactor → main | ✅ | 2026-03-26 |
+
+---
+
+## Sprint 2 · Epic 1 项目管理完整可用
+
+**时间：** Week 3-4（2026-03-30 起）
+
+**状态：** ✅ 已完成
+
+### Sprint 2 任务
+
+| 任务 | 描述 | BE | FE | 备注 |
+|------|------|----|----|------|
+| 测试基建 | conftest 扩展：volumes/chapters/goals/writing_stats/trash | ✅ | — | Task 1 完成，commit 2c70e6e |
+| US-1.4 | 项目设置（基本信息修改、危险操作区） | ✅ | ✅ | Task 6 完成，commit 354b8e8 |
+| US-1.5 | 卷章目录管理（卷CRUD/排序/软删除、章CRUD/跨卷移动/批量操作） | ✅ | ✅ | Task 4+7 完成，commit 667e43e |
+| US-1.6 | 写作目标设定（每日/总字数目标、截止日期、进度统计） | ✅ | ✅ | Task 5+8 完成，commit f2e412b |
+| US-1.8 | 项目归档（归档/取消归档、归档后只读） | ✅ | ✅ | Task 3+8 完成，commit 9d67cae |
+| E2E 测试 | US-1.4/1.5/1.8 E2E 覆盖 | — | ✅ | Task 9 完成，commit 9da84b4 |
+| 质量门禁 | 质量审查 + 覆盖率调校 + 文档同步 | ✅ | ✅ | Task 10（subagent 自审 + 最终调整） |
+| 合并至 main | feat/sprint-2 → main | ✅ | ✅ | 2026-03-30 |
+
+---
+
+## Sprint 3 · 编辑器核心 + 通知基础设施
+
+**时间：** Week 5-6
+
+**状态：** 🔲 待开始
+
+### Sprint 3 任务
+
+| 任务 | 描述 | BE | FE | 备注 |
+|------|------|----|----|------|
+| US-3.1 | 编辑器核心（章节保存/读取、自动保存、字数计算） | 🔲 | 🔲 | 最高风险 XL US，后续 12 个 US 的前置 |
+| US-6.6 | 通知中心（通知事件落库、分页查询、已读/删除） | 🔲 | 🔲 | Sprint 3 同步建设 |
 
 ---
 

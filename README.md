@@ -35,7 +35,7 @@
 
 ## 当前工程状态
 
-- 已完成 Sprint 1 脚手架：monorepo、FastAPI 健康检查、React 应用壳、OpenAPI → TypeScript 类型生成、CI
+- 已完成 Sprint 2（Epic 1 项目管理完整可用）：项目设置、卷章目录管理、写作目标、项目归档、E2E 测试覆盖
 - 所有工程代码统一收敛到：`workspace/`
 - 当前前端目录：`workspace/apps/web/`
 - 当前后端目录：`workspace/server/`

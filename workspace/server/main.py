@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from server.config import get_settings
+from server.routes import us14_settings, us15_outline, us16_goals, us18_archive
 
 
 class _FakeDb:
@@ -119,7 +120,12 @@ def _now() -> datetime:
 
 
 def _iso_z(ts: datetime) -> str:
-    return ts.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        ts.astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def _error(
@@ -157,7 +163,9 @@ def _next_id(counter_key: str, prefix: str) -> str:
     return f"{prefix}-{current}"
 
 
-def _ensure_user(email: str, password: str, auth_provider: str = "email") -> dict[str, Any]:
+def _ensure_user(
+    email: str, password: str, auth_provider: str = "email"
+) -> dict[str, Any]:
     existing_user_id = app.state.email_index.get(email)
     if existing_user_id is not None:
         return app.state.auth_users[existing_user_id]  # type: ignore[no-any-return]
@@ -222,7 +230,9 @@ def register(payload: RegisterRequest) -> JSONResponse:
     if not _email_valid(email):
         return _error(400, "EMAIL_INVALID", "Email format is invalid")
     if not _password_strong(payload.password):
-        return _error(400, "PASSWORD_WEAK", "Password does not meet complexity requirements")
+        return _error(
+            400, "PASSWORD_WEAK", "Password does not meet complexity requirements"
+        )
     if email in app.state.email_index:
         return _error(409, "EMAIL_DUPLICATED", "Email already exists")
     user = _ensure_user(email=email, password=payload.password)
@@ -349,7 +359,9 @@ def login(payload: LoginRequest) -> JSONResponse:
 
 
 @app.post("/api/auth/logout")
-def logout(authorization: Optional[str] = Header(default=None, alias="Authorization")) -> JSONResponse:
+def logout(
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+) -> JSONResponse:
     if authorization is None or not authorization.startswith("Bearer "):
         return _error(401, "UNAUTHORIZED", "Authentication required")
     token = authorization.split(" ", 1)[1]
@@ -386,7 +398,9 @@ def forgot_password(payload: ForgotPasswordRequest) -> dict[str, bool]:
 @app.post("/api/auth/reset-password")
 def reset_password(payload: ResetPasswordRequest) -> JSONResponse:
     if not _password_strong(payload.newPassword):
-        return _error(400, "PASSWORD_WEAK", "Password does not meet complexity requirements")
+        return _error(
+            400, "PASSWORD_WEAK", "Password does not meet complexity requirements"
+        )
     token_data = app.state.reset_tokens.get(payload.token)
     if token_data is None:
         return _error(410, "RESET_TOKEN_EXPIRED", "Reset token expired")
@@ -428,14 +442,18 @@ def oauth_callback(provider: str, code: str, state: str) -> Any:
     if oauth_stub is None:
         payload = {"email": "oauth@example.com", "nickname": "oauth-user"}
     else:
-        callback_payload = oauth_stub.callback(provider=provider, code=code, state=state)
+        callback_payload = oauth_stub.callback(
+            provider=provider, code=code, state=state
+        )
         payload = {
             "email": callback_payload.email.lower(),
             "nickname": callback_payload.nickname,
         }
     existing_user_id = app.state.email_index.get(payload["email"])
     if existing_user_id is None:
-        user = _ensure_user(email=payload["email"], password="OAuthPass1", auth_provider=provider)
+        user = _ensure_user(
+            email=payload["email"], password="OAuthPass1", auth_provider=provider
+        )
     else:
         user = app.state.auth_users[existing_user_id]
         user["authProvider"] = provider
@@ -467,6 +485,8 @@ def list_projects(
         projects = [p for p in projects if p.get("type", "novel") == type]
     if status is not None:
         projects = [p for p in projects if p.get("status", "active") == status]
+    else:
+        projects = [p for p in projects if p.get("status", "active") != "archived"]
     if search:
         projects = [p for p in projects if search in p.get("name", "")]
     if sort in {"updatedAt", "createdAt", "name", "totalChars"}:
@@ -500,7 +520,9 @@ def get_project(
     if isinstance(maybe_user_id, JSONResponse):
         return maybe_user_id
     user_id = maybe_user_id
-    project = next((p for p in app.state.fake_db.projects if p["id"] == project_id), None)
+    project = next(
+        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
+    )
     if project is None:
         return _error(404, "PROJECT_NOT_FOUND", "Project not found")
     if project["ownerId"] != user_id:
@@ -510,7 +532,10 @@ def get_project(
         content={
             "project": _project_response_item(project),
             "lastEditedChapterId": project.get("lastEditedChapterId"),
-            "permissions": {"read": True, "write": project_id not in app.state.archived_project_ids},
+            "permissions": {
+                "read": True,
+                "write": project_id not in app.state.archived_project_ids,
+            },
         },
     )
 
@@ -524,7 +549,9 @@ def archive_project(
     if isinstance(maybe_user_id, JSONResponse):
         return maybe_user_id
     user_id = maybe_user_id
-    project = next((p for p in app.state.fake_db.projects if p["id"] == project_id), None)
+    project = next(
+        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
+    )
     if project is None:
         return _error(404, "PROJECT_NOT_FOUND", "Project not found")
     if project["ownerId"] != user_id:
@@ -532,7 +559,10 @@ def archive_project(
     project["status"] = "archived"
     project["archivedAt"] = _iso_z(_now())
     app.state.archived_project_ids.add(project_id)
-    return JSONResponse(status_code=200, content={"ok": True, "status": "archived"})
+    return JSONResponse(
+        status_code=200,
+        content={"ok": True, "status": "archived", "archivedAt": project["archivedAt"]},
+    )
 
 
 @app.patch("/api/projects/{project_id}")
@@ -545,7 +575,9 @@ def patch_project(
     if isinstance(maybe_user_id, JSONResponse):
         return maybe_user_id
     user_id = maybe_user_id
-    project = next((p for p in app.state.fake_db.projects if p["id"] == project_id), None)
+    project = next(
+        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
+    )
     if project is None:
         return _error(404, "PROJECT_NOT_FOUND", "Project not found")
     if project["ownerId"] != user_id:
@@ -553,9 +585,15 @@ def patch_project(
     if project_id in app.state.archived_project_ids:
         return _error(409, "PROJECT_ARCHIVED_READ_ONLY", "Project is archived")
     if "name" in payload:
-        project["name"] = str(payload["name"]).strip()
+        name = str(payload["name"]).strip()
+        if len(name) < 1 or len(name) > 50:
+            return _error(400, "PROJECT_NAME_INVALID", "Project name is invalid")
+        project["name"] = name
         project["updatedAt"] = _iso_z(_now())
-    return JSONResponse(status_code=200, content={"ok": True, "project": _project_response_item(project)})
+    return JSONResponse(
+        status_code=200,
+        content={"ok": True, "project": _project_response_item(project)},
+    )
 
 
 @app.delete("/api/projects/{project_id}")
@@ -568,13 +606,19 @@ def delete_project(
     if isinstance(maybe_user_id, JSONResponse):
         return maybe_user_id
     user_id = maybe_user_id
-    project = next((p for p in app.state.fake_db.projects if p["id"] == project_id), None)
+    project = next(
+        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
+    )
     if project is None:
         return _error(404, "PROJECT_NOT_FOUND", "Project not found")
     if project["ownerId"] != user_id:
         return _error(403, "FORBIDDEN", "No permission for this project")
     if payload.confirmationName != project.get("name"):
-        return _error(400, "PROJECT_NAME_CONFIRMATION_MISMATCH", "Project confirmation name mismatch")
+        return _error(
+            400,
+            "PROJECT_NAME_CONFIRMATION_MISMATCH",
+            "Project confirmation name mismatch",
+        )
     app.state.fake_db.projects = [
         p for p in app.state.fake_db.projects if p["id"] != project_id
     ]
@@ -597,7 +641,9 @@ def create_project(
     if len(payload.tags) > 5 or any(tag not in PROJECT_TAGS for tag in payload.tags):
         return _error(400, "PROJECT_TAGS_INVALID", "Project tags are invalid")
     if payload.description is not None and len(payload.description) > 500:
-        return _error(400, "PROJECT_DESCRIPTION_TOO_LONG", "Project description is too long")
+        return _error(
+            400, "PROJECT_DESCRIPTION_TOO_LONG", "Project description is too long"
+        )
     duplicated = any(
         p["ownerId"] == user_id and p.get("name", "").strip() == name
         for p in app.state.fake_db.projects
@@ -633,6 +679,12 @@ def create_project(
             "importedEntryCount": 0,
         },
     )
+
+
+app.include_router(us14_settings.router)
+app.include_router(us15_outline.router)
+app.include_router(us16_goals.router)
+app.include_router(us18_archive.router)
 
 
 if os.getenv("TESTING") == "true":

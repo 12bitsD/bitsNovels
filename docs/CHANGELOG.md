@@ -4,6 +4,75 @@
 
 ------
 
+## v0.3.6（2026-03-30）
+
+**变更类型：** Sprint 2 - Epic 1 项目管理完整可用（BE + FE）
+
+### 前端新增（US-1.4/1.5/1.6/1.8）
+
+**US-1.4 项目设置页面：**
+- `ProjectSettingsPage.tsx` — 4 Tab 导航（基本信息/写作目标/AI配置/备份恢复）
+- 基本信息表单 + 只读统计
+- 危险操作区：归档/删除按钮（二次确认）
+
+**US-1.5 卷章大纲：**
+- `VolumeOutline.tsx` — 树形结构 + @dnd-kit 拖拽排序
+- `VolumeItem.tsx` / `ChapterItem.tsx` — 可排序列表项
+- 支持跨卷移动、批量选择、展开/折叠
+
+**US-1.6 写作目标：**
+- `WritingGoalPanel.tsx` — 目标设置面板
+- `WritingTrendChart.tsx` — 30天趋势折线图（recharts）
+- `GoalProgressRing.tsx` — 总进度环形图
+- 目标达成轻量动画
+
+**US-1.8 归档 UI：**
+- 归档/取消归档按钮
+- 归档后黄色只读横幅
+
+### 前端测试
+
+- 新增组件测试：VolumeOutline（33 tests）、WritingGoalPanel（14 tests）、ProjectSettingsPage（12 tests）
+- 前端覆盖率：79.63%
+
+### 后端新增（US-1.4/1.5/1.6/1.8）
+
+**US-1.4 项目设置：**
+- `GET /api/projects/:projectId/settings` — 获取项目设置与统计
+- `PATCH /api/projects/:projectId` — 更新项目基本信息
+- `DELETE /api/projects/:projectId` — 删除项目（含确认名校验）
+
+**US-1.5 卷章目录管理：**
+- `GET /api/projects/:projectId/outline` — 获取卷章大纲与统计
+- `POST /api/projects/:projectId/volumes` — 创建卷
+- `PATCH /api/projects/:projectId/volumes/:volumeId` — 更新卷
+- `DELETE /api/projects/:projectId/volumes/:volumeId` — 删除卷（章节移入回收站）
+- `POST /api/projects/:projectId/outline/reorder-volumes` — 卷排序
+- `POST /api/projects/:projectId/volumes/:volumeId/chapters` — 创建章节
+- `PATCH /api/projects/:projectId/chapters/:chapterId` — 更新章节
+- `POST /api/projects/:projectId/chapters/reorder` — 章节排序/跨卷移动
+- `POST /api/projects/:projectId/chapters/bulk-move` — 批量移动章节
+- `POST /api/projects/:projectId/chapters/bulk-trash` — 批量删除章节
+
+**US-1.6 写作目标设定：**
+- `GET /api/projects/:projectId/goals` — 获取写作目标
+- `PUT /api/projects/:projectId/goals` — 设置/更新目标（含范围校验）
+- `DELETE /api/projects/:projectId/goals` — 清除目标
+- `GET /api/projects/:projectId/writing-stats?range=30d` — 写作统计（趋势/进度/预计完成日期）
+
+**US-1.8 项目归档：**
+- `POST /api/projects/:projectId/archive` — 归档项目
+- `POST /api/projects/:projectId/unarchive` — 取消归档，恢复 active 状态
+- 归档项目默认在列表中隐藏（`status=archived` 时才可见）
+- 归档后 PATCH 请求返回 409 Conflict
+
+### 测试覆盖
+
+- 后端测试： Sprint 2 epic_1 全部通过
+- 新增路由模块：us14_settings.py, us15_outline.py, us16_goals.py, us18_archive.py
+
+---
+
 ## v0.3.5（2026-03-30）
 
 **变更类型：** Sprint 1.5 收尾质量加固
@@ -13,17 +82,26 @@
 - AuthContext 重构：logout 时清除 token 泄漏漏洞（独立文件 `src/contexts/AuthContext.tsx`）
 - useFocusTrap 修复：空 Modal 场景静默失焦问题
 - useAuth Hook 拆分：从 AuthContext 独立，职责更清晰
+- ProjectDashboard 修复：API 返回 `{ items: [] }` 格式兼容
 
 ### 测试覆盖提升
 
-- 新增 11 个测试用例（79 → 90 passed）
-- 覆盖率提升：88.5% statement, 87.38% branch, 75.51% funcs, 89.58% lines
-- 所有 lint 错误已清除
+- 前端单元测试：90 passed（79 → 90）
+  - 新增 11 个测试用例（RegisterPage、LoginPage、CreateProjectModal）
+  - 覆盖率：88.55% Stmts, 84.48% Branch, 75.51% Funcs, 89.69% Lines
+- E2E 联调测试：14 passed（新增 Playwright）
+  - US-1.1 Auth：7 tests（登录/注册/导航/真实 API）
+  - US-1.2/1.3 Dashboard + CreateProject：7 tests
+  - E2E 通过 Vite 代理直连真实后端，验证 FE→BE 全链路
+- 后端测试：33 passed
 
 ### 新增文件
 
-- `src/contexts/AuthContext.tsx` — 认证 Context 独立文件（含 logout token 泄漏修复）
+- `src/contexts/AuthContext.tsx` — 认证 Context 独立文件
 - `src/hooks/useAuth.ts` — useAuth Hook 独立文件
+- `e2e/auth.spec.ts` — Playwright E2E 认证测试
+- `e2e/projects.spec.ts` — Playwright E2E 项目测试
+- `playwright.config.ts` — Playwright 配置
 
 ---
 

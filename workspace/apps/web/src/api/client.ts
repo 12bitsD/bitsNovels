@@ -10,7 +10,7 @@ export function setAuthTokenGetter(getter: () => string | null) {
   authTokenRef.get = getter;
 }
 
-const request = async (method: 'GET' | 'POST', path: string, options?: RequestOptions) => {
+const request = async (method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, options?: RequestOptions) => {
   const token = authTokenRef.get();
   const response = await fetch(path, {
     method,
@@ -34,4 +34,7 @@ const request = async (method: 'GET' | 'POST', path: string, options?: RequestOp
 export const client = {
   GET: (path: string) => request('GET', path),
   POST: (path: string, options?: RequestOptions) => request('POST', path, options),
+  PUT: (path: string, options?: RequestOptions) => request('PUT', path, options),
+  PATCH: (path: string, options?: RequestOptions) => request('PATCH', path, options),
+  DELETE: (path: string, options?: RequestOptions) => request('DELETE', path, options),
 };
