@@ -385,3 +385,50 @@ def test_bulk_trash_ok(client: TestClient) -> None:
         c["id"] for v in outline.json()["volumes"] for c in v.get("chapters", [])
     ]
     assert ch_id not in all_ch_ids
+
+
+def test_bulk_move_rejected_over_max_limit(client: TestClient) -> None:
+    """Bulk move with more than 100 chapters returns 400 BULK_LIMIT_EXCEEDED."""
+    # Create target volume
+    r = client.post(
+        "/api/projects/project-a-1/volumes",
+        json={"name": "目标卷"},
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    target_vol_id = r.json()["volume"]["id"]
+
+    # Try to move 101 chapter IDs (more than MAX_BULK_ITEMS=100)
+    chapter_ids = [f"chapter-{i}" for i in range(101)]
+    response = client.post(
+        "/api/projects/project-a-1/chapters/bulk-move",
+        json={"chapterIds": chapter_ids, "targetVolumeId": target_vol_id},
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "BULK_LIMIT_EXCEEDED"
+
+
+def test_bulk_trash_rejected_over_max_limit(client: TestClient) -> None:
+    """Bulk trash with more than 100 chapters returns 400 BULK_LIMIT_EXCEEDED."""
+    # Try to trash 101 chapter IDs (more than MAX_BULK_ITEMS=100)
+    chapter_ids = [f"chapter-{i}" for i in range(101)]
+    response = client.post(
+        "/api/projects/project-a-1/chapters/bulk-trash",
+        json={"chapterIds": chapter_ids},
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "BULK_LIMIT_EXCEEDED"
+
+
+def test_reorder_chapters_rejected_over_max_limit(client: TestClient) -> None:
+    """Reorder with more than 100 chapters returns 400 BULK_LIMIT_EXCEEDED."""
+    # Try to reorder 101 chapter IDs (more than MAX_BULK_ITEMS=100)
+    chapter_ids = [f"chapter-{i}" for i in range(101)]
+    response = client.post(
+        "/api/projects/project-a-1/chapters/reorder",
+        json={"chapterIds": chapter_ids, "targetVolumeId": "volume-a-1"},
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "BULK_LIMIT_EXCEEDED"

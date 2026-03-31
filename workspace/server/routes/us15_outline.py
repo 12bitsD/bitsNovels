@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/projects", tags=["us-1.5"])
 
+MAX_BULK_ITEMS = 100
+
 
 class CreateVolumeRequest(BaseModel):
     name: Optional[str] = None
@@ -77,10 +79,18 @@ def _require_project(
     return project, None
 
 
-def _volume_response(volume: dict[str, Any]) -> dict[str, Any]:
+def _volume_response(
+    volume: dict[str, Any],
+    chapters_by_volume: Optional[dict[str, list[Any]]] = None,
+) -> dict[str, Any]:
     from server.main import app
 
-    chapters = [c for c in app.state.fake_db.chapters if c["volumeId"] == volume["id"]]
+    if chapters_by_volume is not None:
+        chapters = chapters_by_volume.get(volume["id"], [])
+    else:
+        chapters = [
+            c for c in app.state.fake_db.chapters if c["volumeId"] == volume["id"]
+        ]
     return {
         "id": volume["id"],
         "name": volume["name"],
@@ -138,7 +148,14 @@ def get_outline(
         [v for v in app.state.fake_db.volumes if v["projectId"] == project_id],
         key=lambda v: v["order"],
     )
-    volume_items = [_volume_response(v) for v in volumes]
+    # Pre-filter chapters by project once and group by volumeId for O(1) lookup
+    project_chapters = [
+        c for c in app.state.fake_db.chapters if c["projectId"] == project_id
+    ]
+    chapters_by_volume: dict[str, list[Any]] = {}
+    for c in project_chapters:
+        chapters_by_volume.setdefault(c["volumeId"], []).append(c)
+    volume_items = [_volume_response(v, chapters_by_volume) for v in volumes]
     totals = _outline_totals(project_id)
 
     return JSONResponse(
@@ -287,6 +304,8 @@ def delete_volume(
         return _error(404, "VOLUME_NOT_FOUND", "Volume not found")
 
     chapters = [c for c in app.state.fake_db.chapters if c["volumeId"] == volume_id]
+    # Collect chapter IDs to delete (O(C) instead of O(C²))
+    chapter_ids_to_delete = {ch["id"] for ch in chapters}
     now_iso = _iso_z(app.state.session_clock.now)
 
     for ch in chapters:
@@ -306,9 +325,11 @@ def delete_volume(
                 "snapshotCount": 0,
             }
         )
-        app.state.fake_db.chapters = [
-            c for c in app.state.fake_db.chapters if c["id"] != ch["id"]
-        ]
+
+    # Remove all chapters at once (O(C) instead of O(C²))
+    app.state.fake_db.chapters = [
+        c for c in app.state.fake_db.chapters if c["id"] not in chapter_ids_to_delete
+    ]
 
     app.state.fake_db.volumes = [
         v for v in app.state.fake_db.volumes if v["id"] != volume_id
@@ -339,6 +360,13 @@ def reorder_volumes(
     project, err = _require_project(project_id, user_id)
     if err is not None:
         return err
+
+    if len(payload.volumeIds) > MAX_BULK_ITEMS:
+        return _error(
+            400,
+            "BULK_LIMIT_EXCEEDED",
+            f"Maximum {MAX_BULK_ITEMS} items per request",
+        )
 
     volume_ids = payload.volumeIds
     project_volume_ids = {
@@ -526,6 +554,13 @@ def reorder_chapters(
     if err is not None:
         return err
 
+    if len(payload.chapterIds) > MAX_BULK_ITEMS:
+        return _error(
+            400,
+            "BULK_LIMIT_EXCEEDED",
+            f"Maximum {MAX_BULK_ITEMS} items per request",
+        )
+
     chapter_ids = payload.chapterIds
     target_volume_id = payload.targetVolumeId
 
@@ -575,6 +610,13 @@ def bulk_move_chapters(
     project, err = _require_project(project_id, user_id)
     if err is not None:
         return err
+
+    if len(payload.chapterIds) > MAX_BULK_ITEMS:
+        return _error(
+            400,
+            "BULK_LIMIT_EXCEEDED",
+            f"Maximum {MAX_BULK_ITEMS} items per request",
+        )
 
     chapter_ids = payload.chapterIds
     target_volume_id = payload.targetVolumeId
@@ -636,7 +678,16 @@ def bulk_trash_chapters(
     if err is not None:
         return err
 
+    if len(payload.chapterIds) > MAX_BULK_ITEMS:
+        return _error(
+            400,
+            "BULK_LIMIT_EXCEEDED",
+            f"Maximum {MAX_BULK_ITEMS} items per request",
+        )
+
     chapter_ids = payload.chapterIds
+    # Collect chapter IDs to trash (O(K) instead of O(K * C²))
+    ids_to_trash = set(chapter_ids)
     now_iso = _iso_z(app.state.session_clock.now)
 
     trashed = 0
@@ -670,9 +721,11 @@ def bulk_trash_chapters(
                     "snapshotCount": 0,
                 }
             )
-            app.state.fake_db.chapters = [
-                c for c in app.state.fake_db.chapters if c["id"] != ch_id
-            ]
             trashed += 1
+
+    # Remove all trashed chapters at once (O(C) instead of O(K * C²))
+    app.state.fake_db.chapters = [
+        c for c in app.state.fake_db.chapters if c["id"] not in ids_to_trash
+    ]
 
     return JSONResponse(status_code=200, content={"ok": True, "trashedCount": trashed})

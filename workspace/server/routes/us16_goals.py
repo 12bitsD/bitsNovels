@@ -103,6 +103,17 @@ def put_goals(
                 }
             },
         )
+    if project_id in app.state.archived_project_ids:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": {
+                    "code": "PROJECT_ARCHIVED_READ_ONLY",
+                    "message": "Project is archived",
+                    "details": {},
+                }
+            },
+        )
 
     daily = payload.get("dailyWordTarget")
     total = payload.get("totalWordTarget")
@@ -219,6 +230,17 @@ def delete_goals(
                 "error": {
                     "code": "FORBIDDEN",
                     "message": "No permission for this project",
+                    "details": {},
+                }
+            },
+        )
+    if project_id in app.state.archived_project_ids:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": {
+                    "code": "PROJECT_ARCHIVED_READ_ONLY",
+                    "message": "Project is archived",
                     "details": {},
                 }
             },

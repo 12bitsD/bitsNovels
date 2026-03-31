@@ -1,6 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WritingTrendChart } from './WritingTrendChart';
+
+// Module-level storage for mock props
+const mockPropsStore: Record<string, unknown> = {};
 
 vi.mock('recharts', () => {
   const actual = vi.importActual('recharts');
@@ -11,11 +14,11 @@ vi.mock('recharts', () => {
       return <div data-testid="line-chart">{rendered}</div>;
     }),
     Line: vi.fn((props) => {
-      (Line as ReturnType<typeof vi.fn>).lastProps = props;
+      mockPropsStore.Line = props;
       return null;
     }),
     XAxis: vi.fn((props) => {
-      (XAxis as ReturnType<typeof vi.fn>).lastProps = props;
+      mockPropsStore.XAxis = props;
       if (props.tickFormatter && typeof props.tickFormatter === 'function') {
         props.tickFormatter('2024-01-01');
         props.tickFormatter('2024-12-31');
@@ -23,7 +26,7 @@ vi.mock('recharts', () => {
       return null;
     }),
     YAxis: vi.fn((props) => {
-      (YAxis as ReturnType<typeof vi.fn>).lastProps = props;
+      mockPropsStore.YAxis = props;
       if (props.tickFormatter && typeof props.tickFormatter === 'function') {
         props.tickFormatter(0);
         props.tickFormatter(1000);
@@ -33,7 +36,7 @@ vi.mock('recharts', () => {
     }),
     CartesianGrid: vi.fn(() => null),
     Tooltip: vi.fn((props) => {
-      (Tooltip as ReturnType<typeof vi.fn>).lastProps = props;
+      mockPropsStore.Tooltip = props;
       if (props.labelFormatter && typeof props.labelFormatter === 'function') {
         props.labelFormatter('2024-01-01');
       }
@@ -48,8 +51,6 @@ vi.mock('recharts', () => {
     )),
   };
 });
-
-import { Line, XAxis, YAxis, Tooltip } from 'recharts';
 
 describe('WritingTrendChart', () => {
   const mockData = [
@@ -117,15 +118,16 @@ describe('WritingTrendChart', () => {
   describe('XAxis tickFormatter', () => {
     it('should format date correctly', () => {
       render(<WritingTrendChart data={mockData} />);
-      const xAxisProps = (XAxis as ReturnType<typeof vi.fn>).lastProps;
+      const xAxisProps = mockPropsStore.XAxis as Record<string, unknown>;
       expect(xAxisProps).toBeDefined();
       expect(xAxisProps.dataKey).toBe('date');
-      expect(xAxisProps.tickFormatter('2024-01-15')).toBe('1/15');
+      expect((xAxisProps.tickFormatter as (v: string) => string)('2024-01-15')).toBe('1/15');
     });
 
     it('should have correct stroke and fontSize props', () => {
       render(<WritingTrendChart data={mockData} />);
-      const xAxisProps = (XAxis as ReturnType<typeof vi.fn>).lastProps;
+      const xAxisProps = mockPropsStore.XAxis as Record<string, unknown>;
+      expect(xAxisProps).toBeDefined();
       expect(xAxisProps.stroke).toBe('var(--color-ink-light)');
       expect(xAxisProps.fontSize).toBe(11);
       expect(xAxisProps.tickLine).toBe(false);
@@ -136,16 +138,17 @@ describe('WritingTrendChart', () => {
   describe('YAxis tickFormatter', () => {
     it('should format value in thousands (k)', () => {
       render(<WritingTrendChart data={mockData} />);
-      const yAxisProps = (YAxis as ReturnType<typeof vi.fn>).lastProps;
+      const yAxisProps = mockPropsStore.YAxis as Record<string, unknown>;
       expect(yAxisProps).toBeDefined();
-      expect(yAxisProps.tickFormatter(0)).toBe('0k');
-      expect(yAxisProps.tickFormatter(1000)).toBe('1k');
-      expect(yAxisProps.tickFormatter(15000)).toBe('15k');
+      expect((yAxisProps.tickFormatter as (v: number) => string)(0)).toBe('0k');
+      expect((yAxisProps.tickFormatter as (v: number) => string)(1000)).toBe('1k');
+      expect((yAxisProps.tickFormatter as (v: number) => string)(15000)).toBe('15k');
     });
 
     it('should have correct styling props', () => {
       render(<WritingTrendChart data={mockData} />);
-      const yAxisProps = (YAxis as ReturnType<typeof vi.fn>).lastProps;
+      const yAxisProps = mockPropsStore.YAxis as Record<string, unknown>;
+      expect(yAxisProps).toBeDefined();
       expect(yAxisProps.stroke).toBe('var(--color-ink-light)');
       expect(yAxisProps.fontSize).toBe(11);
       expect(yAxisProps.tickLine).toBe(false);
@@ -156,21 +159,23 @@ describe('WritingTrendChart', () => {
   describe('Tooltip formatter', () => {
     it('should have correct labelFormatter', () => {
       render(<WritingTrendChart data={mockData} />);
-      const tooltipProps = (Tooltip as ReturnType<typeof vi.fn>).lastProps;
+      const tooltipProps = mockPropsStore.Tooltip as Record<string, unknown>;
       expect(tooltipProps).toBeDefined();
-      expect(tooltipProps.labelFormatter('2024-01-01')).toBe('1月1日');
+      expect((tooltipProps.labelFormatter as (v: string) => string)('2024-01-01')).toBe('1月1日');
     });
 
     it('should have correct formatter for writing characters', () => {
       render(<WritingTrendChart data={mockData} />);
-      const tooltipProps = (Tooltip as ReturnType<typeof vi.fn>).lastProps;
-      expect(tooltipProps.formatter(2000)).toEqual(['2,000 字', '写作字数']);
-      expect(tooltipProps.formatter(150000)).toEqual(['150,000 字', '写作字数']);
+      const tooltipProps = mockPropsStore.Tooltip as Record<string, unknown>;
+      expect(tooltipProps).toBeDefined();
+      expect((tooltipProps.formatter as (v: number) => [string, string])(2000)).toEqual(['2,000 字', '写作字数']);
+      expect((tooltipProps.formatter as (v: number) => [string, string])(150000)).toEqual(['150,000 字', '写作字数']);
     });
 
     it('should have correct contentStyle', () => {
       render(<WritingTrendChart data={mockData} />);
-      const tooltipProps = (Tooltip as ReturnType<typeof vi.fn>).lastProps;
+      const tooltipProps = mockPropsStore.Tooltip as Record<string, unknown>;
+      expect(tooltipProps).toBeDefined();
       expect(tooltipProps.contentStyle).toEqual({
         backgroundColor: 'var(--color-white)',
         border: '1px solid var(--color-border)',
@@ -184,7 +189,7 @@ describe('WritingTrendChart', () => {
   describe('Line configuration', () => {
     it('should have correct line props', () => {
       render(<WritingTrendChart data={mockData} />);
-      const lineProps = (Line as ReturnType<typeof vi.fn>).lastProps;
+      const lineProps = mockPropsStore.Line as Record<string, unknown>;
       expect(lineProps).toBeDefined();
       expect(lineProps.type).toBe('monotone');
       expect(lineProps.dataKey).toBe('writtenChars');
@@ -214,9 +219,10 @@ describe('WritingTrendChart', () => {
         { date: '2024-01-02', writtenChars: 800 },
       ];
       render(<WritingTrendChart data={smallData} />);
-      const yAxisProps = (YAxis as ReturnType<typeof vi.fn>).lastProps;
-      expect(yAxisProps.tickFormatter(500)).toBe('1k');
-      expect(yAxisProps.tickFormatter(800)).toBe('1k');
+      const yAxisProps = mockPropsStore.YAxis as Record<string, unknown>;
+      expect(yAxisProps).toBeDefined();
+      expect((yAxisProps.tickFormatter as (v: number) => string)(500)).toBe('1k');
+      expect((yAxisProps.tickFormatter as (v: number) => string)(800)).toBe('1k');
     });
 
     it('should handle values exactly at thousand boundaries', () => {
@@ -225,16 +231,18 @@ describe('WritingTrendChart', () => {
         { date: '2024-01-02', writtenChars: 2000 },
       ];
       render(<WritingTrendChart data={exactData} />);
-      const yAxisProps = (YAxis as ReturnType<typeof vi.fn>).lastProps;
-      expect(yAxisProps.tickFormatter(1000)).toBe('1k');
-      expect(yAxisProps.tickFormatter(2000)).toBe('2k');
+      const yAxisProps = mockPropsStore.YAxis as Record<string, unknown>;
+      expect(yAxisProps).toBeDefined();
+      expect((yAxisProps.tickFormatter as (v: number) => string)(1000)).toBe('1k');
+      expect((yAxisProps.tickFormatter as (v: number) => string)(2000)).toBe('2k');
     });
 
     it('should handle month boundary in XAxis tickFormatter', () => {
       render(<WritingTrendChart data={mockData} />);
-      const xAxisProps = (XAxis as ReturnType<typeof vi.fn>).lastProps;
-      expect(xAxisProps.tickFormatter('2024-12-31')).toBe('12/31');
-      expect(xAxisProps.tickFormatter('2024-01-01')).toBe('1/1');
+      const xAxisProps = mockPropsStore.XAxis as Record<string, unknown>;
+      expect(xAxisProps).toBeDefined();
+      expect((xAxisProps.tickFormatter as (v: string) => string)('2024-12-31')).toBe('12/31');
+      expect((xAxisProps.tickFormatter as (v: string) => string)('2024-01-01')).toBe('1/1');
     });
   });
 });

@@ -158,6 +158,23 @@ def test_put_goals_requires_auth(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+def test_put_goals_rejected_for_archived_project(client: TestClient) -> None:
+    """PUT goals on archived project returns 409 PROJECT_ARCHIVED_READ_ONLY."""
+    # Archive the project
+    client.post(
+        "/api/projects/project-a-1/archive",
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    # Try to update goals
+    response = client.put(
+        "/api/projects/project-a-1/goals",
+        json={"dailyWordTarget": 5000},
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "PROJECT_ARCHIVED_READ_ONLY"
+
+
 # ==============================================================================
 # DELETE /api/projects/:projectId/goals
 # ==============================================================================
@@ -167,6 +184,22 @@ def test_delete_goals_requires_auth(client: TestClient) -> None:
     """DELETE without auth returns 401."""
     response = client.delete("/api/projects/project-a-1/goals")
     assert response.status_code == 401
+
+
+def test_delete_goals_rejected_for_archived_project(client: TestClient) -> None:
+    """DELETE goals on archived project returns 409 PROJECT_ARCHIVED_READ_ONLY."""
+    # Archive the project
+    client.post(
+        "/api/projects/project-a-1/archive",
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    # Try to delete goals
+    response = client.delete(
+        "/api/projects/project-a-1/goals",
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "PROJECT_ARCHIVED_READ_ONLY"
 
 
 def test_delete_goals_clears_all_goals(client: TestClient) -> None:

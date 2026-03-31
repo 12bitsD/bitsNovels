@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import VolumeOutline from '../components/VolumeOutline';
@@ -595,7 +595,7 @@ describe('VolumeOutline', () => {
     let deleteVolumeId: string;
     server.use(
       http.delete('/api/projects/:projectId/volumes/:volumeId', async ({ params }) => {
-        deleteVolumeId = params.volumeId;
+        deleteVolumeId = params.volumeId as string;
         return HttpResponse.json({ success: true });
       })
     );

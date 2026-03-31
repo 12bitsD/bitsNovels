@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VolumeItem, type Volume } from './VolumeItem';
-import { ChapterSummary } from './ChapterItem';
+import type { ChapterSummary } from './ChapterItem';
 
 // Mock @dnd-kit modules
 vi.mock('@dnd-kit/sortable', () => ({
