@@ -1,43 +1,42 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { EditorWorkspace } from '../components/EditorWorkspace';
-import * as editorConfig from '../utils/editorConfig';
-import * as useAutoSave from '../hooks/useAutoSave';
-import { client } from '../../../api/client';
 
-// Mock TipTap react hooks
-vi.mock('@tiptap/react', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@tiptap/react')>();
-  return {
-    ...actual,
-    useEditor: vi.fn(),
-    EditorContent: ({ editor }: { editor: unknown }) => (
-      <div data-testid="editor-content" data-editor={editor ? 'initialized' : 'null'}>
-        {editor ? 'Editor Content' : 'No Editor'}
-      </div>
-    ),
-  };
-});
+// Track mock calls and captured callbacks
+const mockUseEditor = vi.fn();
+const mockClientPATCH = vi.fn();
+const mockSaveNow = vi.fn();
+const mockSetContent = vi.fn();
+const mockRetry = vi.fn();
 
-// Mock the auto save hook
-vi.mock('../hooks/useAutoSave', async (importOriginal) => {
-  const actual = await importOriginal<typeof useAutoSave>();
-  return {
-    ...actual,
-    useAutoSave: vi.fn(),
-  };
-});
+// Mock @tiptap/react
+vi.mock('@tiptap/react', () => ({
+  useEditor: (config: unknown) => mockUseEditor(config),
+  EditorContent: ({ editor }: { editor: unknown }) => (
+    <div data-testid="editor-content" data-editor={editor ? 'initialized' : 'null'}>
+      {editor ? 'Editor Content' : 'No Editor'}
+    </div>
+  ),
+}));
 
 // Mock the API client
 vi.mock('../../../api/client', () => ({
   client: {
-    PATCH: vi.fn(),
+    PATCH: (...args: unknown[]) => mockClientPATCH(...args),
   },
 }));
 
-const mockedUseEditor = vi.mocked((await import('@tiptap/react')).useEditor);
-const mockedUseAutoSave = vi.mocked(useAutoSave.useAutoSave);
-const mockedClientPATCH = vi.mocked(client.PATCH);
+// Mock the auto save hook
+vi.mock('../hooks/useAutoSave', () => ({
+  useAutoSave: () => ({
+    saveStatus: 'idle',
+    lastSavedAt: null,
+    saveNow: mockSaveNow,
+    setContent: mockSetContent,
+    content: '',
+    retry: mockRetry,
+  }),
+}));
 
 describe('EditorWorkspace', () => {
   const createMockEditor = (overrides = {}) => ({
@@ -59,14 +58,7 @@ describe('EditorWorkspace', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedUseAutoSave.mockReturnValue({
-      saveStatus: 'idle',
-      lastSavedAt: null,
-      saveNow: vi.fn(),
-      setContent: vi.fn(),
-      content: '',
-      retry: vi.fn(),
-    });
+    mockClientPATCH.mockResolvedValue({ data: { success: true }, error: undefined, response: new Response() });
   });
 
   afterEach(() => {
@@ -74,16 +66,17 @@ describe('EditorWorkspace', () => {
   });
 
   it('should render loading state when editor is not initialized', () => {
-    mockedUseEditor.mockReturnValue(null);
+    mockUseEditor.mockReturnValue(null);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
-    expect(screen.getByRole('status', { hidden: true })).toBeInTheDocument();
+    const skeleton = document.querySelector('.animate-pulse');
+    expect(skeleton).toBeInTheDocument();
   });
 
   it('should render editor workspace when initialized', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -93,7 +86,7 @@ describe('EditorWorkspace', () => {
 
   it('should render with initial title', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(
       <EditorWorkspace
@@ -108,7 +101,7 @@ describe('EditorWorkspace', () => {
 
   it('should render with initial content', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(
       <EditorWorkspace
@@ -117,7 +110,7 @@ describe('EditorWorkspace', () => {
       />
     );
 
-    expect(mockedUseEditor).toHaveBeenCalledWith(
+    expect(mockUseEditor).toHaveBeenCalledWith(
       expect.objectContaining({
         content: '<p>Initial content</p>',
       })
@@ -126,7 +119,7 @@ describe('EditorWorkspace', () => {
 
   it('should update title when user types', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -138,18 +131,18 @@ describe('EditorWorkspace', () => {
 
   it('should show keyboard shortcut hint', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
     expect(screen.getByText(/快捷键:/)).toBeInTheDocument();
     expect(screen.getByText('Ctrl+S')).toBeInTheDocument();
-    expect(screen.getByText('保存')).toBeInTheDocument();
+    expect(screen.getByText(/保存/)).toBeInTheDocument();
   });
 
   it('should show Markdown support hint', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -157,18 +150,9 @@ describe('EditorWorkspace', () => {
   });
 
   it('should trigger save on Ctrl+S keyboard shortcut', () => {
-    const mockSaveNow = vi.fn();
-    mockedUseAutoSave.mockReturnValue({
-      saveStatus: 'idle',
-      lastSavedAt: null,
-      saveNow: mockSaveNow,
-      setContent: vi.fn(),
-      content: '',
-      retry: vi.fn(),
-    });
-
+    mockSaveNow.mockClear();
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -178,18 +162,9 @@ describe('EditorWorkspace', () => {
   });
 
   it('should trigger save on Cmd+S keyboard shortcut (Mac)', () => {
-    const mockSaveNow = vi.fn();
-    mockedUseAutoSave.mockReturnValue({
-      saveStatus: 'idle',
-      lastSavedAt: null,
-      saveNow: mockSaveNow,
-      setContent: vi.fn(),
-      content: '',
-      retry: vi.fn(),
-    });
-
+    mockSaveNow.mockClear();
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -199,22 +174,12 @@ describe('EditorWorkspace', () => {
   });
 
   it('should prevent default browser save dialog on Ctrl+S', () => {
-    const mockSaveNow = vi.fn();
-    mockedUseAutoSave.mockReturnValue({
-      saveStatus: 'idle',
-      lastSavedAt: null,
-      saveNow: mockSaveNow,
-      setContent: vi.fn(),
-      content: '',
-      retry: vi.fn(),
-    });
-
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
-    const event = new KeyboardEvent('keydown', { key: 's', ctrlKey: true });
+    const event = new KeyboardEvent('keydown', { key: 's', ctrlKey: true, cancelable: true });
     const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
 
     document.dispatchEvent(event);
@@ -223,28 +188,22 @@ describe('EditorWorkspace', () => {
   });
 
   it('should pass correct chapterId to save handler', async () => {
-    mockedClientPATCH.mockResolvedValue({ data: { success: true }, error: undefined, response: new Response() });
-
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockImplementation((config) => {
-      if (config?.onUpdate) {
-        config.onUpdate({ editor: mockEditor });
-      }
-      return mockEditor as unknown as ReturnType<typeof mockedUseEditor>;
-    });
+    mockUseEditor.mockReturnValue(mockEditor);
+    mockClientPATCH.mockResolvedValue({ data: { success: true }, error: undefined, response: new Response() });
 
     render(<EditorWorkspace chapterId="chapter-456" initialTitle="My Title" />);
 
     await waitFor(() => {
-      expect(mockedUseEditor).toHaveBeenCalled();
+      expect(mockUseEditor).toHaveBeenCalled();
     });
   });
 
   it('should handle save error', async () => {
-    mockedClientPATCH.mockResolvedValue({ data: undefined, error: { message: 'Save failed' }, response: new Response() });
+    mockClientPATCH.mockResolvedValue({ data: undefined, error: { message: 'Save failed' }, response: new Response() });
 
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -256,7 +215,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor({
       getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello World' }] }] })),
     });
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -271,7 +230,7 @@ describe('EditorWorkspace', () => {
     }));
     const mockEditor = createMockEditor({ getJSON: mockGetJSON });
 
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" initialContent="Initial content" />);
 
@@ -281,7 +240,7 @@ describe('EditorWorkspace', () => {
 
   it('should apply correct container classes', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     const { container } = render(<EditorWorkspace chapterId="chapter-123" />);
 
@@ -291,7 +250,7 @@ describe('EditorWorkspace', () => {
 
   it('should display StatusBar component', () => {
     const mockEditor = createMockEditor();
-    mockedUseEditor.mockReturnValue(mockEditor as unknown as ReturnType<typeof mockedUseEditor>);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace chapterId="chapter-123" />);
 

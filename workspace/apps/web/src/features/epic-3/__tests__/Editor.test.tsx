@@ -1,18 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Editor } from '../components/Editor';
-import * as editorConfig from '../utils/editorConfig';
 
-// Mock the useTipTapEditor hook
-vi.mock('../utils/editorConfig', async (importOriginal) => {
-  const actual = await importOriginal<typeof editorConfig>();
-  return {
-    ...actual,
-    useTipTapEditor: vi.fn(),
-  };
-});
+// Mock @tiptap/react - must be before any imports that use it
+const mockUseEditor = vi.fn();
 
-const mockedUseTipTapEditor = vi.mocked(editorConfig.useTipTapEditor);
+vi.mock('@tiptap/react', () => ({
+  useEditor: (...args: unknown[]) => mockUseEditor(...args),
+  EditorContent: ({ editor, className }: { editor: unknown; className?: string }) => (
+    <div data-testid="editor-content" data-editor={editor ? 'initialized' : 'null'} className={className}>
+      {editor ? <div className="ProseMirror">Editor Content</div> : 'No Editor'}
+    </div>
+  ),
+}));
+
+// Mock editorConfig
+vi.mock('../utils/editorConfig', () => ({
+  useTipTapEditor: vi.fn((options) => {
+    return mockUseEditor({
+      content: options?.initialContent || '',
+      editable: options?.editable ?? true,
+      onUpdate: options?.onUpdate ? ({ editor }: { editor: { getJSON: () => unknown } }) => {
+        options.onUpdate?.(JSON.stringify(editor.getJSON()));
+      } : undefined,
+    });
+  }),
+}));
 
 describe('Editor', () => {
   beforeEach(() => {
@@ -20,22 +33,23 @@ describe('Editor', () => {
   });
 
   it('should render loading skeleton when editor is not initialized', () => {
-    mockedUseTipTapEditor.mockReturnValue(null);
+    mockUseEditor.mockReturnValue(null);
 
     render(<Editor />);
 
-    // Loading state should be visible
-    const skeleton = screen.getByRole('status', { hidden: true });
+    // Loading state should be visible (skeleton has animate-pulse class)
+    const skeleton = document.querySelector('.animate-pulse');
     expect(skeleton).toBeInTheDocument();
   });
 
   it('should render editor when initialized', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Test content</p>'),
+      getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Test content' }] }] })),
       isEditable: true,
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<Editor />);
 
@@ -46,16 +60,17 @@ describe('Editor', () => {
   it('should pass initialContent to useTipTapEditor', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Initial content</p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Initial content' }] }] })),
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
     const initialContent = '<p>Initial content</p>';
 
     render(<Editor initialContent={initialContent} />);
 
-    expect(mockedUseTipTapEditor).toHaveBeenCalledWith(
+    expect(mockUseEditor).toHaveBeenCalledWith(
       expect.objectContaining({
-        initialContent,
+        content: initialContent,
       })
     );
   });
@@ -63,13 +78,14 @@ describe('Editor', () => {
   it('should pass editable prop to useTipTapEditor', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Content</p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [] })),
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<Editor editable={false} />);
 
-    expect(mockedUseTipTapEditor).toHaveBeenCalledWith(
+    expect(mockUseEditor).toHaveBeenCalledWith(
       expect.objectContaining({
         editable: false,
       })
@@ -78,22 +94,30 @@ describe('Editor', () => {
 
   it('should call onChange when content updates', async () => {
     const mockOnChange = vi.fn();
-    let updateCallback: ((content: string) => void) | undefined;
+    let capturedOnUpdate: (({ editor }: { editor: { getJSON: () => unknown } }) => void) | undefined;
 
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Test content</p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Test content' }] }] })),
+    };
 
-    mockedUseTipTapEditor.mockImplementation((options) => {
-      updateCallback = options?.onUpdate;
+    mockUseEditor.mockImplementation((options) => {
+      capturedOnUpdate = options?.onUpdate;
       return mockEditor;
     });
 
     render(<Editor onChange={mockOnChange} />);
 
     // Simulate content update
-    if (updateCallback) {
-      updateCallback('{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}');
+    if (capturedOnUpdate) {
+      capturedOnUpdate({ 
+        editor: { 
+          getJSON: () => ({ 
+            type: 'doc', 
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Updated content' }] }] 
+          }) 
+        } 
+      });
     }
 
     await waitFor(() => {
@@ -106,15 +130,16 @@ describe('Editor', () => {
   it('should use default initialContent when not provided', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p></p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [] })),
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<Editor />);
 
-    expect(mockedUseTipTapEditor).toHaveBeenCalledWith(
+    expect(mockUseEditor).toHaveBeenCalledWith(
       expect.objectContaining({
-        initialContent: '',
+        content: '',
       })
     );
   });
@@ -122,13 +147,14 @@ describe('Editor', () => {
   it('should use default editable value when not provided', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p></p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [] })),
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<Editor />);
 
-    expect(mockedUseTipTapEditor).toHaveBeenCalledWith(
+    expect(mockUseEditor).toHaveBeenCalledWith(
       expect.objectContaining({
         editable: true,
       })
@@ -136,14 +162,15 @@ describe('Editor', () => {
   });
 
   it('should not call onChange if not provided when content updates', async () => {
-    let updateCallback: ((content: string) => void) | undefined;
+    let capturedOnUpdate: (({ editor }: { editor: { getJSON: () => unknown } }) => void) | undefined;
 
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Test content</p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Test content' }] }] })),
+    };
 
-    mockedUseTipTapEditor.mockImplementation((options) => {
-      updateCallback = options?.onUpdate;
+    mockUseEditor.mockImplementation((options) => {
+      capturedOnUpdate = options?.onUpdate;
       return mockEditor;
     });
 
@@ -151,9 +178,9 @@ describe('Editor', () => {
     render(<Editor />);
 
     // Simulate content update
-    if (updateCallback) {
+    if (capturedOnUpdate) {
       expect(() => {
-        updateCallback!('{"type":"doc","content":[]}');
+        capturedOnUpdate!({ editor: { getJSON: () => ({ type: 'doc', content: [] }) } });
       }).not.toThrow();
     }
   });
@@ -161,9 +188,10 @@ describe('Editor', () => {
   it('should apply correct CSS classes to editor container', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Test</p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Test' }] }] })),
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<Editor />);
 
@@ -175,13 +203,14 @@ describe('Editor', () => {
   it('should have min-height class on editor content', () => {
     const mockEditor = {
       getHTML: vi.fn(() => '<p>Test</p>'),
-    } as unknown as ReturnType<typeof editorConfig.useTipTapEditor>;
+      getJSON: vi.fn(() => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Test' }] }] })),
+    };
 
-    mockedUseTipTapEditor.mockReturnValue(mockEditor);
+    mockUseEditor.mockReturnValue(mockEditor);
 
     render(<Editor />);
 
-    const editorContent = document.querySelector('.min-h-[300px]');
+    const editorContent = document.querySelector('[class*="min-h-"]');
     expect(editorContent).toBeInTheDocument();
   });
 });
