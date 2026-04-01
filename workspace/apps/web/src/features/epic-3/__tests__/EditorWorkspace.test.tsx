@@ -219,7 +219,7 @@ describe('EditorWorkspace', () => {
     });
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     // Word count should be displayed in StatusBar
     expect(screen.getByText('字数:')).toBeInTheDocument();
@@ -234,7 +234,7 @@ describe('EditorWorkspace', () => {
 
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" initialContent="Initial content" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" initialContent="Initial content" />);
 
     // The useEffect should have been called to initialize word count
     expect(mockGetJSON).toHaveBeenCalled();
