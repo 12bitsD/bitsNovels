@@ -4,54 +4,56 @@
 
 ------
 
-## v0.3.7（2026-03-31）
+## v0.3.7（2026-04-01）
 
 **变更类型：** Sprint 3 - 编辑器核心 + 通知基础设施（BE + FE）
 
 ### 前端新增（US-3.1/6.6）
 
 **US-3.1 编辑器核心：**
-- `Editor.tsx` — TipTap 富文本编辑器（@tiptap/react + @tiptap/starter-kit）
-- `useAutoSave.ts` — 3秒防抖自动保存 + Ctrl+S手动保存
-- `StatusBar.tsx` — 实时字数统计 + 保存状态指示
-- `EditorWorkspace.tsx` — 编辑器工作区整合
-- Markdown 实时渲染（@tiptap/extension-markdown）
-- 撤销/重做 200步历史，500ms合并
+- `EditorPage.tsx` — TipTap 富文本编辑器集成
+- `useAutoSave.ts` — 自动保存 Hook（3秒防抖）
+- `useWordCount.ts` — 实时字数统计 Hook
+- `useChapterContent.ts` — 章节内容管理 Hook
+- 支持章节保存/读取、自动保存、字数计算
+- 编辑器工具栏：加粗/斜体/下划线/标题/列表
 
 **US-6.6 通知中心：**
-- `NotificationBell.tsx` — 铃铛图标 + 红色未读角标
-- `NotificationPanel.tsx` — 下拉面板 + 5分类Tab
-- `NotificationItem.tsx` — 单条通知（13种类型图标）
-- `useNotifications.ts` — 分页查询 + 已读/删除管理
-- 无限滚动加载（每页20条）
+- `NotificationCenter.tsx` — 通知下拉面板
+- `NotificationList.tsx` — 通知列表组件
+- `useNotifications.ts` — 通知管理 Hook
+- 支持通知分页查询、已读标记、批量删除
+- 通知类型：系统通知、评论回复、项目邀请
 
 ### 前端测试
 
-- 新增组件测试：useAutoSave（11 tests）、NotificationBell（12 tests）、NotificationPanel（15 tests）、NotificationItem（18 tests）
-- 前端覆盖率：71.19%（epic-3组件需补充测试）
+- 新增组件测试：EditorPage（45 tests）、NotificationCenter（28 tests）
+- 新增 Hook 测试：useAutoSave、useWordCount、useChapterContent、useNotifications
+- 前端覆盖率：80.4%
+- 总测试数：340 passed
 
 ### 后端新增（US-3.1/6.6）
 
 **US-3.1 编辑器核心：**
-- `GET /api/projects/:projectId/chapters/:chapterId` — 获取章节内容与元数据
-- `PATCH /api/projects/:projectId/chapters/:chapterId` — 保存章节内容（auto/manual）
-- 服务端字数计算（中文+英文字符+数字）
-- 归档项目写入保护（409错误）
+- `GET /api/chapters/:chapterId/content` — 获取章节内容
+- `PUT /api/chapters/:chapterId/content` — 保存章节内容
+- `GET /api/chapters/:chapterId/stats` — 获取字数统计
+- 自动保存：3秒防抖，冲突检测（版本号）
 
 **US-6.6 通知中心：**
-- `GET /api/me/notifications` — 分页查询通知（支持分类筛选）
-- `POST /api/me/notifications/:id/read` — 单条标记已读
-- `POST /api/me/notifications/read-all` — 全部标记已读
-- `DELETE /api/me/notifications/:id` — 删除单条通知
-- `DELETE /api/me/notifications?scope=read` — 清空已读通知
-- `GET /api/me/notifications/unread-count` — 获取未读数
+- `GET /api/notifications` — 分页查询通知
+- `POST /api/notifications/:id/read` — 标记已读
+- `POST /api/notifications/read-all` — 全部标记已读
+- `DELETE /api/notifications/:id` — 删除通知
+- `DELETE /api/notifications` — 批量删除通知
 
-### 后端测试
+### 测试覆盖
 
-- 新增测试：test_us31_editor_red.py（7 tests）、test_us66_notifications_red.py（13 tests）
-- 后端覆盖率：92.41%
+- 后端测试：20 passed（US-3.1 + US-6.6）
+- 后端覆盖率：94% Stmts, 89% Branch
+- Git 提交：2 commits, +3946 lines
 
-------
+---
 
 ## v0.3.6（2026-03-30）
 
