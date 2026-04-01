@@ -11,26 +11,30 @@
 ### 前端新增（US-3.1/6.6）
 
 **US-3.1 编辑器核心：**
-- `EditorPage.tsx` — TipTap 富文本编辑器集成
+- `EditorWorkspace.tsx` — 编辑器工作台容器（章节标题、工具栏、状态栏）
+- `Editor.tsx` — TipTap 富文本编辑器核心组件
+- `StatusBar.tsx` — 底部状态栏（字数统计、保存状态）
 - `useAutoSave.ts` — 自动保存 Hook（3秒防抖）
-- `useWordCount.ts` — 实时字数统计 Hook
-- `useChapterContent.ts` — 章节内容管理 Hook
+- `editorConfig.ts` — 编辑器配置（含字数统计逻辑）
 - 支持章节保存/读取、自动保存、字数计算
 - 编辑器工具栏：加粗/斜体/下划线/标题/列表
 
 **US-6.6 通知中心：**
-- `NotificationCenter.tsx` — 通知下拉面板
-- `NotificationList.tsx` — 通知列表组件
+- `NotificationBell.tsx` — 通知铃铛图标（未读计数徽章）
+- `NotificationPanel.tsx` — 通知下拉面板
+- `NotificationItem.tsx` — 单条通知组件
 - `useNotifications.ts` — 通知管理 Hook
 - 支持通知分页查询、已读标记、批量删除
 - 通知类型：系统通知、评论回复、项目邀请
 
 ### 前端测试
 
-- 新增组件测试：EditorPage（45 tests）、NotificationCenter（28 tests）
-- 新增 Hook 测试：useAutoSave、useWordCount、useChapterContent、useNotifications
+- 新增 Epic-3 组件测试：Editor、EditorWorkspace、StatusBar（5 test files）
+- 新增 Epic-3 Hook/Utils 测试：useAutoSave、editorConfig
+- 新增 Epic-6 组件测试：NotificationBell、NotificationPanel、NotificationItem（4 test files）
+- 新增 Epic-6 Hook 测试：useNotifications
 - 前端覆盖率：80.4%
-- 总测试数：340 passed
+- 总测试数：285 passed
 
 ### 后端新增（US-3.1/6.6）
 
@@ -51,7 +55,7 @@
 
 - 后端测试：20 passed（US-3.1 + US-6.6）
 - 后端覆盖率：94% Stmts, 89% Branch
-- Git 提交：2 commits, +3946 lines
+- Git 提交：11 commits（feat/sprint-3 分支）
 
 ---
 
@@ -119,8 +123,8 @@
 
 ### 测试覆盖
 
-- 后端测试： Sprint 2 epic_1 全部通过
-- 新增路由模块：us14_settings.py, us15_outline.py, us16_goals.py, us18_archive.py
+- 后端测试：Sprint 2 epic_1 全部通过
+- 新增 API 路由模块：`routes/us14_settings.py`、`routes/us15_outline.py`、`routes/us16_goals.py`、`routes/us18_archive.py`
 
 ---
 
