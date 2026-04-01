@@ -244,7 +244,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    const { container } = render(<EditorWorkspace chapterId="chapter-123" />);
+    const { container } = render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     const mainContainer = container.querySelector('[class*="max-w-"]');
     expect(mainContainer).toBeInTheDocument();
@@ -254,7 +254,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     // StatusBar is rendered with word count label
     expect(screen.getByText('字数:')).toBeInTheDocument();
