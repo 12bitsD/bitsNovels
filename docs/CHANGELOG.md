@@ -4,6 +4,57 @@
 
 ------
 
+## v0.3.7（2026-04-01）
+
+**变更类型：** Sprint 3 - 编辑器核心 + 通知基础设施（BE + FE）
+
+### 前端新增（US-3.1/6.6）
+
+**US-3.1 编辑器核心：**
+- `EditorPage.tsx` — TipTap 富文本编辑器集成
+- `useAutoSave.ts` — 自动保存 Hook（3秒防抖）
+- `useWordCount.ts` — 实时字数统计 Hook
+- `useChapterContent.ts` — 章节内容管理 Hook
+- 支持章节保存/读取、自动保存、字数计算
+- 编辑器工具栏：加粗/斜体/下划线/标题/列表
+
+**US-6.6 通知中心：**
+- `NotificationCenter.tsx` — 通知下拉面板
+- `NotificationList.tsx` — 通知列表组件
+- `useNotifications.ts` — 通知管理 Hook
+- 支持通知分页查询、已读标记、批量删除
+- 通知类型：系统通知、评论回复、项目邀请
+
+### 前端测试
+
+- 新增组件测试：EditorPage（45 tests）、NotificationCenter（28 tests）
+- 新增 Hook 测试：useAutoSave、useWordCount、useChapterContent、useNotifications
+- 前端覆盖率：80.4%
+- 总测试数：340 passed
+
+### 后端新增（US-3.1/6.6）
+
+**US-3.1 编辑器核心：**
+- `GET /api/chapters/:chapterId/content` — 获取章节内容
+- `PUT /api/chapters/:chapterId/content` — 保存章节内容
+- `GET /api/chapters/:chapterId/stats` — 获取字数统计
+- 自动保存：3秒防抖，冲突检测（版本号）
+
+**US-6.6 通知中心：**
+- `GET /api/notifications` — 分页查询通知
+- `POST /api/notifications/:id/read` — 标记已读
+- `POST /api/notifications/read-all` — 全部标记已读
+- `DELETE /api/notifications/:id` — 删除通知
+- `DELETE /api/notifications` — 批量删除通知
+
+### 测试覆盖
+
+- 后端测试：20 passed（US-3.1 + US-6.6）
+- 后端覆盖率：94% Stmts, 89% Branch
+- Git 提交：2 commits, +3946 lines
+
+---
+
 ## v0.3.6（2026-03-30）
 
 **变更类型：** Sprint 2 - Epic 1 项目管理完整可用（BE + FE）

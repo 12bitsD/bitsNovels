@@ -1,5 +1,11 @@
 # Epic 6 Context - 用户级设置、通知与存储的数据契约
 
+> **STATUS: FROZEN** | Date: 2026-03-31
+> - Notification types (13 total): CONFIRMED
+> - Category mapping: CONFIRMED
+> - API contracts: CONFIRMED
+> - Do NOT modify without team approval
+
 ## 目标结论
 - Epic 6 需要一套跨端共享的数据契约，统一用户设置、通知事件、存储统计和快捷键配置的语义。
 - `US-6.4 通知配置` 与 `US-6.6 通知中心` 的一致性关键在于：通知类型枚举只能有一个事实来源。
@@ -140,6 +146,76 @@ interface AccountDeletionTicket {
   scheduledDeleteAt: string
   createdAt: string
   cancelledAt?: string
+}
+
+// ============================================
+// Notification Center API Contracts (US-6.6)
+// ============================================
+
+// GET /me/notifications - Query Parameters
+interface GetNotificationsQuery {
+  /** Cursor for pagination (cursor-based) */
+  cursor?: string
+  /** Items per page (default: 20) */
+  limit?: number
+  /** Filter by notification category */
+  category?: NotificationCenterCategory
+  /** Filter by read status */
+  read?: boolean
+}
+
+// GET /me/notifications - Response
+interface GetNotificationsResponse {
+  notifications: Notification[]
+  /** Pagination cursor for next page */
+  nextCursor?: string
+  /** Whether there are more items */
+  hasMore: boolean
+}
+
+// GET /me/notifications/unread-count - Response
+interface GetUnreadCountResponse {
+  count: number
+}
+
+// POST /me/notifications/{id}/read - Path Parameter: id (string)
+// POST /me/notifications/{id}/read - Response: 204 No Content
+
+// POST /me/notifications/read-all - Request Body (optional filters)
+interface ReadAllNotificationsRequest {
+  /** Only mark as read notifications in these categories */
+  categories?: NotificationCenterCategory[]
+}
+
+// POST /me/notifications/read-all - Response
+interface ReadAllNotificationsResponse {
+  /** Number of notifications marked as read */
+  count: number
+}
+
+// DELETE /me/notifications/{id} - Path Parameter: id (string)
+// DELETE /me/notifications/{id} - Response: 204 No Content
+
+// DELETE /me/notifications?scope=read - Query Parameters
+// scope=read: Delete all read notifications
+// DELETE /me/notifications?scope=read - Response
+interface DeleteNotificationsResponse {
+  /** Number of notifications deleted */
+  count: number
+}
+
+// Notification List Item (for notification center dropdown)
+interface NotificationListItem {
+  id: string
+  type: NotificationType
+  title: string
+  /** Short summary or preview */
+  body: string
+  /** Associated project name (for display) */
+  projectName?: string
+  read: boolean
+  createdAt: string
+  actionTarget?: NotificationActionTarget
 }
 ```
 

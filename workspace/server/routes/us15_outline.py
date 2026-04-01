@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, Body, Header
 from pydantic import BaseModel
 from typing import Any, Optional, Union
@@ -31,6 +32,8 @@ class PatchChapterRequest(BaseModel):
     title: Optional[str] = None
     volumeId: Optional[str] = None
     position: Optional[int] = None
+    content: Optional[str] = None
+    saveSource: Optional[str] = None
 
     model_config = {"extra": "forbid"}
 
@@ -59,6 +62,18 @@ class BulkTrashRequest(BaseModel):
     chapterIds: list[str]
 
     model_config = {"extra": "forbid"}
+
+
+def _calculate_char_count(html_content: str) -> int:
+    text_only = re.sub(r"<[^>]+>", "", html_content)
+    text_only = " ".join(text_only.split())
+    count = 0
+    for char in text_only:
+        if "\u4e00" <= char <= "\u9fff":
+            count += 1
+        elif char.isalnum():
+            count += 1
+    return count
 
 
 def _require_project(
@@ -519,17 +534,37 @@ def patch_chapter(
     if payload.position is not None:
         chapter["order"] = payload.position
 
+    if payload.content is not None:
+        if project_id in app.state.archived_project_ids:
+            return _error(409, "PROJECT_ARCHIVED_READ_ONLY", "Project is archived")
+        char_count = _calculate_char_count(payload.content)
+        now_iso = _iso_z(app.state.session_clock.now)
+        app.state.chapter_contents[chapter_id] = {
+            "content": payload.content,
+            "charCount": char_count,
+            "saveSource": payload.saveSource or "manual",
+            "savedAt": now_iso,
+        }
+        chapter["chars"] = char_count
+        chapter["updatedAt"] = now_iso
+
     chapter["lastEditedAt"] = _iso_z(app.state.session_clock.now)
+
+    content_data = app.state.chapter_contents.get(chapter_id, {})
     return JSONResponse(
         status_code=200,
         content={
             "chapter": {
                 "id": chapter["id"],
-                "title": chapter["title"],
+                "projectId": chapter["projectId"],
                 "volumeId": chapter["volumeId"],
+                "title": chapter["title"],
+                "content": content_data.get("content", ""),
+                "charCount": content_data.get("charCount", 0),
                 "order": chapter["order"],
-                "chars": chapter.get("chars", 0),
                 "lastEditedAt": chapter["lastEditedAt"],
+                "updatedAt": chapter.get("updatedAt", chapter["lastEditedAt"]),
+                "createdAt": chapter.get("createdAt", chapter["lastEditedAt"]),
                 "parserStatus": chapter.get("parserStatus", "empty"),
             }
         },
