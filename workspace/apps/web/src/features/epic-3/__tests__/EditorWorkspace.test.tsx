@@ -168,7 +168,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     fireEvent.keyDown(document, { key: 's', metaKey: true });
 
@@ -179,7 +179,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     const event = new KeyboardEvent('keydown', { key: 's', ctrlKey: true, cancelable: true });
     const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
@@ -194,7 +194,7 @@ describe('EditorWorkspace', () => {
     mockUseEditor.mockReturnValue(mockEditor);
     mockClientPATCH.mockResolvedValue({ data: { success: true }, error: undefined, response: new Response() });
 
-    render(<EditorWorkspace chapterId="chapter-456" initialTitle="My Title" />);
+    render(<EditorWorkspace projectId="project-456" chapterId="chapter-456" initialTitle="My Title" />);
 
     await waitFor(() => {
       expect(mockUseEditor).toHaveBeenCalled();
@@ -207,7 +207,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     // The component should handle errors gracefully
     expect(screen.getByTestId('editor-content')).toBeInTheDocument();
