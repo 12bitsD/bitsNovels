@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import NotificationPanel from '../components/NotificationPanel';
 import * as useNotificationsModule from '../hooks/useNotifications';
-import type { Notification, NotificationCenterCategory } from '../hooks/useNotifications';
+import type { Notification } from '../hooks/useNotifications';
 
 vi.mock('../hooks/useNotifications');
 

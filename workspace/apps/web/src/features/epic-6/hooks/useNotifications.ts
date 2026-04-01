@@ -43,19 +43,6 @@ interface NotificationResponse {
 const POLLING_INTERVAL = 30000;
 const PAGE_SIZE = 20;
 
-const CATEGORY_MAP: Record<Exclude<NotificationCenterCategory, 'all'>, NotificationType[]> = {
-  ai_parse: ['parse_done', 'parse_failed'],
-  backup_export: ['backup_done', 'backup_failed', 'export_done'],
-  consistency_foreshadow: [
-    'consistency_issue',
-    'foreshadow_reminder',
-    'foreshadow_warning',
-    'snapshot_expire',
-    'recycle_expire',
-  ],
-  system: ['storage_warning', 'storage_critical', 'system_announcement'],
-};
-
 export function useNotifications(category: NotificationCenterCategory = 'all') {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,6 +101,7 @@ export function useNotifications(category: NotificationCenterCategory = 'all') {
 
       setUnreadCount((data as { count: number }).count);
     } catch {
+      // Silent fail for unread count polling
     }
   }, []);
 

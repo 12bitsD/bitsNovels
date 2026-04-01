@@ -61,7 +61,8 @@ describe('editorConfig', () => {
     it('should call onUpdate callback when content changes', async () => {
       const onUpdate = vi.fn();
       const { useEditor } = await import('@tiptap/react');
-      let capturedUpdate: (({ editor }: { editor: { getJSON: () => unknown } }) => void) | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let capturedUpdate: ((props: any) => void) | undefined;
       
       vi.mocked(useEditor).mockImplementationOnce((options) => {
         capturedUpdate = options?.onUpdate;
@@ -90,8 +91,10 @@ describe('editorConfig', () => {
       renderHook(() => useTipTapEditor());
 
       const callArgs = vi.mocked(useEditor).mock.calls[0][0];
-      expect(callArgs.editorProps.attributes.class).toContain('prose');
-      expect(callArgs.editorProps.attributes.class).toContain('min-h-[300px]');
+       
+      const attributes = callArgs.editorProps?.attributes as Record<string, string> | undefined;
+      expect(attributes?.class).toContain('prose');
+      expect(attributes?.class).toContain('min-h-[300px]');
     });
   });
 

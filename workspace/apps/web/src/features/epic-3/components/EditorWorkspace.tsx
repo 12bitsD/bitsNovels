@@ -9,18 +9,19 @@ import { calculateWordCount, calculateSelectionCount, type SaveSource } from '..
 import { client } from '../../../api/client';
 
 export interface EditorWorkspaceProps {
+  projectId: string;
   chapterId: string;
   initialContent?: string;
   initialTitle?: string;
 }
 
-export function EditorWorkspace({ chapterId, initialContent = '', initialTitle = '' }: EditorWorkspaceProps) {
+export function EditorWorkspace({ projectId, chapterId, initialContent = '', initialTitle = '' }: EditorWorkspaceProps) {
   const [title, setTitle] = useState(initialTitle);
   const [wordCount, setWordCount] = useState(0);
   const [selectionCount, setSelectionCount] = useState(0);
 
   const handleSave = useCallback(async (content: string, source: SaveSource) => {
-    const { error } = await client.PATCH(`/api/v1/chapters/${chapterId}/content`, {
+    const { error } = await client.PATCH(`/api/projects/${projectId}/chapters/${chapterId}`, {
       body: {
         content,
         title,
@@ -31,7 +32,7 @@ export function EditorWorkspace({ chapterId, initialContent = '', initialTitle =
     if (error) {
       throw new Error('Save failed');
     }
-  }, [chapterId, title]);
+  }, [projectId, chapterId, title]);
 
   const { saveStatus, lastSavedAt, saveNow } = useAutoSave({
     content: initialContent,

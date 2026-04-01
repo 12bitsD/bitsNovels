@@ -68,7 +68,7 @@ describe('EditorWorkspace', () => {
   it('should render loading state when editor is not initialized', () => {
     mockUseEditor.mockReturnValue(null);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     const skeleton = document.querySelector('.animate-pulse');
     expect(skeleton).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     expect(screen.getByTestId('editor-content')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('章节标题')).toBeInTheDocument();
@@ -90,6 +90,7 @@ describe('EditorWorkspace', () => {
 
     render(
       <EditorWorkspace
+        projectId="project-123"
         chapterId="chapter-123"
         initialTitle="Test Chapter Title"
       />
@@ -105,6 +106,7 @@ describe('EditorWorkspace', () => {
 
     render(
       <EditorWorkspace
+        projectId="project-123"
         chapterId="chapter-123"
         initialContent='<p>Initial content</p>'
       />
@@ -121,7 +123,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     const titleInput = screen.getByPlaceholderText('章节标题');
     fireEvent.change(titleInput, { target: { value: 'New Title' } });
@@ -133,7 +135,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     expect(screen.getByText(/快捷键:/)).toBeInTheDocument();
     expect(screen.getByText('Ctrl+S')).toBeInTheDocument();
@@ -144,7 +146,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     expect(screen.getByText(/Markdown 支持:/)).toBeInTheDocument();
   });
@@ -154,7 +156,7 @@ describe('EditorWorkspace', () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
-    render(<EditorWorkspace chapterId="chapter-123" />);
+    render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
     fireEvent.keyDown(document, { key: 's', ctrlKey: true });
 
