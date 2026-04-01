@@ -25,7 +25,7 @@
 type ISODateTime = string
 type UUID = string
 
-type ParseStatus = 'none' | 'pending' | 'parsing' | 'parsed' | 'failed'
+type ParserStatus = 'none' | 'pending' | 'parsing' | 'parsed' | 'failed' | 'empty'
 type SaveSource = 'auto' | 'manual'
 
 // 卷
@@ -49,7 +49,7 @@ interface Chapter {
   title: string
   content: string       // 富文本内容（JSON 字符串或纯文本序列化结果）
   charCount: number     // 只统计正文可见字符
-  parseStatus: ParseStatus
+  parserStatus: ParserStatus
   lastParseAt?: ISODateTime
   lastEditedAt: ISODateTime
   order: number
@@ -67,7 +67,7 @@ interface ChapterContent {
   title: string
   content: string       // 富文本 JSON 字符串
   charCount: number     // 服务端统一计算，只包含可见字符
-  parseStatus: ParseStatus
+  parserStatus: ParserStatus
   lastEditedAt: ISODateTime  // 正文最后编辑时间
   updatedAt: ISODateTime     // 记录更新时间
   createdAt: ISODateTime
@@ -83,14 +83,20 @@ interface SaveChapterRequest {
 // US-3.1: 保存章节响应
 interface SaveChapterResponse {
   id: UUID
+  projectId: UUID
+  volumeId: UUID
+  title: string
   content: string
   charCount: number
+  order: number
   lastEditedAt: ISODateTime
   updatedAt: ISODateTime      // 服务端写入时间，用于展示 "已保存 {HH:mm}"
-  parseStatus: ParseStatus
+  createdAt: ISODateTime
+  parserStatus: ParserStatus
 }
 
 // US-3.1: 章节统计信息（状态栏展示）
+// 注：此接口暂未实现，前端需自行计算选区字数
 interface ChapterStats {
   chapterId: UUID
   charCount: number         // 总字数
@@ -101,7 +107,7 @@ interface ChapterStats {
 // US-3.1: 获取章节内容响应
 interface GetChapterResponse {
   chapter: ChapterContent
-  stats: ChapterStats
+  // 注：stats 字段暂未实现，后续可扩展
 }
 
 // 快照
@@ -183,21 +189,23 @@ interface UndoRedoCommand {
 
 ### 获取章节内容
 ```
-GET /api/v1/chapters/{chapterId}/content
+GET /api/projects/{projectId}/chapters/{chapterId}
 
 Response: GetChapterResponse
 ```
 
 ### 保存章节内容
 ```
-PUT /api/v1/chapters/{chapterId}/content
+PATCH /api/projects/{projectId}/chapters/{chapterId}
 
 Request: SaveChapterRequest
 Response: SaveChapterResponse
 
 Error Codes:
 - 400: 请求参数错误（如 content 为空）
-- 409: 冲突（版本冲突，需重试）
+- 403: 无权限访问该项目
+- 404: 项目或章节不存在
+- 409: 项目已归档（只读）
 - 422: 不可重试错误（如内容格式非法）
 - 429: 请求过于频繁
 - 500: 服务端错误（可重试）
@@ -205,7 +213,8 @@ Error Codes:
 
 ### 获取章节统计
 ```
-GET /api/v1/chapters/{chapterId}/stats
+注：此接口暂未实现，前端需自行计算选区字数
+GET /api/projects/{projectId}/chapters/{chapterId}/stats
 
 Response: ChapterStats
 ```
@@ -244,7 +253,7 @@ Response: ChapterStats
 - `content` 存储 TipTap/ProseMirror 格式的 JSON 字符串，是富文本的唯一来源。
 - `charCount` 由服务端根据字数计算规则统一计算，只统计可见字符。
 - `lastEditedAt` 精确到毫秒，用于前端展示"最后编辑于"时间。
-- `parseStatus` 表示 AI 解析状态，与 Epic 2 知识库联动。
+- `parserStatus` 表示 AI 解析状态，与 Epic 2 知识库联动。
 
 ### SaveChapterRequest / SaveChapterResponse (US-3.1)
 结论：章节保存接口的输入输出契约，支持幂等更新。
@@ -375,6 +384,42 @@ function calculateCharCount(content: string): number {
 - 已包含：API 端点定义、错误码规范
 - 已满足：作为 Epic 1、2、4、5 的共享上下文基线
 - 已满足：US-3.1 编辑器核心全部 13 个字段要求
+
+---
+
+## 变更历史
+
+### 2026-04-01 契约同步更新
+**变更原因**：契约文档与实际代码实现不一致，需同步更新
+
+**变更内容**：
+1. **API 路径调整**：
+   - 原：`/api/v1/chapters/{chapterId}/content`
+   - 新：`/api/projects/{projectId}/chapters/{chapterId}`
+   - 原因：实际实现使用项目级路由，符合 RESTful 资源层级设计
+
+2. **HTTP 方法调整**：
+   - 原：`PUT` 保存章节
+   - 新：`PATCH` 保存章节
+   - 原因：实际实现使用 PATCH，符合部分更新语义
+
+3. **字段命名统一**：
+   - `parseStatus` → `parserStatus`
+   - 原因：代码实现使用 `parserStatus`，与后端数据库字段保持一致
+
+4. **响应结构调整**：
+   - `GetChapterResponse` 移除 `stats` 字段
+   - `SaveChapterResponse` 新增 `projectId`、`volumeId`、`title`、`order`、`createdAt` 字段
+   - 原因：实际响应结构与契约定义不符，`stats` 接口暂未实现
+
+5. **ParserStatus 枚举扩展**：
+   - 新增 `'empty'` 状态
+   - 原因：代码实现中默认状态为 `'empty'`
+
+6. **错误码补充**：
+   - 新增 `403 Forbidden`（无权限）
+   - 新增 `404 Not Found`（项目或章节不存在）
+   - 原因：实际实现包含这些错误场景
 
 ---
 

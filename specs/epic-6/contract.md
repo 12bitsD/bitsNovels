@@ -154,10 +154,10 @@ interface AccountDeletionTicket {
 
 // GET /me/notifications - Query Parameters
 interface GetNotificationsQuery {
-  /** Cursor for pagination (cursor-based) */
-  cursor?: string
+  /** Page number for pagination (1-indexed, default: 1) */
+  page?: number
   /** Items per page (default: 20) */
-  limit?: number
+  page_size?: number
   /** Filter by notification category */
   category?: NotificationCenterCategory
   /** Filter by read status */
@@ -166,11 +166,14 @@ interface GetNotificationsQuery {
 
 // GET /me/notifications - Response
 interface GetNotificationsResponse {
-  notifications: Notification[]
-  /** Pagination cursor for next page */
-  nextCursor?: string
+  /** List of notification items */
+  items: Notification[]
+  /** Total count of notifications matching the filter */
+  total: number
+  /** Pagination cursor for next page (offset index) */
+  cursor?: string
   /** Whether there are more items */
-  hasMore: boolean
+  has_more: boolean
 }
 
 // GET /me/notifications/unread-count - Response
