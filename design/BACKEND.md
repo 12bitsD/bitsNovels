@@ -36,8 +36,8 @@
 
 **核心原则**：
 - 同步请求（编辑/保存/查询）走 REST API，p99 < 200ms
-- AI 生成任务（续写/解析/润色）走 ARQ 异步队列
-- 流式输出走 SSE（Server-Sent Events）
+- AI 生成任务（续写/解析/润色）走 ARQ 异步队列（🔲 Sprint 4+ 实现）
+- 流式输出走 SSE（Server-Sent Events）（🔲 Sprint 4+ 实现）
 - pgvector 与主库同实例，V1 不引入独立向量服务
 
 ---
@@ -59,14 +59,14 @@
 
 完整端点定义在各 Epic 的 `contract.md` 里。以下为跨 Epic 全局索引：
 
-| Epic | 路径前缀 | 说明 |
-|------|---------|------|
-| Epic 1 | `/api/auth/`，`/api/projects/` | 认证 + 项目管理 |
-| Epic 3 | `/api/projects/:id/volumes/`，`/api/chapters/` | 卷章编辑器 |
-| Epic 2 | `/api/projects/:id/kb/` | 知识库 |
-| Epic 4 | `/api/ai/tasks/` | AI 任务 |
-| Epic 5 | `/api/projects/:id/exports/`，`/api/projects/:id/backups/` | 导出备份 |
-| Epic 6 | `/api/users/me/` | 用户设置 |
+| Epic | 路径前缀 | 说明 | 状态 |
+|------|---------|------|------|
+| Epic 1 | `/api/auth/`，`/api/projects/` | 认证 + 项目管理 | ✅ 已实现 |
+| Epic 3 | `/api/projects/:id/volumes/`，`/api/projects/:id/chapters/` | 卷章编辑器 | ✅ 已实现 |
+| Epic 2 | `/api/projects/:id/kb/` | 知识库 | 🔲 Sprint 4 |
+| Epic 4 | `/api/ai/tasks/` | AI 任务 | 🔲 Sprint 4+（ARQ队列） |
+| Epic 5 | `/api/projects/:id/exports/`，`/api/projects/:id/backups/` | 导出备份 | 🔲 Sprint 8 |
+| Epic 6 | `/api/users/me/` | 用户设置 | ✅ US-6.6已实现 |
 
 ### SSE 流式输出规范
 
@@ -107,7 +107,7 @@ GET /api/ai/tasks/:taskId/stream
 | 超时后重试 | 自动重试 1 次 |
 | 再失败 | 标记 `failed`，写入错误原因，通知前端 |
 
-### Parser 管道
+### Parser 管道（🔲 Sprint 4+ 实现）
 
 ```
 章节内容变更 → 60s 防抖 → 写入 ARQ 队列（priority 按触发类型）
@@ -119,7 +119,7 @@ Worker 消费 → 调用 AI Provider → 提取实体（角色/地点/道具/势
 SSE 通知前端状态变更
 ```
 
-### AI 续写管道
+### AI 续写管道（🔲 Sprint 4+ 实现）
 
 ```
 用户触发 → 构建上下文（当前章节全文 + 前章末 2000 字 + KB 相关条目 + 世界观设定）
