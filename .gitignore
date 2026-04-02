@@ -1,1 +1,37 @@
+# Git worktrees
 .worktrees/
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test coverage
+.coverage
+coverage/
+coverage-report.json
+
+# Build artifacts
+*.egg-info/
+
+# Local config (if any)
+*.local
