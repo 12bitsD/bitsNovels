@@ -142,10 +142,6 @@ describe('useFocusMode', () => {
   it('should exit focus mode on Escape key press', async () => {
     const { result } = renderHook(() => useFocusMode());
 
-    const keyHandler = vi.mocked(document.addEventListener).mock.calls.find(
-      call => call[0] === 'keydown'
-    )?.[1] as (event: KeyboardEvent) => void;
-
     await act(async () => {
       await result.current.enterFocusMode();
     });
@@ -154,10 +150,12 @@ describe('useFocusMode', () => {
       expect(result.current.isFocusMode).toBe(true);
     });
 
+    const keyHandler = vi.mocked(document.addEventListener).mock.calls.find(
+      call => call[0] === 'keydown'
+    )?.[1] as (event: KeyboardEvent) => void;
+
     if (keyHandler) {
-      await act(async () => {
-        keyHandler(new KeyboardEvent('keydown', { key: 'Escape' }));
-      });
+      keyHandler(new KeyboardEvent('keydown', { key: 'Escape' }));
     }
 
     await waitFor(() => {

@@ -21,8 +21,8 @@ import { useChapterPanel, type ChapterSummary } from '../../hooks/useChapterPane
 import { ChapterTree } from './ChapterTree';
 import { ChapterContextMenu } from './ChapterContextMenu';
 import { NewChapterButton } from './NewChapterButton';
-import { SkeletonLoader } from '../../../components/ui/SkeletonLoader';
-import { ErrorAlert } from '../../../components/ui/ErrorAlert';
+import { SkeletonLoader } from '../../../../components/ui/SkeletonLoader';
+import { ErrorAlert } from '../../../../components/ui/ErrorAlert';
 
 interface ChapterPanelProps {
   projectId: string;

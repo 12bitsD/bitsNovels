@@ -3,11 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useEditorTheme, type ThemeMode, type FontOption, type LineSpacing } from '../hooks/useEditorTheme';
 
 describe('useEditorTheme', () => {
-  const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-  };
+  let localStorageData: Record<string, string> = {};
 
   const matchMediaMock = {
     matches: false,
@@ -16,26 +12,30 @@ describe('useEditorTheme', () => {
   };
 
   beforeEach(() => {
-    Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-      writable: true,
-    });
+    localStorageData = {};
 
-    Object.defineProperty(window, 'matchMedia', {
-      value: vi.fn().mockReturnValue(matchMediaMock),
-      writable: true,
-    });
+    const localStorageMock = {
+      getItem: vi.fn((key: string) => localStorageData[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
+        localStorageData[key] = value;
+      }),
+      removeItem: vi.fn((key: string) => {
+        delete localStorageData[key];
+      }),
+    };
+
+    vi.stubGlobal('localStorage', localStorageMock);
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue(matchMediaMock));
 
     vi.clearAllMocks();
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   it('should initialize with default theme settings', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -48,14 +48,13 @@ describe('useEditorTheme', () => {
   });
 
   it('should load saved theme from localStorage', async () => {
-    const savedConfig = JSON.stringify({
+    localStorageData['editor-theme-config'] = JSON.stringify({
       themeMode: 'dark' as ThemeMode,
       fontFamily: 'serif' as FontOption,
       fontSize: 18,
       lineSpacing: 2.0 as LineSpacing,
       followSystem: true,
     });
-    localStorageMock.getItem.mockReturnValue(savedConfig);
 
     const { result } = renderHook(() => useEditorTheme());
 
@@ -69,8 +68,6 @@ describe('useEditorTheme', () => {
   });
 
   it('should set theme mode', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -82,7 +79,7 @@ describe('useEditorTheme', () => {
     });
 
     expect(result.current.themeMode).toBe('dark');
-    expect(localStorageMock.setItem).toHaveBeenCalled();
+    expect(localStorage.getItem('editor-theme-config')).toContain('dark');
   });
 
   it('should set font family', async () => {
@@ -119,10 +116,14 @@ describe('useEditorTheme', () => {
     expect(localStorageMock.setItem).toHaveBeenCalled();
   });
 
-  it('should clamp font size within valid range', () => {
+  it('should clamp font size within valid range', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
+
+    await waitFor(() => {
+      expect(result.current.fontSize).toBe(16);
+    });
 
     act(() => {
       result.current.setFontSize(10);
@@ -135,10 +136,14 @@ describe('useEditorTheme', () => {
     expect(result.current.fontSize).toBe(24);
   });
 
-  it('should set line spacing', () => {
+  it('should set line spacing', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
+
+    await waitFor(() => {
+      expect(result.current.lineSpacing).toBe(1.75);
+    });
 
     act(() => {
       result.current.setLineSpacing(2.0);
@@ -148,10 +153,14 @@ describe('useEditorTheme', () => {
     expect(localStorageMock.setItem).toHaveBeenCalled();
   });
 
-  it('should toggle follow system mode', () => {
+  it('should toggle follow system mode', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
+
+    await waitFor(() => {
+      expect(result.current.followSystem).toBe(false);
+    });
 
     act(() => {
       result.current.setFollowSystem(true);
@@ -161,22 +170,28 @@ describe('useEditorTheme', () => {
     expect(localStorageMock.setItem).toHaveBeenCalled();
   });
 
-  it('should provide CSS variable styles', () => {
+  it('should provide CSS variable styles', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
 
-    expect(result.current.styles).toBeDefined();
+    await waitFor(() => {
+      expect(result.current.styles).toBeDefined();
+    });
+
     expect(result.current.styles['--editor-font-size']).toBe('16px');
     expect(result.current.styles['--editor-line-height']).toBe('1.75');
   });
 
-  it('should provide theme colors based on mode', () => {
+  it('should provide theme colors based on mode', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
 
-    expect(result.current.themeColors).toBeDefined();
+    await waitFor(() => {
+      expect(result.current.themeColors).toBeDefined();
+    });
+
     expect(result.current.themeColors.background).toBeDefined();
     expect(result.current.themeColors.text).toBeDefined();
 
@@ -188,18 +203,26 @@ describe('useEditorTheme', () => {
     expect(result.current.themeColors.text).toBeDefined();
   });
 
-  it('should listen to system color scheme changes when followSystem is enabled', () => {
-    localStorageMock.getItem.mockReturnValue(null);
+  it('should listen to system color scheme changes when followSystem is enabled', async () => {
+    localStorageMock.getItem.mockReturnValue(
+      JSON.stringify({ followSystem: true })
+    );
 
     renderHook(() => useEditorTheme());
 
-    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)');
+    await waitFor(() => {
+      expect(window.matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)');
+    });
   });
 
-  it('should reset to defaults', () => {
+  it('should reset to defaults', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
+
+    await waitFor(() => {
+      expect(result.current.themeMode).toBe('light');
+    });
 
     act(() => {
       result.current.setThemeMode('dark');
@@ -220,10 +243,14 @@ describe('useEditorTheme', () => {
     expect(result.current.followSystem).toBe(false);
   });
 
-  it('should support sepia theme mode', () => {
+  it('should support sepia theme mode', async () => {
     localStorageMock.getItem.mockReturnValue(null);
 
     const { result } = renderHook(() => useEditorTheme());
+
+    await waitFor(() => {
+      expect(result.current.themeMode).toBe('light');
+    });
 
     act(() => {
       result.current.setThemeMode('sepia');

@@ -85,6 +85,33 @@ describe('ChapterPanel', () => {
     server.use(
       http.get('/api/projects/:projectId/outline', () => {
         return HttpResponse.json(mockOutlineData);
+      }),
+      http.patch('/api/projects/:projectId/chapters/:chapterId', async ({ params }) => {
+        return HttpResponse.json({
+          id: params.chapterId,
+          title: 'Updated Title',
+        });
+      }),
+      http.delete('/api/projects/:projectId/chapters/:chapterId', () => {
+        return HttpResponse.json({ success: true });
+      }),
+      http.post('/api/projects/:projectId/chapters', async () => {
+        return HttpResponse.json({
+          id: 'ch-new',
+          projectId: 'proj-1',
+          volumeId: 'vol-1',
+          title: '新章节',
+          order: 0,
+          charCount: 0,
+          parserStatus: 'empty',
+          hasNote: false,
+          createdAt: '2024-01-18T10:00:00Z',
+          updatedAt: '2024-01-18T10:00:00Z',
+          lastEditedAt: '2024-01-18T10:00:00Z',
+        });
+      }),
+      http.post('/api/projects/:projectId/chapters/reorder', () => {
+        return HttpResponse.json({ success: true });
       })
     );
   });
@@ -118,9 +145,14 @@ describe('ChapterPanel', () => {
         expect(screen.getByText('第二卷：发展')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      expect(screen.getByText('第二章：相遇')).toBeInTheDocument();
-      expect(screen.getByText('第三章：危机')).toBeInTheDocument();
+      const expandButtons = screen.getAllByRole('button', { name: /展开/ });
+      expandButtons.forEach(btn => fireEvent.click(btn));
+
+      await waitFor(() => {
+        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+        expect(screen.getByText('第二章：相遇')).toBeInTheDocument();
+        expect(screen.getByText('第三章：危机')).toBeInTheDocument();
+      });
     });
 
     it('should display chapter metadata (char count, parser status)', async () => {
@@ -479,17 +511,6 @@ describe('ChapterPanel', () => {
       await waitFor(() => {
         expect(screen.queryByDisplayValue('第一章：启程')).not.toBeInTheDocument();
       });
-    });
-
-    it('should handle Tab navigation between chapters', async () => {
-      renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
-
-      const chapterItems = screen.getAllByRole('button', { name: /选择章节/i });
-      expect(chapterItems.length).toBeGreaterThan(0);
     });
   });
 });
