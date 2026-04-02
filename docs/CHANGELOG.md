@@ -4,6 +4,82 @@
 
 ------
 
+## v0.3.8（2026-04-02）
+
+**变更类型：** Sprint 4 - Epic 3 章节管理 + US-2.1 Parser 契约
+
+### 后端新增（US-3.2/3.3/3.6）
+
+**US-3.2 章节管理：**
+- `DELETE /api/projects/{projectId}/chapters/{chapterId}` — 单章节软删除（移入回收站）
+- 复用 US-1.5 API：卷章树查询、章节创建、章节重命名、章节排序
+- 章节面板与大纲视图共享同一 API 数据源
+
+**US-3.3 写作统计：**
+- `GET /api/projects/{projectId}/writing-stats/summary` — 统计汇总（今日/本周/本月/总字数、日均、连续天数、最高日）
+- `GET /api/projects/{projectId}/writing-stats/daily?range=30d` — 30天趋势数据
+- `GET /api/projects/{projectId}/writing-stats/weekly?range=12w` — 12周趋势数据
+- `GET /api/projects/{projectId}/writing-stats/heatmap` — 24小时热力图数据
+- `GET /api/projects/{projectId}/writing-stats/by-volume` — 按卷统计（服务端排序）
+- `GET /api/projects/{projectId}/writing-stats/by-chapter` — 按章节统计（服务端排序）
+
+**US-3.6 版本快照：**
+- `POST /api/projects/{projectId}/snapshots` — 创建快照（手动/自动/每日）
+- `GET /api/projects/{projectId}/snapshots` — 快照列表
+- `GET /api/projects/{projectId}/snapshots/{snapshotId}` — 快照详情
+- `POST /api/projects/{projectId}/snapshots/{snapshotId}/restore` — 恢复快照
+- `DELETE /api/projects/{projectId}/snapshots/{snapshotId}` — 删除快照
+- `GET /api/projects/{projectId}/snapshots/{snapshotId}/diff` — 快照对比
+
+### 前端新增（US-3.2~3.6）
+
+**US-3.2 章节管理：**
+- `ChapterPanel.tsx` — 章节面板容器（树形结构、右键菜单、新建按钮）
+- `ChapterTree.tsx` — 卷章树组件（拖拽排序、展开/折叠）
+- `ChapterContextMenu.tsx` — 右键菜单（重命名/删除/插入上下方）
+- `NewChapterButton.tsx` — 新建章节按钮
+- `useChapterPanel.ts` — 章节面板状态管理 Hook
+
+**US-3.3 写作统计：**
+- `WritingStatsPanel.tsx` — 统计面板容器
+- `DailyChart.tsx` — 30天趋势折线图（recharts）
+- `WeeklyChart.tsx` — 12周趋势柱状图
+- `HourlyHeatmap.tsx` — 24小时热力图
+- `StatsTable.tsx` — 按卷/章节统计表格
+- `useWritingStats.ts` — 统计数据管理 Hook
+
+**US-3.4 专注模式：**
+- `FocusMode.tsx` — 专注模式组件（F11 进入/退出）
+- `useFocusMode.ts` — 专注模式状态管理 Hook
+
+**US-3.5 编辑器主题：**
+- `EditorTheme.tsx` — 主题设置组件（Light/Dark/Sepia）
+- `useEditorTheme.ts` — 主题状态管理 Hook（字体/字号/行间距）
+
+**US-3.6 版本快照：**
+- `CreateSnapshot.tsx` — 创建快照对话框
+- `SnapshotList.tsx` — 快照列表组件
+- `RestoreConfirm.tsx` — 恢复确认对话框
+- `SnapshotDiff.tsx` — 快照对比组件
+- `StorageStats.tsx` — 存储统计组件
+- `useSnapshots.ts` — 快照管理 Hook
+
+### 契约更新（US-2.1）
+
+**US-2.1 Parser 引擎契约：**
+- 更新 `specs/epic-2/contract.md` — Parser 引擎 API 规范
+- 定义文本解析、实体识别、关系提取接口
+- 实现推迟至 Sprint 5
+
+### 测试覆盖
+
+- 后端测试：Epic-3 新增 26 tests（US-3.3 + US-3.6）
+- 前端测试：Epic-3 新增 7 test files（US-3.2~3.6 组件 + Hooks）
+- 后端覆盖率：94% Stmts
+- 前端测试：446 passed（部分测试待修复）
+
+------
+
 ## v0.3.7（2026-04-01）
 
 **变更类型：** Sprint 3 - 编辑器核心 + 通知基础设施（BE + FE）
