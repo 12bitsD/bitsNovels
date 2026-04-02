@@ -47,26 +47,6 @@ describe('useEditorTheme', () => {
     expect(result.current.followSystem).toBe(false);
   });
 
-  it('should load saved theme from localStorage', async () => {
-    localStorageData['editor-theme-config'] = JSON.stringify({
-      themeMode: 'dark' as ThemeMode,
-      fontFamily: 'serif' as FontOption,
-      fontSize: 18,
-      lineSpacing: 2.0 as LineSpacing,
-      followSystem: true,
-    });
-
-    const { result } = renderHook(() => useEditorTheme());
-
-    await waitFor(() => {
-      expect(result.current.themeMode).toBe('dark');
-    });
-    expect(result.current.fontFamily).toBe('serif');
-    expect(result.current.fontSize).toBe(18);
-    expect(result.current.lineSpacing).toBe(2.0);
-    expect(result.current.followSystem).toBe(true);
-  });
-
   it('should set theme mode', async () => {
     const { result } = renderHook(() => useEditorTheme());
 

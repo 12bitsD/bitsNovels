@@ -78,7 +78,7 @@ const themeColorsMap: Record<ThemeMode, ThemeColors> = {
 };
 
 function loadConfig(): ThemeConfig {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = globalThis.localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved) as Partial<ThemeConfig>;
@@ -91,7 +91,7 @@ function loadConfig(): ThemeConfig {
 }
 
 function saveConfig(config: ThemeConfig): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
 }
 
 function clampFontSize(size: number): number {
@@ -99,7 +99,7 @@ function clampFontSize(size: number): number {
 }
 
 function getSystemTheme(): ThemeMode {
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  if (globalThis.window?.matchMedia?.('(prefers-color-scheme: dark)')?.matches) {
     return 'dark';
   }
   return 'light';

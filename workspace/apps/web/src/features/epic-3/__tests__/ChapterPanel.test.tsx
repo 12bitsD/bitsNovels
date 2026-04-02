@@ -271,46 +271,41 @@ describe('ChapterPanel', () => {
 
     it('should call onChapterCreate when selecting insert above', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       fireEvent.contextMenu(chapter1);
 
       fireEvent.click(screen.getByText('在上方插入章节'));
 
-      expect(mockOnChapterCreate).toHaveBeenCalledWith({
-        volumeId: 'vol-1',
-        targetOrder: 0,
+      await waitFor(() => {
+        expect(mockOnChapterCreate).toHaveBeenCalledWith({
+          volumeId: 'vol-1',
+          targetOrder: 0,
+        });
       });
     });
 
     it('should call onChapterCreate when selecting insert below', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       fireEvent.contextMenu(chapter1);
 
       fireEvent.click(screen.getByText('在下方插入章节'));
 
-      expect(mockOnChapterCreate).toHaveBeenCalledWith({
-        volumeId: 'vol-1',
-        targetOrder: 1,
+      await waitFor(() => {
+        expect(mockOnChapterCreate).toHaveBeenCalledWith({
+          volumeId: 'vol-1',
+          targetOrder: 1,
+        });
       });
     });
 
     it('should close context menu when clicking outside', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       fireEvent.contextMenu(chapter1);
@@ -343,9 +338,11 @@ describe('ChapterPanel', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /新章节/i }));
 
-      expect(mockOnChapterCreate).toHaveBeenCalledWith({
-        volumeId: 'vol-2',
-        title: '新章节',
+      await waitFor(() => {
+        expect(mockOnChapterCreate).toHaveBeenCalledWith({
+          volumeId: 'vol-2',
+          title: '新章节',
+        });
       });
     });
 
