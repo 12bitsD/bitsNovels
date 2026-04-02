@@ -1,5 +1,9 @@
 # Epic 2 Context
 
+// US-2.1 Parser Engine Contract
+// Updated: 2026-04-02
+// Status: FROZEN
+
 Epic 2 的上下文要先定义统一知识库模型，再围绕 `US-2.1` 提供 Parser、图谱、搜索和手动编辑接口；其中关系图谱节点/边结构已包含 FE 渲染所需字段。
 
 ## 实体建模
@@ -185,13 +189,13 @@ interface KBEntityRef {
 
 ```typescript
 enum ChapterParseStatus {
-  NO_CONTENT = 'no_content',
-  DIRTY = 'dirty',
-  QUEUED = 'queued',
-  PARSING = 'parsing',
-  SYNCED = 'synced',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
+  NO_CONTENT = 'no_content',    // 无内容
+  PENDING = 'pending',          // 待解析（原DIRTY）
+  QUEUED = 'queued',            // 排队中
+  PARSING = 'parsing',          // 解析中
+  PARSED = 'parsed',            // 已解析（原SYNCED）
+  FAILED = 'failed',            // 解析失败
+  CANCELLED = 'cancelled',      // 已取消
 }
 
 interface ChapterParseState {
@@ -204,6 +208,168 @@ interface ChapterParseState {
   failureReason?: string
   trigger: 'auto' | 'manual' | 'batch'
   batchJobId?: string
+}
+```
+
+## US-2.1 解析任务数据结构
+
+```typescript
+// 解析任务
+interface ParseTask {
+  id: string
+  projectId: string
+  chapterId: string
+  trigger: 'auto' | 'manual' | 'batch'
+  priority: number              // manual=10, auto=5, batch=1
+  batchJobId?: string
+  contentHash: string
+  status: ChapterParseStatus
+  retryCount: number
+  failureReason?: string
+  resultSummary?: ParseResultSummary
+  createdAt: string
+  startedAt?: string
+  completedAt?: string
+}
+
+// 解析结果摘要
+interface ParseResultSummary {
+  newCharacters: number
+  newLocations: number
+  newItems: number
+  newFactions: number
+  newForeshadows: number
+  newRelations: number
+  consistencyIssues: number
+}
+
+// 批量解析任务
+interface BatchParseJob {
+  id: string
+  projectId: string
+  scope: 'all' | 'volume' | 'selected'
+  volumeId?: string
+  chapterIds?: string[]
+  totalChapters: number
+  completedChapters: number
+  failedChapters: number
+  status: 'pending' | 'running' | 'completed' | 'cancelled' | 'failed'
+  createdAt: string
+  startedAt?: string
+  completedAt?: string
+  createdBy: string
+}
+```
+
+## US-2.1 AI 解析请求/响应格式
+
+```typescript
+// AI解析请求
+interface AIParseRequest {
+  chapterId: string
+  projectId: string
+  content: string           // 章节纯文本
+  existingKB: {
+    characters: Array<{id: string, name: string, aliases: string[]}>
+    locations: Array<{id: string, name: string, aliases: string[]}>
+    items: Array<{id: string, name: string}>
+    factions: Array<{id: string, name: string}>
+    foreshadows: Array<{id: string, name: string}>
+  }
+  excludeWords?: string[]   // 排除词列表
+}
+
+// AI解析响应
+interface AIParseResponse {
+  characters: Array<{
+    name: string
+    aliases: string[]
+    gender?: string
+    occupation?: string
+    appearance?: string
+    personalityTags?: string[]
+    factionName?: string
+    confidence: 'high' | 'medium' | 'low'
+  }>
+  locations: Array<{
+    name: string
+    aliases: string[]
+    locationType?: string
+    description?: string
+    parentName?: string
+    confidence: 'high' | 'medium' | 'low'
+  }>
+  items: Array<{
+    name: string
+    aliases: string[]
+    itemType?: string
+    summary?: string
+    ownerName?: string
+    confidence: 'high' | 'medium' | 'low'
+  }>
+  factions: Array<{
+    name: string
+    aliases: string[]
+    factionType?: string
+    summary?: string
+    memberNames?: string[]
+    confidence: 'high' | 'medium' | 'low'
+  }>
+  foreshadows: Array<{
+    name: string
+    summary: string
+    quote: string
+    confidence: 'high' | 'medium' | 'low'
+  }>
+  relations: Array<{
+    sourceName: string
+    targetName: string
+    relationType: string
+    description?: string
+    confidence: 'high' | 'medium' | 'low'
+  }>
+  consistencyIssues: Array<{
+    type: string
+    description: string
+    confidence: 'high' | 'medium' | 'low'
+    relatedEntityIds?: string[]
+  }>
+}
+```
+
+## US-2.1 通知事件格式
+
+```typescript
+// 解析完成事件
+interface ParseCompletedEvent {
+  type: 'parse_completed'
+  projectId: string
+  chapterId: string
+  taskId: string
+  resultSummary: ParseResultSummary
+  timestamp: string
+}
+
+// 解析失败事件
+interface ParseFailedEvent {
+  type: 'parse_failed'
+  projectId: string
+  chapterId: string
+  taskId: string
+  failureReason: string
+  timestamp: string
+}
+
+// 批量解析进度事件
+interface BatchParseProgressEvent {
+  type: 'batch_parse_progress'
+  projectId: string
+  jobId: string
+  totalChapters: number
+  completedChapters: number
+  failedChapters: number
+  progress: number  // 0-100
+  timestamp: string
 }
 ```
 
@@ -274,9 +440,10 @@ interface KBGraphPayload {
 | Method | Endpoint | 用途 |
 | --- | --- | --- |
 | `POST` | `/api/projects/:projectId/parser/chapters/:chapterId/trigger` | 手动触发当前章节解析 |
-| `POST` | `/api/projects/:projectId/parser/chapters/:chapterId/auto-trigger` | 章节切换或关闭场景的自动触发 |
+| `POST` | `/api/projects/:projectId/parser/chapters/:chapterId/auto-trigger` | 章节切换或关闭场景的自动触发（60s防抖） |
 | `POST` | `/api/projects/:projectId/parser/batch` | 创建批量解析任务 |
 | `POST` | `/api/projects/:projectId/parser/batch/:jobId/cancel` | 取消未开始的批量解析任务 |
+| `GET` | `/api/projects/:projectId/parser/batch/:jobId/progress` | 批量解析进度（SSE流式） |
 | `GET` | `/api/projects/:projectId/parser/status` | 获取项目级解析概览与待解析数量 |
 | `GET` | `/api/projects/:projectId/parser/chapters/:chapterId/status` | 获取单章节解析状态与失败原因 |
 
