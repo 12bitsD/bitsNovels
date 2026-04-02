@@ -366,12 +366,9 @@ describe('ChapterPanel', () => {
       );
 
       renderPanel();
+      await expandAllVolumes();
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /新章节/i })).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByRole('button', { name: /新章节/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^新章节$/i }));
 
       await waitFor(() => {
         expect(screen.getByDisplayValue('新章节')).toBeInTheDocument();
@@ -382,24 +379,10 @@ describe('ChapterPanel', () => {
   describe('Drag and Drop', () => {
     it('should render drag handles for chapters', async () => {
       renderPanel();
+      await expandAllVolumes();
 
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
-
-      const dragHandles = screen.getAllByLabelText(/拖动章节|拖动排序/i);
+      const dragHandles = screen.getAllByLabelText(/拖动排序/i);
       expect(dragHandles.length).toBeGreaterThan(0);
-    });
-
-    it('should call onChapterReorder when drag ends', async () => {
-      renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
-
-      const dragHandle = screen.getAllByLabelText(/拖动章节|拖动排序/i)[0];
-      expect(dragHandle).toBeInTheDocument();
     });
   });
 
