@@ -764,3 +764,62 @@ def bulk_trash_chapters(
     ]
 
     return JSONResponse(status_code=200, content={"ok": True, "trashedCount": trashed})
+
+
+# 11. DELETE /api/projects/:projectId/chapters/:chapterId
+@router.delete("/{project_id}/chapters/{chapter_id}")
+def delete_chapter(
+    project_id: str,
+    chapter_id: str,
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+) -> JSONResponse:
+    from server.main import _require_user_id, _error, _iso_z, app
+
+    maybe_user_id = _require_user_id(authorization)
+    if isinstance(maybe_user_id, JSONResponse):
+        return maybe_user_id
+    user_id = maybe_user_id
+
+    project, err = _require_project(project_id, user_id)
+    if err is not None:
+        return err
+
+    chapter = next(
+        (
+            c
+            for c in app.state.fake_db.chapters
+            if c["id"] == chapter_id and c["projectId"] == project_id
+        ),
+        None,
+    )
+    if chapter is None:
+        return _error(404, "CHAPTER_NOT_FOUND", "Chapter not found")
+
+    vol = next(
+        (v for v in app.state.fake_db.volumes if v["id"] == chapter["volumeId"]),
+        None,
+    )
+    now_iso = _iso_z(app.state.session_clock.now)
+
+    app.state.trash_items.append(
+        {
+            "id": f"trash-{len(app.state.trash_items) + 1}",
+            "projectId": project_id,
+            "type": "chapter",
+            "title": chapter["title"],
+            "originalVolumeId": chapter["volumeId"],
+            "originalVolumeName": vol["name"] if vol else "",
+            "originalPosition": chapter["order"],
+            "chars": chapter.get("chars", 0),
+            "deletedAt": now_iso,
+            "expiresAt": _iso_z(app.state.session_clock.now),
+            "remainingDays": 30,
+            "snapshotCount": 0,
+        }
+    )
+
+    app.state.fake_db.chapters = [
+        c for c in app.state.fake_db.chapters if c["id"] != chapter_id
+    ]
+
+    return JSONResponse(status_code=200, content={"ok": True})

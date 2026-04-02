@@ -15,6 +15,8 @@ from server.routes import (
     us16_goals,
     us18_archive,
     us31_editor,
+    us33_writing_stats,
+    us36_snapshots,
     us66_notifications,
 )
 
@@ -693,6 +695,8 @@ app.include_router(us15_outline.router)
 app.include_router(us16_goals.router)
 app.include_router(us18_archive.router)
 app.include_router(us31_editor.router)
+app.include_router(us33_writing_stats.router)
+app.include_router(us36_snapshots.router)
 app.include_router(us66_notifications.router)
 
 
