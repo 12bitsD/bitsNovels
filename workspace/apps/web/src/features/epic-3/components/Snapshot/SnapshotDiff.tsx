@@ -92,6 +92,7 @@ export function SnapshotDiff({
 
   const addedCount = diffLines.filter(l => l.type === 'added').length;
   const removedCount = diffLines.filter(l => l.type === 'removed').length;
+  const hasChanges = addedCount > 0 || removedCount > 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -109,7 +110,7 @@ export function SnapshotDiff({
       </div>
 
       <div className="flex-1 overflow-auto font-mono text-sm">
-        {diffLines.length === 0 ? (
+        {!hasChanges ? (
           <div className="flex items-center justify-center py-12 text-[#6B5D4D] dark:text-[#9B8E7A]">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -83,8 +83,6 @@ describe('useEditorTheme', () => {
   });
 
   it('should set font family', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -96,12 +94,10 @@ describe('useEditorTheme', () => {
     });
 
     expect(result.current.fontFamily).toBe('mono');
-    expect(localStorageMock.setItem).toHaveBeenCalled();
+    expect(localStorage.getItem('editor-theme-config')).toContain('mono');
   });
 
   it('should set font size', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -113,12 +109,10 @@ describe('useEditorTheme', () => {
     });
 
     expect(result.current.fontSize).toBe(20);
-    expect(localStorageMock.setItem).toHaveBeenCalled();
+    expect(localStorage.getItem('editor-theme-config')).toContain('20');
   });
 
   it('should clamp font size within valid range', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -137,8 +131,6 @@ describe('useEditorTheme', () => {
   });
 
   it('should set line spacing', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -150,12 +142,10 @@ describe('useEditorTheme', () => {
     });
 
     expect(result.current.lineSpacing).toBe(2.0);
-    expect(localStorageMock.setItem).toHaveBeenCalled();
+    expect(localStorage.getItem('editor-theme-config')).toContain('2');
   });
 
   it('should toggle follow system mode', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -167,12 +157,10 @@ describe('useEditorTheme', () => {
     });
 
     expect(result.current.followSystem).toBe(true);
-    expect(localStorageMock.setItem).toHaveBeenCalled();
+    expect(localStorage.getItem('editor-theme-config')).toContain('true');
   });
 
   it('should provide CSS variable styles', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -184,8 +172,6 @@ describe('useEditorTheme', () => {
   });
 
   it('should provide theme colors based on mode', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -204,9 +190,7 @@ describe('useEditorTheme', () => {
   });
 
   it('should listen to system color scheme changes when followSystem is enabled', async () => {
-    localStorageMock.getItem.mockReturnValue(
-      JSON.stringify({ followSystem: true })
-    );
+    localStorageData['editor-theme-config'] = JSON.stringify({ followSystem: true });
 
     renderHook(() => useEditorTheme());
 
@@ -216,8 +200,6 @@ describe('useEditorTheme', () => {
   });
 
   it('should reset to defaults', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {
@@ -244,8 +226,6 @@ describe('useEditorTheme', () => {
   });
 
   it('should support sepia theme mode', async () => {
-    localStorageMock.getItem.mockReturnValue(null);
-
     const { result } = renderHook(() => useEditorTheme());
 
     await waitFor(() => {

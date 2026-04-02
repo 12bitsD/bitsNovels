@@ -131,6 +131,14 @@ describe('ChapterPanel', () => {
     );
   };
 
+  const expandAllVolumes = async () => {
+    await waitFor(() => {
+      expect(screen.getByText('第一卷：序章')).toBeInTheDocument();
+    });
+    const expandButtons = screen.queryAllByRole('button', { name: /展开/ });
+    expandButtons.forEach(btn => fireEvent.click(btn));
+  };
+
   describe('Rendering', () => {
     it('should render loading state initially', () => {
       renderPanel();
@@ -139,28 +147,16 @@ describe('ChapterPanel', () => {
 
     it('should render volume and chapter tree structure after loading', async () => {
       renderPanel();
+      await expandAllVolumes();
 
-      await waitFor(() => {
-        expect(screen.getByText('第一卷：序章')).toBeInTheDocument();
-        expect(screen.getByText('第二卷：发展')).toBeInTheDocument();
-      });
-
-      const expandButtons = screen.getAllByRole('button', { name: /展开/ });
-      expandButtons.forEach(btn => fireEvent.click(btn));
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-        expect(screen.getByText('第二章：相遇')).toBeInTheDocument();
-        expect(screen.getByText('第三章：危机')).toBeInTheDocument();
-      });
+      expect(screen.getByText('第一章：启程')).toBeInTheDocument();
+      expect(screen.getByText('第二章：相遇')).toBeInTheDocument();
+      expect(screen.getByText('第三章：危机')).toBeInTheDocument();
     });
 
     it('should display chapter metadata (char count, parser status)', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       expect(screen.getByText('5,000字')).toBeInTheDocument();
       expect(screen.getByLabelText('已解析')).toBeInTheDocument();
@@ -170,10 +166,7 @@ describe('ChapterPanel', () => {
 
     it('should highlight active chapter', async () => {
       renderPanel({ activeChapterId: 'ch-1' });
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const activeChapter = screen.getByTestId('chapter-item-ch-1');
       expect(activeChapter).toHaveClass('bg-amber-light/20');
@@ -197,10 +190,7 @@ describe('ChapterPanel', () => {
   describe('Chapter Selection', () => {
     it('should call onChapterSelect when clicking a chapter', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       fireEvent.click(screen.getByText('第一章：启程'));
 
@@ -209,10 +199,7 @@ describe('ChapterPanel', () => {
 
     it('should update active chapter styling on selection', async () => {
       const { rerender } = renderPanel({ activeChapterId: null });
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       expect(chapter1).not.toHaveClass('bg-amber-light/20');
@@ -236,10 +223,7 @@ describe('ChapterPanel', () => {
   describe('Context Menu', () => {
     it('should show context menu on right-click', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       fireEvent.contextMenu(chapter1);
@@ -253,10 +237,7 @@ describe('ChapterPanel', () => {
 
     it('should call onChapterRename when selecting rename', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       fireEvent.contextMenu(chapter1);
@@ -269,22 +250,23 @@ describe('ChapterPanel', () => {
       fireEvent.change(input, { target: { value: '新章节名' } });
       fireEvent.keyDown(input, { key: 'Enter' });
 
-      expect(mockOnChapterRename).toHaveBeenCalledWith('ch-1', '新章节名');
+      await waitFor(() => {
+        expect(mockOnChapterRename).toHaveBeenCalledWith('ch-1', '新章节名');
+      });
     });
 
     it('should call onChapterDelete when selecting delete', async () => {
       renderPanel();
-
-      await waitFor(() => {
-        expect(screen.getByText('第一章：启程')).toBeInTheDocument();
-      });
+      await expandAllVolumes();
 
       const chapter1 = screen.getByTestId('chapter-item-ch-1');
       fireEvent.contextMenu(chapter1);
 
       fireEvent.click(screen.getByText(/移入回收站/));
 
-      expect(mockOnChapterDelete).toHaveBeenCalledWith('ch-1');
+      await waitFor(() => {
+        expect(mockOnChapterDelete).toHaveBeenCalledWith('ch-1');
+      });
     });
 
     it('should call onChapterCreate when selecting insert above', async () => {

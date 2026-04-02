@@ -96,9 +96,9 @@ describe('EditorTheme', () => {
     render(<EditorTheme />);
 
     const lineSpacingSelect = screen.getByLabelText('行间距');
-    fireEvent.change(lineSpacingSelect, { target: { value: '2.0' } });
+    fireEvent.change(lineSpacingSelect, { target: { value: '2' } });
 
-    expect(mockSetLineSpacing).toHaveBeenCalledWith(2.0);
+    expect(mockSetLineSpacing).toHaveBeenCalledWith(2);
   });
 
   it('should call setFollowSystem when checkbox is toggled', () => {
