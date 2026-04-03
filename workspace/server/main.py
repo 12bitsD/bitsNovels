@@ -18,7 +18,9 @@ from server.routes import (
     us33_writing_stats,
     us36_snapshots,
     us66_notifications,
+    us51_export,
     us53_templates,
+    us54_kb_transfer,
 )
 
 
@@ -701,7 +703,9 @@ app.include_router(us31_editor.router)
 app.include_router(us33_writing_stats.router)
 app.include_router(us36_snapshots.router)
 app.include_router(us66_notifications.router)
+app.include_router(us51_export.router)
 app.include_router(us53_templates.router)
+app.include_router(us54_kb_transfer.router)
 
 
 if os.getenv("TESTING") == "true":

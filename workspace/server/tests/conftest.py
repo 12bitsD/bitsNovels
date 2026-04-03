@@ -196,6 +196,17 @@ def app_state(
     # Sprint 5 fixtures: export_templates
     app.state.export_templates = {}
     app.state.template_counter = 0
+    # Sprint 5 fixtures: kb_exports
+    app.state.kb_exports = {}
+    app.state.kb_export_counter = 0
+    app.state.kb_import_counter = 0
+    # Sprint 5 fixtures: kb_items
+    app.state.kb_items = {}
+    app.state.kb_item_counter = 0
+    # Sprint 5 fixtures: export_tasks, export_files
+    app.state.export_tasks = {}
+    app.state.export_files = {}
+    app.state.export_task_counter = 0
     # Default data for user-a project-a-1: one volume with one chapter
     now_iso = session_clock.now.isoformat().replace("+00:00", "Z")
     fake_db.volumes = [
