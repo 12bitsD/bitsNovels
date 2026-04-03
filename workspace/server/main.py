@@ -14,13 +14,16 @@ from server.routes import (
     us15_outline,
     us16_goals,
     us18_archive,
+    us24_item,
     us31_editor,
     us33_writing_stats,
     us36_snapshots,
     us66_notifications,
     us51_export,
+    us52_backup,
     us53_templates,
     us54_kb_transfer,
+    us55_restore,
 )
 
 
@@ -45,6 +48,12 @@ def _reset_app_state() -> None:
     app.state.user_counter = 0
     app.state.export_templates = {}
     app.state.template_counter = 0
+    app.state.export_tasks = {}
+    app.state.export_files = {}
+    app.state.backups = {}
+    app.state.backup_files = {}
+    app.state.backup_counter = 0
+    app.state.kb_exports = {}
 
 
 @asynccontextmanager
@@ -699,13 +708,16 @@ app.include_router(us14_settings.router)
 app.include_router(us15_outline.router)
 app.include_router(us16_goals.router)
 app.include_router(us18_archive.router)
+app.include_router(us24_item.router)
 app.include_router(us31_editor.router)
 app.include_router(us33_writing_stats.router)
 app.include_router(us36_snapshots.router)
 app.include_router(us66_notifications.router)
 app.include_router(us51_export.router)
+app.include_router(us52_backup.router)
 app.include_router(us53_templates.router)
 app.include_router(us54_kb_transfer.router)
+app.include_router(us55_restore.router)
 
 
 if os.getenv("TESTING") == "true":

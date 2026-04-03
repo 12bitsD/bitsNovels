@@ -49,5 +49,73 @@ export const handlers = [
   }),
   http.post('/api/auth/resend-verification', () => {
     return HttpResponse.json({ message: '重发成功' });
+  }),
+
+  // Chapter Note handlers
+  http.get('http://localhost:5173/api/chapters/:chapterId/note', ({ params }) => {
+    const { chapterId } = params;
+    if (chapterId === 'error-chapter') {
+      return new HttpResponse(JSON.stringify({ detail: '备注不存在' }), { status: 404 });
+    }
+    return HttpResponse.json({
+      id: `note-${chapterId}`,
+      chapterId,
+      content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"测试备注"}]}]}',
+      charCount: 4,
+      autoSavedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }),
+
+  http.put('http://localhost:5173/api/chapters/:chapterId/note', async ({ params, request }) => {
+    const { chapterId } = params;
+    const body = await request.json() as { content?: string };
+    if (chapterId === 'fail-chapter') {
+      return new HttpResponse(JSON.stringify({ detail: '保存失败' }), { status: 500 });
+    }
+    return HttpResponse.json({
+      id: `note-${chapterId}`,
+      chapterId,
+      content: body.content || '',
+      charCount: body.content ? body.content.length : 0,
+      autoSavedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }),
+
+  // Relative path fallbacks
+  http.get('/api/chapters/:chapterId/note', ({ params }) => {
+    const { chapterId } = params;
+    if (chapterId === 'error-chapter') {
+      return new HttpResponse(JSON.stringify({ detail: '备注不存在' }), { status: 404 });
+    }
+    return HttpResponse.json({
+      id: `note-${chapterId}`,
+      chapterId,
+      content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"测试备注"}]}]}',
+      charCount: 4,
+      autoSavedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }),
+
+  http.put('/api/chapters/:chapterId/note', async ({ params, request }) => {
+    const { chapterId } = params;
+    const body = await request.json() as { content?: string };
+    if (chapterId === 'fail-chapter') {
+      return new HttpResponse(JSON.stringify({ detail: '保存失败' }), { status: 500 });
+    }
+    return HttpResponse.json({
+      id: `note-${chapterId}`,
+      chapterId,
+      content: body.content || '',
+      charCount: body.content ? body.content.length : 0,
+      autoSavedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
   })
 ];
