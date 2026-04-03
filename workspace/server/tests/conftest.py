@@ -193,6 +193,9 @@ def app_state(
     app.state.notification_counter = 0
     app.state.snapshots = []
     app.state.snapshot_counter = 0
+    # Sprint 5 fixtures: export_templates
+    app.state.export_templates = {}
+    app.state.template_counter = 0
     # Default data for user-a project-a-1: one volume with one chapter
     now_iso = session_clock.now.isoformat().replace("+00:00", "Z")
     fake_db.volumes = [

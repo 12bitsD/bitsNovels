@@ -18,6 +18,7 @@ from server.routes import (
     us33_writing_stats,
     us36_snapshots,
     us66_notifications,
+    us53_templates,
 )
 
 
@@ -40,6 +41,8 @@ def _reset_app_state() -> None:
     app.state.session_counter = 0
     app.state.project_counter = 0
     app.state.user_counter = 0
+    app.state.export_templates = {}
+    app.state.template_counter = 0
 
 
 @asynccontextmanager
@@ -698,6 +701,7 @@ app.include_router(us31_editor.router)
 app.include_router(us33_writing_stats.router)
 app.include_router(us36_snapshots.router)
 app.include_router(us66_notifications.router)
+app.include_router(us53_templates.router)
 
 
 if os.getenv("TESTING") == "true":
