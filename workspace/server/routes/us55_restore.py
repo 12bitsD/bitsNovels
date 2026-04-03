@@ -56,7 +56,7 @@ def _validate_backup_zip(zip_data: bytes) -> tuple[Optional[dict], Optional[dict
         with ZipFile(BytesIO(zip_data), "r") as zf:
             if "manifest.json" not in zf.namelist():
                 return None, {
-                    "error": "INVALID_BACKUP",
+                    "code": "INVALID_BACKUP",
                     "message": "备份文件无效或已损坏",
                 }
 
@@ -72,20 +72,20 @@ def _validate_backup_zip(zip_data: bytes) -> tuple[Optional[dict], Optional[dict
             for f in required_files:
                 if f not in zf.namelist():
                     return None, {
-                        "error": "INVALID_BACKUP",
+                        "code": "INVALID_BACKUP",
                         "message": "备份文件无效或已损坏",
                     }
 
             version = manifest_data.get("version", "1.0")
             if version not in ["1.0", "1.1"]:
                 return None, {
-                    "error": "VERSION_INCOMPATIBLE",
+                    "code": "VERSION_INCOMPATIBLE",
                     "message": "备份文件无效或已损坏",
                 }
 
             return manifest_data, None
     except Exception:
-        return None, {"error": "INVALID_BACKUP", "message": "备份文件无效或已损坏"}
+        return None, {"code": "INVALID_BACKUP", "message": "备份文件无效或已损坏"}
 
 
 @router.get("/{project_id}/backups/{backup_id}/preview")
@@ -125,11 +125,12 @@ def preview_backup(
                 content={"error": val_err, "details": {}},
             )
 
+        with ZipFile(BytesIO(zip_bytes), "r") as zf:
+            project_data = json.loads(zf.read("project/project.json"))
+
         preview = {
             "projectName": manifest.get("projectName"),
-            "totalChars": sum(
-                c.get("charCount", 0) for c in manifest.get("counts", {}).values()
-            ),
+            "totalChars": project_data.get("totalChars", 0),
             "chapterCount": manifest.get("counts", {}).get("chapters", 0),
             "kbEntries": manifest.get("counts", {}).get("knowledgeBaseEntries", 0),
             "backupDate": manifest.get("exportedAt"),
@@ -298,8 +299,8 @@ def restore_backup(
                         app.state.fake_db.projects[i] = {
                             **p,
                             "name": project_data.get("name", p["name"]),
-                            "type": project_data.get("type", p["type"]),
-                            "tags": project_data.get("tags", p["tags"]),
+                            "type": project_data.get("type", p.get("type", "novel")),
+                            "tags": project_data.get("tags", p.get("tags", [])),
                             "description": project_data.get(
                                 "description", p.get("description")
                             ),
