@@ -1,3 +1,4 @@
+import importlib
 import os
 import re
 from contextlib import asynccontextmanager
@@ -8,23 +9,7 @@ from fastapi import Body, FastAPI, Header
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
-from server.config import get_settings
-from server.routes import (
-    us14_settings,
-    us15_outline,
-    us16_goals,
-    us18_archive,
-    us24_item,
-    us31_editor,
-    us33_writing_stats,
-    us36_snapshots,
-    us66_notifications,
-    us51_export,
-    us52_backup,
-    us53_templates,
-    us54_kb_transfer,
-    us55_restore,
-)
+from .config import get_settings
 
 
 class _FakeDb:
@@ -54,6 +39,26 @@ def _reset_app_state() -> None:
     app.state.backup_files = {}
     app.state.backup_counter = 0
     app.state.kb_exports = {}
+    app.state.kb_items = {}
+    app.state.kb_item_counter = 0
+    app.state.kb_characters = {}
+    app.state.kb_locations = {}
+    app.state.kb_factions = {}
+    app.state.kb_foreshadows = {}
+    app.state.kb_settings = {}
+    app.state.parser_queue = []
+    app.state.parser_tasks = {}
+    app.state.parser_states = {}
+    app.state.parser_jobs = {}
+    app.state.parser_active_task_ids = []
+    app.state.parser_task_history = []
+    app.state.parser_task_counter = 0
+    app.state.parser_job_counter = 0
+    app.state.annotations = []
+    app.state.annotation_counter = 0
+    app.state.chapter_notes = {}
+    app.state.timer_sessions = []
+    app.state.timer_session_counter = 0
 
 
 @asynccontextmanager
@@ -64,6 +69,74 @@ async def lifespan(fapp: FastAPI) -> AsyncGenerator[None, None]:
 
 
 settings = get_settings()
+
+us21_parser_router = getattr(
+    importlib.import_module("server.routes.us21_parser"), "router"
+)
+us22_character_router = getattr(
+    importlib.import_module("server.routes.us22_character"), "router"
+)
+us23_location_router = getattr(
+    importlib.import_module("server.routes.us23_location"), "router"
+)
+us14_settings_router = getattr(
+    importlib.import_module("server.routes.us14_settings"), "router"
+)
+us15_outline_router = getattr(
+    importlib.import_module("server.routes.us15_outline"), "router"
+)
+us16_goals_router = getattr(
+    importlib.import_module("server.routes.us16_goals"), "router"
+)
+us17_trash_router = getattr(
+    importlib.import_module("server.routes.us17_trash"), "router"
+)
+us18_archive_router = getattr(
+    importlib.import_module("server.routes.us18_archive"), "router"
+)
+us24_item_router = getattr(importlib.import_module("server.routes.us24_item"), "router")
+us25_faction_router = getattr(
+    importlib.import_module("server.routes.us25_faction"), "router"
+)
+us26_foreshadow_router = getattr(
+    importlib.import_module("server.routes.us26_foreshadow"), "router"
+)
+us31_editor_router = getattr(
+    importlib.import_module("server.routes.us31_editor"), "router"
+)
+us33_writing_stats_router = getattr(
+    importlib.import_module("server.routes.us33_writing_stats"), "router"
+)
+us36_snapshots_router = getattr(
+    importlib.import_module("server.routes.us36_snapshots"), "router"
+)
+us37_annotations_router = getattr(
+    importlib.import_module("server.routes.us37_annotations"), "router"
+)
+us38_chapter_notes_router = getattr(
+    importlib.import_module("server.routes.us38_chapter_notes"), "router"
+)
+us39_timer_router = getattr(
+    importlib.import_module("server.routes.us39_timer"), "router"
+)
+us51_export_router = getattr(
+    importlib.import_module("server.routes.us51_export"), "router"
+)
+us52_backup_router = getattr(
+    importlib.import_module("server.routes.us52_backup"), "router"
+)
+us53_templates_router = getattr(
+    importlib.import_module("server.routes.us53_templates"), "router"
+)
+us54_kb_transfer_router = getattr(
+    importlib.import_module("server.routes.us54_kb_transfer"), "router"
+)
+us55_restore_router = getattr(
+    importlib.import_module("server.routes.us55_restore"), "router"
+)
+us66_notifications_router = getattr(
+    importlib.import_module("server.routes.us66_notifications"), "router"
+)
 
 app = FastAPI(
     title=settings.app_name,
@@ -704,20 +777,29 @@ def create_project(
     )
 
 
-app.include_router(us14_settings.router)
-app.include_router(us15_outline.router)
-app.include_router(us16_goals.router)
-app.include_router(us18_archive.router)
-app.include_router(us24_item.router)
-app.include_router(us31_editor.router)
-app.include_router(us33_writing_stats.router)
-app.include_router(us36_snapshots.router)
-app.include_router(us66_notifications.router)
-app.include_router(us51_export.router)
-app.include_router(us52_backup.router)
-app.include_router(us53_templates.router)
-app.include_router(us54_kb_transfer.router)
-app.include_router(us55_restore.router)
+app.include_router(us21_parser_router)
+app.include_router(us22_character_router)
+app.include_router(us23_location_router)
+app.include_router(us14_settings_router)
+app.include_router(us15_outline_router)
+app.include_router(us16_goals_router)
+app.include_router(us17_trash_router)
+app.include_router(us18_archive_router)
+app.include_router(us24_item_router)
+app.include_router(us25_faction_router)
+app.include_router(us26_foreshadow_router)
+app.include_router(us31_editor_router)
+app.include_router(us33_writing_stats_router)
+app.include_router(us37_annotations_router)
+app.include_router(us38_chapter_notes_router)
+app.include_router(us39_timer_router)
+app.include_router(us36_snapshots_router)
+app.include_router(us66_notifications_router)
+app.include_router(us51_export_router)
+app.include_router(us52_backup_router)
+app.include_router(us53_templates_router)
+app.include_router(us54_kb_transfer_router)
+app.include_router(us55_restore_router)
 
 
 if os.getenv("TESTING") == "true":

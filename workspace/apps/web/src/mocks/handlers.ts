@@ -117,5 +117,101 @@ export const handlers = [
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
-  })
+  }),
+
+  // Backup handlers
+  http.get('http://localhost:5173/api/projects/:projectId/backups', () => {
+    return HttpResponse.json([
+      {
+        version: '1.0.0',
+        backupType: 'manual',
+        projectId: '1',
+        projectName: 'Test Project',
+        exportedAt: '2024-01-15T10:30:00Z',
+        counts: {
+          volumes: 2,
+          chapters: 10,
+          knowledgeBaseEntries: 25,
+          snapshots: 5,
+          annotations: 12,
+        },
+      },
+    ]);
+  }),
+
+  http.post('http://localhost:5173/api/projects/:projectId/backups', () => {
+    return HttpResponse.json({
+      version: '1.1.0',
+      backupType: 'manual',
+      projectId: '1',
+      projectName: 'Test Project',
+      exportedAt: new Date().toISOString(),
+      counts: {
+        volumes: 2,
+        chapters: 12,
+        knowledgeBaseEntries: 28,
+        snapshots: 8,
+        annotations: 15,
+      },
+    });
+  }),
+
+  http.post('http://localhost:5173/api/projects/:projectId/backups/restore', async ({ request }) => {
+    return HttpResponse.json({
+      projectName: 'Test Project',
+      totalChars: 15000,
+      chapterCount: 10,
+      knowledgeBaseCount: 25,
+      backupDate: '2024-01-15T10:30:00Z',
+      fileSize: 1024000,
+    });
+  }),
+
+  // Relative path fallbacks
+  http.get('/api/projects/:projectId/backups', () => {
+    return HttpResponse.json([
+      {
+        version: '1.0.0',
+        backupType: 'manual',
+        projectId: '1',
+        projectName: 'Test Project',
+        exportedAt: '2024-01-15T10:30:00Z',
+        counts: {
+          volumes: 2,
+          chapters: 10,
+          knowledgeBaseEntries: 25,
+          snapshots: 5,
+          annotations: 12,
+        },
+      },
+    ]);
+  }),
+
+  http.post('/api/projects/:projectId/backups', () => {
+    return HttpResponse.json({
+      version: '1.1.0',
+      backupType: 'manual',
+      projectId: '1',
+      projectName: 'Test Project',
+      exportedAt: new Date().toISOString(),
+      counts: {
+        volumes: 2,
+        chapters: 12,
+        knowledgeBaseEntries: 28,
+        snapshots: 8,
+        annotations: 15,
+      },
+    });
+  }),
+
+  http.post('/api/projects/:projectId/backups/restore', async ({ request }) => {
+    return HttpResponse.json({
+      projectName: 'Test Project',
+      totalChars: 15000,
+      chapterCount: 10,
+      knowledgeBaseCount: 25,
+      backupDate: '2024-01-15T10:30:00Z',
+      fileSize: 1024000,
+    });
+  }),
 ];

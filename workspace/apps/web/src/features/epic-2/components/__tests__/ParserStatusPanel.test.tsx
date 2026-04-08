@@ -1,0 +1,188 @@
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import ParserStatusPanel from '../ParserStatus/ParserStatusPanel';
+import * as useParserStatusModule from '../../hooks/useParserStatus';
+
+vi.mock('../../hooks/useParserStatus');
+
+const volumes = [
+  {
+    id: 'volume-1',
+    name: '第一卷',
+    chapters: [
+      { id: 'chapter-1', title: '第一章', volumeId: 'volume-1' },
+      { id: 'chapter-2', title: '第二章', volumeId: 'volume-1' },
+    ],
+  },
+];
+
+const createHookValue = (overrides: Partial<ReturnType<typeof useParserStatusModule.useParserStatus>> = {}) => ({
+  projectStatus: {
+    projectId: 'project-1',
+    pendingCount: 0,
+    summary: {
+      noContentCount: 0,
+      pendingCount: 0,
+      queuedCount: 0,
+      parsingCount: 0,
+      parsedCount: 2,
+      failedCount: 0,
+      cancelledCount: 0,
+    },
+    activeBatchJobs: [],
+    chapters: [],
+  },
+  chapterStates: {},
+  activeBatchJob: null,
+  isLoading: false,
+  isManualTriggering: false,
+  retryingChapterId: null,
+  toast: null,
+  triggerManualParse: vi.fn(),
+  retryChapter: vi.fn(),
+  startBatchParse: vi.fn(),
+  cancelBatchParse: vi.fn(),
+  dismissToast: vi.fn(),
+  refreshProjectStatus: vi.fn(),
+  getChapterState: vi.fn(() => undefined),
+  ...overrides,
+});
+
+describe('ParserStatusPanel', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders synced project status and manual trigger button', () => {
+    vi.mocked(useParserStatusModule.useParserStatus).mockReturnValue(createHookValue());
+
+    render(
+      <ParserStatusPanel
+        projectId="project-1"
+        activeChapterId="chapter-1"
+        currentContent="章节内容"
+        volumes={volumes}
+      />,
+    );
+
+    expect(screen.getByText('全部已同步')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重新解析当前章节' })).toBeInTheDocument();
+  });
+
+  it('shows pending count and loading state while manual parsing runs', () => {
+    const triggerManualParse = vi.fn();
+
+    vi.mocked(useParserStatusModule.useParserStatus).mockReturnValue(
+      createHookValue({
+        projectStatus: {
+          projectId: 'project-1',
+          pendingCount: 3,
+          summary: {
+            noContentCount: 0,
+            pendingCount: 1,
+            queuedCount: 1,
+            parsingCount: 0,
+            parsedCount: 2,
+            failedCount: 1,
+            cancelledCount: 0,
+          },
+          activeBatchJobs: [],
+          chapters: [],
+        },
+        isManualTriggering: true,
+        triggerManualParse,
+      }),
+    );
+
+    render(
+      <ParserStatusPanel
+        projectId="project-1"
+        activeChapterId="chapter-1"
+        currentContent="章节内容"
+        volumes={volumes}
+      />,
+    );
+
+    expect(screen.getByText('3 章待解析')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '解析中...' })).toBeDisabled();
+  });
+
+  it('opens the batch dialog from the dropdown menu', () => {
+    vi.mocked(useParserStatusModule.useParserStatus).mockReturnValue(createHookValue());
+
+    render(
+      <ParserStatusPanel
+        projectId="project-1"
+        activeChapterId="chapter-1"
+        currentContent="章节内容"
+        volumes={volumes}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '批量重新解析' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: '指定卷' }));
+
+    expect(screen.getByRole('dialog', { name: '批量重新解析' })).toBeInTheDocument();
+    expect(screen.getByLabelText('指定卷')).toBeChecked();
+  });
+
+  it('shows batch progress and cancels remaining tasks', () => {
+    const cancelBatchParse = vi.fn();
+
+    vi.mocked(useParserStatusModule.useParserStatus).mockReturnValue(
+      createHookValue({
+        activeBatchJob: {
+          id: 'job-1',
+          projectId: 'project-1',
+          scope: 'all',
+          totalChapters: 4,
+          completedChapters: 2,
+          failedChapters: 0,
+          cancelledChapters: 0,
+          status: 'running',
+          progress: 50,
+        },
+        cancelBatchParse,
+      }),
+    );
+
+    render(
+      <ParserStatusPanel
+        projectId="project-1"
+        activeChapterId="chapter-1"
+        currentContent="章节内容"
+        volumes={volumes}
+      />,
+    );
+
+    expect(screen.getByText('2/4')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '取消剩余任务' }));
+
+    expect(cancelBatchParse).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders toast notifications from parser operations', () => {
+    vi.mocked(useParserStatusModule.useParserStatus).mockReturnValue(
+      createHookValue({
+        toast: {
+          type: 'success',
+          title: '解析完成',
+          description: '新增角色 1，地点 1，道具 0。',
+        },
+      }),
+    );
+
+    render(
+      <ParserStatusPanel
+        projectId="project-1"
+        activeChapterId="chapter-1"
+        currentContent="章节内容"
+        volumes={volumes}
+      />,
+    );
+
+    expect(screen.getByText('解析完成')).toBeInTheDocument();
+    expect(screen.getByText('新增角色 1，地点 1，道具 0。')).toBeInTheDocument();
+  });
+});

@@ -209,6 +209,19 @@ def app_state(
     app.state.kb_factions = {}
     app.state.kb_foreshadows = {}
     app.state.kb_settings = {}
+    app.state.parser_queue = []
+    app.state.parser_tasks = {}
+    app.state.parser_states = {}
+    app.state.parser_jobs = {}
+    app.state.parser_active_task_ids = []
+    app.state.parser_task_history = []
+    app.state.parser_task_counter = 0
+    app.state.parser_job_counter = 0
+    app.state.annotations = []
+    app.state.annotation_counter = 0
+    app.state.chapter_notes = {}
+    app.state.timer_sessions = []
+    app.state.timer_session_counter = 0
     # Sprint 5 fixtures: export_tasks, export_files
     app.state.export_tasks = {}
     app.state.export_files = {}
