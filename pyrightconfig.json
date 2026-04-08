@@ -1,0 +1,5 @@
+{
+  "include": ["workspace/server"],
+  "extraPaths": ["workspace"],
+  "typeCheckingMode": "basic"
+}

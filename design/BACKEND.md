@@ -63,7 +63,7 @@
 |------|---------|------|------|
 | Epic 1 | `/api/auth/`，`/api/projects/` | 认证 + 项目管理 | ✅ 已实现 |
 | Epic 3 | `/api/projects/:id/volumes/`，`/api/projects/:id/chapters/` | 卷章编辑器 | ✅ 已实现 |
-| Epic 2 | `/api/projects/:id/kb/` | 知识库 | 🔲 Sprint 4 |
+| Epic 2 | `/api/projects/:id/kb/` | 知识库 | ✅ Sprint 5 已完成（Parser + Character/Location/Item/Faction/Foreshadow） |
 | Epic 4 | `/api/ai/tasks/` | AI 任务 | 🔲 Sprint 4+（ARQ队列） |
 | Epic 5 | `/api/projects/:id/exports/`，`/api/projects/:id/backups/` | 导出备份 | 🔲 Sprint 8 |
 | Epic 6 | `/api/users/me/` | 用户设置 | ✅ US-6.6已实现 |

@@ -1,4 +1,5 @@
 import re
+import importlib
 from fastapi import APIRouter, Body, Header
 from pydantic import BaseModel
 from typing import Any, Optional, Union
@@ -296,7 +297,7 @@ def delete_volume(
     volume_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _require_user_id, _error, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -321,24 +322,12 @@ def delete_volume(
     chapters = [c for c in app.state.fake_db.chapters if c["volumeId"] == volume_id]
     # Collect chapter IDs to delete (O(C) instead of O(C²))
     chapter_ids_to_delete = {ch["id"] for ch in chapters}
-    now_iso = _iso_z(app.state.session_clock.now)
-
+    create_chapter_trash_entry = importlib.import_module(
+        "server.services.trash_service"
+    ).create_chapter_trash_entry
     for ch in chapters:
         app.state.trash_items.append(
-            {
-                "id": f"trash-{len(app.state.trash_items) + 1}",
-                "projectId": project_id,
-                "type": "chapter",
-                "title": ch["title"],
-                "originalVolumeId": volume_id,
-                "originalVolumeName": volume["name"],
-                "originalPosition": ch["order"],
-                "chars": ch.get("chars", 0),
-                "deletedAt": now_iso,
-                "expiresAt": _iso_z(app.state.session_clock.now),
-                "remainingDays": 30,
-                "snapshotCount": 0,
-            }
+            create_chapter_trash_entry(project_id, ch, volume["name"])
         )
 
     # Remove all chapters at once (O(C) instead of O(C²))
@@ -702,7 +691,7 @@ def bulk_trash_chapters(
     payload: BulkTrashRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _require_user_id, _error, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -723,8 +712,9 @@ def bulk_trash_chapters(
     chapter_ids = payload.chapterIds
     # Collect chapter IDs to trash (O(K) instead of O(K * C²))
     ids_to_trash = set(chapter_ids)
-    now_iso = _iso_z(app.state.session_clock.now)
-
+    create_chapter_trash_entry = importlib.import_module(
+        "server.services.trash_service"
+    ).create_chapter_trash_entry
     trashed = 0
     for ch_id in chapter_ids:
         ch = next(
@@ -741,20 +731,11 @@ def bulk_trash_chapters(
                 None,
             )
             app.state.trash_items.append(
-                {
-                    "id": f"trash-{len(app.state.trash_items) + 1}",
-                    "projectId": project_id,
-                    "type": "chapter",
-                    "title": ch["title"],
-                    "originalVolumeId": ch["volumeId"],
-                    "originalVolumeName": vol["name"] if vol else "",
-                    "originalPosition": ch["order"],
-                    "chars": ch.get("chars", 0),
-                    "deletedAt": now_iso,
-                    "expiresAt": _iso_z(app.state.session_clock.now),
-                    "remainingDays": 30,
-                    "snapshotCount": 0,
-                }
+                create_chapter_trash_entry(
+                    project_id,
+                    ch,
+                    vol["name"] if vol else "",
+                )
             )
             trashed += 1
 
@@ -773,7 +754,7 @@ def delete_chapter(
     chapter_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _require_user_id, _error, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -795,27 +776,19 @@ def delete_chapter(
     if chapter is None:
         return _error(404, "CHAPTER_NOT_FOUND", "Chapter not found")
 
+    create_chapter_trash_entry = importlib.import_module(
+        "server.services.trash_service"
+    ).create_chapter_trash_entry
     vol = next(
         (v for v in app.state.fake_db.volumes if v["id"] == chapter["volumeId"]),
         None,
     )
-    now_iso = _iso_z(app.state.session_clock.now)
-
     app.state.trash_items.append(
-        {
-            "id": f"trash-{len(app.state.trash_items) + 1}",
-            "projectId": project_id,
-            "type": "chapter",
-            "title": chapter["title"],
-            "originalVolumeId": chapter["volumeId"],
-            "originalVolumeName": vol["name"] if vol else "",
-            "originalPosition": chapter["order"],
-            "chars": chapter.get("chars", 0),
-            "deletedAt": now_iso,
-            "expiresAt": _iso_z(app.state.session_clock.now),
-            "remainingDays": 30,
-            "snapshotCount": 0,
-        }
+        create_chapter_trash_entry(
+            project_id,
+            chapter,
+            vol["name"] if vol else "",
+        )
     )
 
     app.state.fake_db.chapters = [

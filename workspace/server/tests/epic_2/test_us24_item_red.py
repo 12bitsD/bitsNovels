@@ -14,9 +14,7 @@ US-2.4 Item Knowledge Base — 红灯测试
 10. GET    /api/projects/:projectId/kb/item/:entityId/references — 引用检查
 """
 
-import pytest
 from fastapi.testclient import TestClient
-
 
 # ─── 1. GET /kb/item — 列表 ───────────────────────────────────────────────────
 
@@ -372,8 +370,7 @@ def test_delete_item_success(client: TestClient) -> None:
     )
     assert response.status_code == 200
     assert response.json()["ok"] is True
-    # Item should have deletedAt set
-    get_resp = client.get(
+    client.get(
         f"/api/projects/project-a-1/kb/item/{item_id}",
         headers={"Authorization": "Bearer token-of-user-a"},
     )
@@ -667,3 +664,168 @@ def test_references_not_found(client: TestClient) -> None:
     )
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "ITEM_NOT_FOUND"
+
+
+def test_list_items_supports_search_and_type_filter(client: TestClient) -> None:
+    client.post(
+        "/api/projects/project-a-1/kb/item",
+        json={
+            "name": "玄铁剑",
+            "aliases": ["黑剑"],
+            "itemType": "weapon",
+            "source": "manual",
+        },
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    client.post(
+        "/api/projects/project-a-1/kb/item",
+        json={
+            "name": "玄铁甲",
+            "aliases": [],
+            "itemType": "armor",
+            "source": "manual",
+        },
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+
+    response = client.get(
+        "/api/projects/project-a-1/kb/item?query=黑剑&itemType=weapon",
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["name"] == "玄铁剑"
+
+
+def test_patch_item_same_owner_does_not_duplicate_ownership_history(
+    client: TestClient,
+) -> None:
+    create_resp = client.post(
+        "/api/projects/project-a-1/kb/item",
+        json={
+            "name": "城主令",
+            "aliases": [],
+            "itemType": "token",
+            "source": "manual",
+            "ownerCharacterId": "char-1",
+        },
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    item_id = create_resp.json()["item"]["id"]
+
+    first_patch = client.patch(
+        f"/api/projects/project-a-1/kb/item/{item_id}",
+        json={
+            "ownerCharacterId": "char-2",
+            "ownershipChapterId": "chapter-a-1",
+            "ownershipNote": "夺得令牌",
+        },
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert first_patch.status_code == 200
+
+    second_patch = client.patch(
+        f"/api/projects/project-a-1/kb/item/{item_id}",
+        json={
+            "ownerCharacterId": "char-2",
+            "ownershipChapterId": "chapter-a-1",
+            "ownershipNote": "重复同步",
+        },
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+
+    assert second_patch.status_code == 200
+    item = second_patch.json()["item"]
+    assert item["ownerCharacterId"] == "char-2"
+    assert len(item["ownershipHistory"]) == 1
+    assert item["ownershipHistory"][0]["fromCharacterId"] == "char-1"
+
+
+def test_parser_updates_item_owner_and_appends_history(client: TestClient) -> None:
+    import server.services.kb_item_service as kb_item_service
+
+    created = kb_item_service.upsert_item_from_parser(
+        "project-a-1",
+        {
+            "name": "玄铁剑",
+            "aliases": ["黑剑"],
+            "itemType": "weapon",
+            "ownerCharacterId": "char-zhangsan",
+            "chapterIds": ["chapter-a-1"],
+            "summary": "张三佩剑",
+            "note": "初始认主",
+        },
+    )
+    assert created["ownerCharacterId"] == "char-zhangsan"
+    assert created["ownershipHistory"] == []
+
+    updated = kb_item_service.upsert_item_from_parser(
+        "project-a-1",
+        {
+            "name": "玄铁剑",
+            "aliases": ["神兵"],
+            "itemType": "weapon",
+            "ownerCharacterId": "char-lisi",
+            "chapterIds": ["chapter-a-2"],
+            "summary": "李四夺走佩剑",
+            "note": "擂台易主",
+        },
+    )
+
+    assert updated["id"] == created["id"]
+    assert updated["ownerCharacterId"] == "char-lisi"
+    assert updated["chapterIds"] == ["chapter-a-1", "chapter-a-2"]
+    assert updated["aliases"] == ["黑剑", "神兵"]
+    assert len(updated["ownershipHistory"]) == 1
+    record = updated["ownershipHistory"][0]
+    assert record["fromCharacterId"] == "char-zhangsan"
+    assert record["toCharacterId"] == "char-lisi"
+    assert record["chapterId"] == "chapter-a-2"
+    assert record["note"] == "擂台易主"
+
+
+def test_reject_item_adds_parser_exclude_and_blocks_recreate(
+    client: TestClient,
+) -> None:
+    create_resp = client.post(
+        "/api/projects/project-a-1/kb/item",
+        json={
+            "name": "普通茶杯",
+            "aliases": [],
+            "itemType": "other",
+            "source": "ai",
+        },
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    item_id = create_resp.json()["item"]["id"]
+
+    reject_resp = client.post(
+        f"/api/projects/project-a-1/kb/item/{item_id}/reject",
+        json={"remark": "这不是关键道具"},
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    assert reject_resp.status_code == 200
+
+    import server.services.kb_item_service as kb_item_service
+
+    skipped = kb_item_service.upsert_item_from_parser(
+        "project-a-1",
+        {
+            "name": "普通茶杯",
+            "aliases": ["茶盏"],
+            "itemType": "other",
+            "chapterIds": ["chapter-a-1"],
+            "summary": "桌上的杯子",
+        },
+    )
+
+    assert skipped is None
+    detail_resp = client.get(
+        f"/api/projects/project-a-1/kb/item/{item_id}",
+        headers={"Authorization": "Bearer token-of-user-a"},
+    )
+    detail = detail_resp.json()["item"]
+    assert detail["isRejected"] is True
+    assert detail["chapterIds"] == []

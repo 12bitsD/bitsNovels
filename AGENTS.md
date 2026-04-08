@@ -115,7 +115,7 @@
 
 **时间：** Week 9-10（2026-04-07 起）
 
-**状态：** 🔄 进行中
+**状态：** ✅ 已完成（2026-04-07）
 
 ### Sprint 5 任务
 
@@ -123,12 +123,12 @@
 |------|------|----|----|------|
 | US-2.1 | Parser 引擎 | ✅ | ✅ | 2026-04-07 已补齐 BE 解析触发、队列、状态与通知实现；2026-04-07 FE 已新增 ParserStatusPanel、ChapterParseStatus、BatchParseDialog 与 useParserStatus，支持手动/批量解析触发、进度跟踪、状态图标与取消任务 |
 | US-2.2 | 角色识别与管理 | ✅ | ✅ | 2026-04-07 已新增 character 路由/服务、名称搜索、确认/批量确认、非角色排除名单与势力归属双向同步；2026-04-07 FE 已新增 KBCharacter Panel/List/Card/Detail 与 useKBCharacter，支持搜索、排序、AI 待确认标记、批量确认、章节跳转与详情编辑 |
-| US-2.3 | 地点识别与管理 Backend | ✅ | — | 2026-04-07 已新增 location 路由/服务、树查询、搜索筛选、解析归并与排除名单 |
+| US-2.3 | 地点识别与管理 | ✅ | ✅ | 2026-04-07 已新增 location 路由/服务、树查询、搜索筛选、解析归并与排除名单；FE 已存在 KBLocation Panel/List/Card/Detail 与 useKBLocation（Sprint 4 完成） |
 | US-2.4 | 道具/物品识别 | ✅ | ✅ | 2026-04-07 已重构 item 路由到共享 KB Core，补齐搜索筛选、持有者历史与解析归并；2026-04-07 FE 已新增 KBItem Panel/List/Card/Detail 与 `useKBItem`，支持搜索、类型筛选、AI 待确认、批量确认与持有者历史详情 |
 | US-2.5 | 势力/组织识别 | ✅ | ✅ | 2026-04-07 已新增 faction 路由/服务、成员同步、同盟/敌对去环、确认/批量确认与非势力排除名单；FE 已存在 KBFaction Panel/List/Card/Detail 与 useKBFaction（Sprint 4 完成） |
 | US-2.6 | 伏笔追踪 | ✅ | ✅ | 2026-04-07 已新增 foreshadow 路由/服务、AI 解析写入、疑似回收建议、预期回收提醒/超期警告与回收站集成；2026-04-07 FE 已新增 `KBForeshadow` Panel/List/Card/Detail/CreateDialog 与 `useKBForeshadow`，支持状态分组、状态筛选/名称搜索、手动创建、状态切换、AI 建议确认、预期回收章节设置与超期高亮 |
-| US-1.7 | 回收站 | ✅ | — | 2026-04-07 已新增统一回收站路由、知识库软删除恢复/永久删除、30天自动清理与统计测试 |
-| US-3.7~3.9 | 编辑器辅助功能 Backend（批注、章节备注、写作计时器） | ✅ | — | 2026-04-07 已新增 annotations、chapter note、timer 路由/服务与 Epic 3 测试 |
+| US-1.7 | 回收站 | ✅ | — | 2026-04-07 已新增统一回收站路由、知识库软删除恢复/永久删除、30天自动清理与统计测试；FE 待后续 Sprint 补充 |
+| US-3.7~3.9 | 编辑器辅助功能（批注、章节备注、写作计时器） | ✅ | — | 2026-04-07 已新增 annotations、chapter note、timer 路由/服务与 Epic 3 测试；FE 待后续 Sprint 补充 |
 
 ---
 
