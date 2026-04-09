@@ -27,7 +27,7 @@
 ## 3. WritingStatsPanel & EditorTheme 视觉重构
 
 ### 痛点与背景
-充满大量的 `#F5F0E8` 和 `bg-gray-100` 等硬编码，无法响应 Dark Mode，也不符合神匠的“温暖色板”理念。
+充满大量的 `#F5F0E8` 和 `bg-gray-100` 等硬编码，无法响应 Dark Mode，也不符合项目的“复古科学 × 数字羊皮纸”视觉规范。
 
 ### 设计决策 (Design Decisions)
 - **语义化 Token**：禁用原始的 Tailwind 颜色体系，所有表面背景使用 `bg-parchment` (羊皮纸色)，文本使用 `text-ink` (墨水色)。

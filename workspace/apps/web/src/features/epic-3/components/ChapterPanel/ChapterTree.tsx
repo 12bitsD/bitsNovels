@@ -1,5 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   GripVertical,
   ChevronDown,
@@ -129,6 +131,7 @@ function ChapterTreeItem({
 interface VolumeTreeItemProps {
   volume: Volume;
   isExpanded: boolean;
+  activeDragId: string | null;
   activeChapterId: string | null;
   editingChapterId: string | null;
   editValue: string;
@@ -143,6 +146,7 @@ interface VolumeTreeItemProps {
 function VolumeTreeItem({
   volume,
   isExpanded,
+  activeDragId,
   activeChapterId,
   editingChapterId,
   editValue,
@@ -153,6 +157,19 @@ function VolumeTreeItem({
   onChapterRenameCancel,
   onEditValueChange,
 }: VolumeTreeItemProps) {
+  const shouldVirtualize = isExpanded && !activeDragId && volume.chapters.length >= 200;
+  const parentRef = useRef<HTMLDivElement | null>(null);
+  const virtualizer = useVirtualizer({
+    count: volume.chapters.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 40,
+    overscan: 12,
+    enabled: shouldVirtualize,
+    initialRect: { width: 0, height: 480 },
+  });
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
+
   return (
     <div className="border-b border-border/20 last:border-b-0">
       <button
@@ -174,22 +191,60 @@ function VolumeTreeItem({
       </button>
 
       {isExpanded && (
-        <div className="bg-parchment/20">
-          {volume.chapters.map((chapter) => (
-            <ChapterTreeItem
-              key={chapter.id}
-              chapter={chapter}
-              isActive={activeChapterId === chapter.id}
-              isEditing={editingChapterId === chapter.id}
-              editValue={editValue}
-              onSelect={() => onChapterSelect(chapter.id)}
-              onContextMenu={(e) => onChapterContextMenu(e, chapter)}
-              onRenameSubmit={(newTitle) => onChapterRenameSubmit(chapter.id, newTitle)}
-              onRenameCancel={onChapterRenameCancel}
-              onEditValueChange={onEditValueChange}
-            />
-          ))}
-        </div>
+        <>
+          {shouldVirtualize ? (
+            <div ref={parentRef} className="max-h-[50vh] overflow-y-auto bg-parchment/20">
+              <div className="relative" style={{ height: `${totalSize}px` }}>
+                {virtualItems.map((virtualRow) => {
+                  const chapter = volume.chapters[virtualRow.index];
+                  return (
+                    <div
+                      key={chapter.id}
+                      data-index={virtualRow.index}
+                      ref={virtualizer.measureElement}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                    >
+                      <ChapterTreeItem
+                        chapter={chapter}
+                        isActive={activeChapterId === chapter.id}
+                        isEditing={editingChapterId === chapter.id}
+                        editValue={editValue}
+                        onSelect={() => onChapterSelect(chapter.id)}
+                        onContextMenu={(e) => onChapterContextMenu(e, chapter)}
+                        onRenameSubmit={(newTitle) => onChapterRenameSubmit(chapter.id, newTitle)}
+                        onRenameCancel={onChapterRenameCancel}
+                        onEditValueChange={onEditValueChange}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-parchment/20">
+              {volume.chapters.map((chapter) => (
+                <ChapterTreeItem
+                  key={chapter.id}
+                  chapter={chapter}
+                  isActive={activeChapterId === chapter.id}
+                  isEditing={editingChapterId === chapter.id}
+                  editValue={editValue}
+                  onSelect={() => onChapterSelect(chapter.id)}
+                  onContextMenu={(e) => onChapterContextMenu(e, chapter)}
+                  onRenameSubmit={(newTitle) => onChapterRenameSubmit(chapter.id, newTitle)}
+                  onRenameCancel={onChapterRenameCancel}
+                  onEditValueChange={onEditValueChange}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -197,6 +252,7 @@ function VolumeTreeItem({
 
 interface ChapterTreeProps {
   volumes: Volume[];
+  activeDragId: string | null;
   activeChapterId: string | null;
   editingChapterId: string | null;
   editValue: string;
@@ -211,6 +267,7 @@ interface ChapterTreeProps {
 
 export function ChapterTree({
   volumes,
+  activeDragId,
   activeChapterId,
   editingChapterId,
   editValue,
@@ -237,6 +294,7 @@ export function ChapterTree({
           key={volume.id}
           volume={volume}
           isExpanded={expandedVolumeIds.has(volume.id)}
+          activeDragId={activeDragId}
           activeChapterId={activeChapterId}
           editingChapterId={editingChapterId}
           editValue={editValue}

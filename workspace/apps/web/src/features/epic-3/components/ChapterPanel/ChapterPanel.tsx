@@ -298,6 +298,7 @@ export function ChapterPanel({
           >
             <ChapterTree
               volumes={volumes}
+              activeDragId={activeDragId}
               activeChapterId={activeChapterId}
               editingChapterId={editingChapterId}
               editValue={editValue}

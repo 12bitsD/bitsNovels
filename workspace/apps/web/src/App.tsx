@@ -15,8 +15,8 @@ const WorkbenchShell = lazy(() => import('./components/WorkbenchShell/WorkbenchS
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
-      <div className="w-16 h-16 border-4 border-[#D4C4A8] border-t-[#8B6914] rounded-full animate-spin"></div>
+    <div className="min-h-screen flex items-center justify-center bg-parchment">
+      <div className="w-16 h-16 border-4 border-border border-t-amber rounded-full animate-spin" />
     </div>
   );
 }
@@ -38,8 +38,8 @@ function OutlinePage() {
 
 function DevNavigation() {
   return (
-    <div className="fixed bottom-4 right-4 bg-white p-4 shadow-lg rounded-md border border-[#D4C4A8] text-sm z-50">
-      <h3 className="font-bold mb-2 text-[#8B6914]">Dev Navigation</h3>
+    <div className="fixed bottom-4 right-4 bg-white p-4 shadow-lg rounded-md border border-border/60 text-sm z-50 text-ink">
+      <h3 className="font-bold mb-2 text-amber">Dev Navigation</h3>
       <ul className="space-y-1">
         <li><Link to="/login" className="hover:underline">/login</Link></li>
         <li><Link to="/register" className="hover:underline">/register</Link></li>

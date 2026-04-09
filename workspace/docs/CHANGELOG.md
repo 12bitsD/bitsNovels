@@ -1,3 +1,8 @@
+# bitsNovels workspace · 工程变更日志
+
+> 本文件记录 `workspace/` 范围内的工程脚本、门禁、开发流程与实现细节变更。
+> 版本级与文档结构级变更请以 `docs/CHANGELOG.md` 为准，避免两处重复维护。
+
 ## [Unreleased]
 ### Added
 - P2 Shared UI 扩充：在 `workspace/apps/web/src/components/ui` 创建了 `Card`、`Modal`、`Tabs` 基础原子组件，支持 8px 呼吸网格与语义化 Token (`bg-ivory`, `border-border`, `text-ink` 等)。
@@ -10,4 +15,9 @@
 - 修复了 `useAutoSave` Hook 中由于旧内容闭包和竞态导致的自动保存 bug。
 - 将 `AuthContext.tsx` 中的 `remember_me` 对齐为 `rememberMe` 以符合 API Contract。
 - 修改了 `App.tsx`，现在 `DevNavigation` 仅在开发环境中可见（基于 `import.meta.env.DEV`）。
+- 修复 `App.tsx` 中 `LoadingFallback` / `DevNavigation` 的硬编码色值：改用现有 design token（`bg-parchment`、`border-border`、`text-amber` 等）以保持全站风格一致。
+- 修复 `StatsTable.tsx` 的硬编码色值：替换为语义 token（`text-ink`、`border-border`、`bg-ivory`、`bg-amber-light` 等）。
+- 扩大 TanStack Query 试点范围：`useWritingStats` 迁移到 `useQuery + fetchApi`，统一请求与错误处理，并保持原 Hook API 兼容。
+- 长列表虚拟化落地：`KBCharacterList`、`NotificationPanel` 增加基于 `@tanstack/react-virtual` 的虚拟滚动（大数据量阈值触发）；卷/章树对超大卷章节列表启用虚拟化渲染（拖拽中自动回退为完整渲染）。
 - 增加了多个未覆盖的测试用例，当前 `npm run test:web` 已通过，且覆盖率满足 73% 阈值。
+- 文档去重：修正 `process/CONSTRAINTS.md` 导出格式约束，合并前端审计矩阵，并清理过时 refactor 文档与一次性测试输出文件。

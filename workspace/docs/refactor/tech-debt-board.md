@@ -17,16 +17,19 @@
 ## 优先级 P1: 核心热点组件重构 (Phase B & C)
 - 🟢 [x] **ExportPanel 状态机解耦** - 拆分 24+ Hooks 至独立的状态管理逻辑。
 - 🟢 [x] **ProjectSettingsPage 重构** - 使用 `useReducer` 替代散乱的 useState。
-- 🟢 [x] **WritingStatsPanel 视觉统一** - 移除内联样式和 `#HEX`，接入 Theme Token。
-- 🟢 [x] **SnapshotDiff & EditorTheme Token 收敛** - 消除原子颜色类的硬编码。
-- 🟢 [x] **工作台 Shell (Workbench Shell)** - 建立三栏布局与顶栏全局导航。
+- 🟢 [x] **WritingStatsPanel 视觉统一** - 移除内联样式和硬编码色值，接入 Theme Token。
+- 🟢 [x] **工作台 Shell (Workbench Shell)** - 建立三栏布局与顶栏全局导航，并修复右栏布局冲突与入口可发现性。
 
 ## 优先级 P2: 架构优化与数据层 (Phase D & E)
-- 🟢 [x] **API 层抽象 (React Query 评估)** - 封装基础 `client.ts`，引入请求级拦截器与缓存。
+- 🟢 [x] **API 层抽象 (TanStack Query 试点)** - 封装 `fetchApi` 并迁移通知模块 (Epic-6)。
+- 🟢 [x] **扩大 TanStack Query 试点范围** - `useWritingStats` 迁移到 `useQuery + fetchApi`，统一请求与错误处理。
 - 🟢 [x] **基础 UI 库扩充 (Shared UI)** - 提取 `Card`, `Modal`, `Tabs` 避免在业务中散落 HTML 标签。
 - 🟢 [x] **路由懒加载优化** - 将 `App.tsx` 的全量导入改造为 `React.lazy` 懒加载。
 - 🟢 [x] **类型集中** - 移除组件内散落的接口定义，对齐 `@bitsnovels/api-types`。
+- 🟢 [x] **长列表虚拟化** - KB 列表 / 通知列表 / 超大卷章节列表引入 `@tanstack/react-virtual`（大数据量阈值触发，拖拽中回退为完整渲染）。
+
+---
 
 ## 当前说明
-- Playwright E2E 最近一次执行已通过，可视为核心功能链路可用。
-- 人工视觉走查仍未全部完成，`App.tsx`、`ProjectDashboard`、`KBLocationDetail`、`NotificationItem` 仍需补记录或补验收。
+- `npm run check`、`npm run build`、`npx playwright test` 均已回归通过。
+- 测试输出仍存在少量 `act(...)` 与 `--localstorage-file` warning，不影响门禁通过，建议后续单独清理以降低噪音。

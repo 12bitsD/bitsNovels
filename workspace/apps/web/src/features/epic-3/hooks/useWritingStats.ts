@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { client } from '../../../api/client';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchApi } from '../../../api/client';
 import type { ChapterStat } from '@bitsnovels/api-types';
 
 export interface WritingStatsSummary {
@@ -43,54 +44,30 @@ export interface UseWritingStatsResult {
 }
 
 export function useWritingStats(projectId: string): UseWritingStatsResult {
-  const [data, setData] = useState<WritingStatsData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const enabled = Boolean(projectId);
 
-  const fetchStats = useCallback(async () => {
-    if (!projectId) {
-      setData(null);
-      setLoading(false);
-      setError('');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const [summaryRes, dailyRes, weeklyRes, heatmapRes] = await Promise.all([
-        client.GET(`/api/projects/${projectId}/writing-stats/summary`),
-        client.GET(`/api/projects/${projectId}/writing-stats/daily?range=30d`),
-        client.GET(`/api/projects/${projectId}/writing-stats/weekly?range=12w`),
-        client.GET(`/api/projects/${projectId}/writing-stats/heatmap`),
+  const query = useQuery({
+    queryKey: ['writingStats', projectId],
+    enabled,
+    queryFn: async (): Promise<WritingStatsData> => {
+      const [summary, daily, weekly, heatmap] = await Promise.all([
+        fetchApi<WritingStatsSummary>('GET', `/api/projects/${projectId}/writing-stats/summary`),
+        fetchApi<DailyData[]>('GET', `/api/projects/${projectId}/writing-stats/daily?range=30d`),
+        fetchApi<WeeklyData[]>('GET', `/api/projects/${projectId}/writing-stats/weekly?range=12w`),
+        fetchApi<HeatmapData[]>('GET', `/api/projects/${projectId}/writing-stats/heatmap`),
       ]);
 
-      if (summaryRes.error) {
-        const msg = (summaryRes.error as { detail?: string }).detail || '获取统计失败';
-        setError(msg);
-        setData(null);
-        return;
-      }
+      type ChapterListItem = {
+        id: string;
+        title: string;
+        volumeName?: string;
+        charCount: number;
+      };
 
-      const summary = summaryRes.data as WritingStatsSummary;
-      const daily = (dailyRes.data as DailyData[]) || [];
-      const weekly = (weeklyRes.data as WeeklyData[]) || [];
-      const heatmap = (heatmapRes.data as HeatmapData[]) || [];
-
-      const chaptersRes = await client.GET(`/api/projects/${projectId}/chapters`);
       let chapters: ChapterStat[] = [];
-
-      if (!chaptersRes.error && Array.isArray(chaptersRes.data)) {
-        const chapterList = chaptersRes.data as Array<{
-          id: string;
-          title: string;
-          volumeName?: string;
-          charCount: number;
-        }>;
-
+      try {
+        const chapterList = await fetchApi<ChapterListItem[]>('GET', `/api/projects/${projectId}/chapters`);
         const totalChars = chapterList.reduce((sum, ch) => sum + (ch.charCount || 0), 0);
-
         chapters = chapterList.map((ch) => ({
           id: ch.id,
           title: ch.title,
@@ -98,32 +75,29 @@ export function useWritingStats(projectId: string): UseWritingStatsResult {
           chars: ch.charCount || 0,
           percentage: totalChars > 0 ? Math.round(((ch.charCount || 0) / totalChars) * 1000) / 10 : 0,
         }));
+      } catch {
+        chapters = [];
       }
 
-      setData({
+      return {
         summary,
-        daily,
-        weekly,
-        heatmap,
+        daily: daily || [],
+        weekly: weekly || [],
+        heatmap: heatmap || [],
         chapters,
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '获取统计失败';
-      setError(msg);
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
+      };
+    },
+    refetchOnMount: true,
+  });
 
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+  const refetch = useCallback(async () => {
+    await query.refetch();
+  }, [query]);
 
   return {
-    data,
-    loading,
-    error,
-    refetch: fetchStats,
+    data: enabled ? (query.data ?? null) : null,
+    loading: enabled ? query.isLoading || query.isFetching : false,
+    error: enabled ? (query.error instanceof Error ? query.error.message : '') : '',
+    refetch,
   };
 }

@@ -1,6 +1,28 @@
 # bitsNovels · 更新日志
 
 > 所有重大文档变更均记录于此。语义化版本号遵循 vMAJOR.MINOR.PATCH。
+> 工作区脚本/门禁/工程细节变更见 `workspace/docs/CHANGELOG.md`，避免在两处重复记录同一内容。
+
+------
+
+## v0.3.23（2026-04-09）
+
+### 前端收尾
+#### 修正 (Fixed)
+- `workspace` 根级 `npm run check` 的 `ruff` 环境阻塞已修复：根脚本会自动创建 `.venv` 并同步 `.[dev]` 依赖，CI 与本地口径一致。
+- 继续推进视觉与性能收尾：修复 `App.tsx` / `StatsTable.tsx` 残留硬编码色值、补齐长列表虚拟化（KB 列表 / 通知列表 / 超大卷章节列表）。
+#### 重构 (Refactored)
+- 扩大 TanStack Query 试点范围：`useWritingStats` 迁移到 `useQuery`，统一请求与错误处理（复用 `fetchApi`）。
+
+------
+
+## v0.3.22（2026-04-09）
+
+### 文档去重
+#### 修正 (Fixed)
+- 修正 `process/CONSTRAINTS.md` 的导出格式约束：V1 导出格式统一为 DOCX / TXT / PDF / Markdown（去除 EPUB）。
+- 合并 `docs/FRONTEND_AC_MATRIX_2026-04-09.md` 至 `docs/FRONTEND_AUDIT_2026-04-09.md`，避免两份审计材料重复维护。
+- 清理 `workspace/docs/refactor/` 中过时或重复的文档，并移除 `workspace/` 下的一次性测试输出 txt 文件。
 
 ------
 
