@@ -2,6 +2,8 @@
 
 > 所有重大文档变更均记录于此。语义化版本号遵循 vMAJOR.MINOR.PATCH。
 > 工作区脚本/门禁/工程细节变更见 `workspace/docs/CHANGELOG.md`，避免在两处重复记录同一内容。
+>
+> 备注：早期历史条目中出现的旧路径（例如 `specs/EPIC/*`、`docs/CONTEXT.md`、`process/TDD.md`、`docs/research/*`）已在后续重构中调整或移除；当前以 `AGENTS.md` 的文档索引与 `specs/epic-*` 结构为准。
 
 ------
 
