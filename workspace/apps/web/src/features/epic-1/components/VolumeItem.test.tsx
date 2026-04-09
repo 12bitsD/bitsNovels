@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { VolumeItem, type Volume } from './VolumeItem';
-import type { ChapterSummary } from './ChapterItem';
+import { VolumeItem } from './VolumeItem';
+import type { Volume, ChapterSummary } from '@bitsnovels/api-types';
 
 // Mock @dnd-kit modules
 vi.mock('@dnd-kit/sortable', () => ({
@@ -31,7 +31,7 @@ const mockChapters: ChapterSummary[] = [
     volumeId: 'vol-1',
     title: '第一章：启程',
     order: 0,
-    chars: 5000,
+    charCount: 5000,
     lastEditedAt: '2024-01-15T10:00:00Z',
     parserStatus: 'parsed',
   },
@@ -41,7 +41,7 @@ const mockChapters: ChapterSummary[] = [
     volumeId: 'vol-1',
     title: '第二章：相遇',
     order: 1,
-    chars: 5500,
+    charCount: 5500,
     parserStatus: 'pending',
   },
 ];

@@ -11,7 +11,6 @@ export default function KBFactionPanel({ projectId }: KBFactionPanelProps) {
   const {
     factions,
     loading,
-    error,
     hasMore,
     search,
     setSearch,
@@ -24,7 +23,6 @@ export default function KBFactionPanel({ projectId }: KBFactionPanelProps) {
     loadMore,
     confirmFaction,
     rejectFaction,
-    refetch,
   } = useKBFaction({ projectId });
 
   return (

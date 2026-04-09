@@ -175,6 +175,6 @@ describe('EditorTheme', () => {
     const { container } = render(<EditorTheme />);
 
     const panel = container.querySelector('[data-testid="editor-theme-panel"]');
-    expect(panel).toHaveClass('bg-white', 'dark:bg-gray-800', 'rounded-lg');
+    expect(panel).toHaveClass('bg-ivory', 'border-border', 'rounded-lg');
   });
 });

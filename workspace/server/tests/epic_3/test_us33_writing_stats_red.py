@@ -12,7 +12,6 @@ US-3.3 写作统计 — 红灯测试
 
 from fastapi.testclient import TestClient
 
-
 # ─── 1. GET /writing-stats/summary ─────────────────────────────────────────────
 
 

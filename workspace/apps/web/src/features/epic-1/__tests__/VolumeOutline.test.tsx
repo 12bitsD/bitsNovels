@@ -16,9 +16,9 @@ const mockOutlineData = {
       chapterCount: 3,
       totalChars: 15000,
       chapters: [
-        { id: 'ch-1', projectId: 'proj-1', volumeId: 'vol-1', title: '第一章：启程', order: 0, chars: 5000, lastEditedAt: '2024-01-15T10:00:00Z', parserStatus: 'parsed' as const },
-        { id: 'ch-2', projectId: 'proj-1', volumeId: 'vol-1', title: '第二章：相遇', order: 1, chars: 5500, lastEditedAt: '2024-01-16T14:30:00Z', parserStatus: 'parsed' as const },
-        { id: 'ch-3', projectId: 'proj-1', volumeId: 'vol-1', title: '第三章：危机', order: 2, chars: 4500, lastEditedAt: '2024-01-17T09:15:00Z', parserStatus: 'pending' as const },
+        { id: 'ch-1', projectId: 'proj-1', volumeId: 'vol-1', title: '第一章：启程', order: 0, charCount: 5000, lastEditedAt: '2024-01-15T10:00:00Z', parserStatus: 'parsed' as const },
+        { id: 'ch-2', projectId: 'proj-1', volumeId: 'vol-1', title: '第二章：相遇', order: 1, charCount: 5500, lastEditedAt: '2024-01-16T14:30:00Z', parserStatus: 'parsed' as const },
+        { id: 'ch-3', projectId: 'proj-1', volumeId: 'vol-1', title: '第三章：危机', order: 2, charCount: 4500, lastEditedAt: '2024-01-17T09:15:00Z', parserStatus: 'pending' as const },
       ],
     },
     {

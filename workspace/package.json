@@ -9,13 +9,15 @@
   "scripts": {
     "build": "npm run generate:api-types && npm run -w @bitsnovels/web build",
     "check": "npm run lint && npm run typecheck && npm run test",
-    "generate:api-types": "node scripts/run_export_openapi.mjs && openapi-typescript server/openapi.json -o packages/api-types/src/generated.ts",
-    "lint": "npm run -w @bitsnovels/web lint && node scripts/run_python.mjs -m ruff check server",
-    "test": "npm run test:backend && npm run test:web && npm run test:api-types",
+    "ensure:python": "node scripts/ensure_python_env.mjs",
+    "generate:api-types": "npm run ensure:python && node scripts/run_export_openapi.mjs && openapi-typescript server/openapi.json -o packages/api-types/src/generated.ts",
+    "lint": "npm run -w @bitsnovels/web lint && npm run ensure:python && node scripts/run_python.mjs -m ruff check server",
+    "test": "npm run test:web && npm run test:api-types",
     "test:api-types": "node scripts/validate_api_types.mjs",
-    "test:backend": "node scripts/run_python.mjs -m pytest",
+    "test:backend": "npm run ensure:python && node scripts/run_python.mjs -m pytest",
     "test:web": "npm run -w @bitsnovels/web test",
-    "typecheck": "npm run -w @bitsnovels/web typecheck && node scripts/run_python.mjs -m mypy server",
+    "typecheck": "npm run -w @bitsnovels/web typecheck",
+    "typecheck:backend": "npm run ensure:python && node scripts/run_python.mjs -m mypy server",
     "verify:generated": "git diff --exit-code -- server/openapi.json packages/api-types/src/generated.ts"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+
 import {
   FileText,
   Download,
@@ -8,30 +8,13 @@ import {
   Save,
   ChevronDown,
 } from 'lucide-react';
-import { client } from '../../../api/client';
 import { ErrorAlert } from '../../../components/ui/ErrorAlert';
 import { LoadingButton } from '../../../components/ui/LoadingButton';
-import {
-  useExportTemplates,
-  type ExportFormat,
-  type ExportTemplate,
-} from '../hooks/useExportTemplates';
+import { type ExportFormat } from '../hooks/useExportTemplates';
+import { type ExportScope } from '../hooks/useExportTaskManager';
+import { useExportPanelState } from '../hooks/useExportPanelState';
 
-export type ExportScope = 'all' | 'volume' | 'chapter';
-
-interface ExportTaskResponse {
-  id: string;
-  projectId: string;
-  userId: string;
-  format: ExportFormat;
-  scope: ExportScope;
-  scopeIds?: string[];
-  status: 'pending' | 'generating' | 'done' | 'failed';
-  progress: number;
-  fileUrl?: string;
-  expiresAt?: string;
-  createdAt: string;
-}
+export type { ExportScope };
 
 interface ExportPanelProps {
   projectId: string;
@@ -54,182 +37,35 @@ const FORMAT_ICONS: Record<ExportFormat, typeof FileText> = {
 };
 
 export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProps) {
-  const { templates, loading: templatesLoading } = useExportTemplates({ autoFetch: true });
-  const [selectedTemplate, setSelectedTemplate] = useState<ExportTemplate | null>(null);
+  const {
+    taskManager,
+    templates,
+    templatesLoading,
+    selectedTemplate,
+    setSelectedTemplate,
+    showSaveModal,
+    setShowSaveModal,
+    templateName,
+    setTemplateName,
+    savingTemplate,
+    templateError,
+    setTemplateError,
+    handleApplyTemplate,
+    handleSaveTemplate,
+  } = useExportPanelState(projectId);
 
-  const [format, setFormat] = useState<ExportFormat>('docx');
-  const [scope, setScope] = useState<ExportScope>('all');
-
-  const [font, setFont] = useState('SimSun');
-  const [fontSize, setFontSize] = useState('12');
-  const [lineSpacing, setLineSpacing] = useState(1.75);
-  const [includeVolumeTitle, setIncludeVolumeTitle] = useState(true);
-  const [includeChapterNumber, setIncludeChapterNumber] = useState(true);
-  const [includeNotes, setIncludeNotes] = useState(false);
-  const [includeAnnotations, setIncludeAnnotations] = useState(false);
-  const [txtEncoding, setTxtEncoding] = useState<'utf8' | 'gbk'>('utf8');
-  const [txtSeparator, setTxtSeparator] = useState<'blank' | 'line' | 'none'>('line');
-
-  const [exporting, setExporting] = useState(false);
-  const [currentTask, setCurrentTask] = useState<ExportTaskResponse | null>(null);
-  const [exportError, setExportError] = useState('');
-
-  const [history, setHistory] = useState<ExportTaskResponse[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [templateName, setTemplateName] = useState('');
-  const [savingTemplate, setSavingTemplate] = useState(false);
-  const [templateError, setTemplateError] = useState('');
-
-  const { createTemplate } = useExportTemplates({ autoFetch: false });
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const fetchHistory = useCallback(async () => {
-    setLoadingHistory(true);
-    try {
-      const result = await client.GET(`/api/projects/${projectId}/exports`);
-      if (!result.error) {
-        const data = result.data as { items: ExportTaskResponse[] };
-        setHistory(data.items || []);
-      }
-    } catch {
-      // Silent fail for history
-    } finally {
-      setLoadingHistory(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
-
-  // Poll task status
-  const pollTaskStatus = useCallback(async (taskId: string) => {
-    try {
-      const result = await client.GET(`/api/projects/${projectId}/exports/${taskId}`);
-      if (!result.error) {
-        const data = result.data as { task: ExportTaskResponse };
-        setCurrentTask(data.task);
-        
-        if (data.task.status === 'done' || data.task.status === 'failed') {
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
-          if (data.task.status === 'done') {
-            await fetchHistory();
-          }
-        }
-      }
-    } catch {
-      // Silent fail during polling
-    }
-  }, [projectId, fetchHistory]);
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
-  }, []);
-
-  const handleApplyTemplate = (template: ExportTemplate) => {
-    setSelectedTemplate(template);
-    setFormat(template.format);
-    if (template.options) {
-      setFont(template.options.font || 'SimSun');
-      setFontSize(template.options.fontSize || '12');
-      setLineSpacing(template.options.lineSpacing || 1.75);
-      setIncludeVolumeTitle(template.options.includeVolumeTitle ?? true);
-      setIncludeChapterNumber(template.options.includeChapterNumber ?? true);
-      setIncludeNotes(template.options.includeNotes ?? false);
-      setIncludeAnnotations(template.options.includeAnnotations ?? false);
-      setTxtEncoding(template.options.txtEncoding || 'utf8');
-      setTxtSeparator(template.options.txtSeparator || 'line');
-    }
-  };
-
-  const handleExport = async () => {
-    setExporting(true);
-    setExportError('');
-    setCurrentTask(null);
-
-    try {
-      const result = await client.POST(`/api/projects/${projectId}/exports`, {
-        body: {
-          format,
-          scope,
-        },
-      });
-
-      if (result.error) {
-        const msg = (result.error as { detail?: string }).detail || '导出失败';
-        setExportError(msg);
-        setExporting(false);
-        return;
-      }
-
-      const data = result.data as { taskId: string; status: string };
-      
-      // Start polling
-      pollIntervalRef.current = setInterval(() => {
-        pollTaskStatus(data.taskId);
-      }, 1000);
-
-      // Initial status fetch
-      await pollTaskStatus(data.taskId);
-    } catch {
-      setExportError('导出失败');
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleSaveTemplate = async () => {
-    if (!templateName.trim()) {
-      setTemplateError('模板名称不能为空');
-      return;
-    }
-    if (templateName.length > 30) {
-      setTemplateError('模板名称不能超过30个字符');
-      return;
-    }
-
-    setSavingTemplate(true);
-    setTemplateError('');
-
-    try {
-      await createTemplate({
-        name: templateName.trim(),
-        format,
-        options: {
-          font,
-          fontSize,
-          lineSpacing,
-          includeVolumeTitle,
-          includeChapterNumber,
-          includeNotes,
-          includeAnnotations,
-          txtEncoding,
-          txtSeparator,
-        },
-      });
-      setShowSaveModal(false);
-      setTemplateName('');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '保存模板失败';
-      setTemplateError(msg);
-    } finally {
-      setSavingTemplate(false);
-    }
-  };
-
-  const handleDownload = (taskId: string) => {
-    window.open(`/api/projects/${projectId}/exports/${taskId}/download`, '_blank');
-  };
+  const {
+    config,
+    updateConfig,
+    exporting,
+    currentTask,
+    exportError,
+    setExportError,
+    history,
+    loadingHistory,
+    handleExport,
+    handleDownload
+  } = taskManager;
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -242,7 +78,7 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
     });
   };
 
-  const FormatIcon = FORMAT_ICONS[format];
+  const FormatIcon = FORMAT_ICONS[config.format];
 
   return (
     <div className="space-y-6">
@@ -304,9 +140,9 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
           {(['docx', 'pdf', 'txt', 'markdown'] as ExportFormat[]).map((f) => (
             <button
               key={f}
-              onClick={() => setFormat(f)}
+              onClick={() => updateConfig({ format: f })}
               className={`p-3 rounded-lg border-2 transition-all text-center ${
-                format === f
+                config.format === f
                   ? 'border-amber bg-amber/5'
                   : 'border-border/50 hover:border-amber/30'
               }`}
@@ -327,9 +163,9 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
           ].map((s) => (
             <button
               key={s.key}
-              onClick={() => setScope(s.key as ExportScope)}
+              onClick={() => updateConfig({ scope: s.key as ExportScope })}
               className={`px-4 py-2 rounded-lg border-2 transition-all ${
-                scope === s.key
+                config.scope === s.key
                   ? 'border-amber bg-amber/5 text-ink'
                   : 'border-border/50 hover:border-amber/30 text-ink-light'
               }`}
@@ -340,13 +176,13 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
         </div>
       </div>
 
-      {(format === 'docx' || format === 'pdf') && (
+      {(config.format === 'docx' || config.format === 'pdf') && (
         <div className="bg-parchment/50 rounded-lg p-4 space-y-4">
           <h4 className="font-medium text-ink">格式配置</h4>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-ink-light mb-1">字体</label>
-              <select value={font} onChange={(e) => setFont(e.target.value)} className="input-base w-full text-sm">
+              <select value={config.font} onChange={(e) => updateConfig({ font: e.target.value })} className="input-base w-full text-sm">
                 <option value="SimSun">宋体</option>
                 <option value="SimHei">黑体</option>
                 <option value="KaiTi">楷体</option>
@@ -354,7 +190,7 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
             </div>
             <div>
               <label className="block text-xs text-ink-light mb-1">字号</label>
-              <select value={fontSize} onChange={(e) => setFontSize(e.target.value)} className="input-base w-full text-sm">
+              <select value={config.fontSize} onChange={(e) => updateConfig({ fontSize: e.target.value })} className="input-base w-full text-sm">
                 <option value="10">10pt</option>
                 <option value="12">12pt</option>
                 <option value="14">14pt</option>
@@ -363,8 +199,8 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
             <div>
               <label className="block text-xs text-ink-light mb-1">行距</label>
               <select
-                value={lineSpacing}
-                onChange={(e) => setLineSpacing(Number(e.target.value))}
+                value={config.lineSpacing}
+                onChange={(e) => updateConfig({ lineSpacing: Number(e.target.value) })}
                 className="input-base w-full text-sm"
               >
                 <option value={1.5}>1.5倍</option>
@@ -377,8 +213,8 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
             <label className="flex items-center gap-2 text-sm text-ink">
               <input
                 type="checkbox"
-                checked={includeVolumeTitle}
-                onChange={(e) => setIncludeVolumeTitle(e.target.checked)}
+                checked={config.includeVolumeTitle}
+                onChange={(e) => updateConfig({ includeVolumeTitle: e.target.checked })}
                 className="rounded border-border text-amber focus:ring-amber"
               />
               包含卷标题页
@@ -386,8 +222,8 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
             <label className="flex items-center gap-2 text-sm text-ink">
               <input
                 type="checkbox"
-                checked={includeChapterNumber}
-                onChange={(e) => setIncludeChapterNumber(e.target.checked)}
+                checked={config.includeChapterNumber}
+                onChange={(e) => updateConfig({ includeChapterNumber: e.target.checked })}
                 className="rounded border-border text-amber focus:ring-amber"
               />
               包含章节编号
@@ -396,15 +232,15 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
         </div>
       )}
 
-      {format === 'txt' && (
+      {config.format === 'txt' && (
         <div className="bg-parchment/50 rounded-lg p-4 space-y-4">
           <h4 className="font-medium text-ink">TXT 配置</h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-ink-light mb-1">编码</label>
               <select
-                value={txtEncoding}
-                onChange={(e) => setTxtEncoding(e.target.value as 'utf8' | 'gbk')}
+                value={config.txtEncoding}
+                onChange={(e) => updateConfig({ txtEncoding: e.target.value as 'utf8' | 'gbk' })}
                 className="input-base w-full text-sm"
               >
                 <option value="utf8">UTF-8</option>
@@ -414,8 +250,8 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
             <div>
               <label className="block text-xs text-ink-light mb-1">章节分隔</label>
               <select
-                value={txtSeparator}
-                onChange={(e) => setTxtSeparator(e.target.value as 'blank' | 'line' | 'none')}
+                value={config.txtSeparator}
+                onChange={(e) => updateConfig({ txtSeparator: e.target.value as 'blank' | 'line' | 'none' })}
                 className="input-base w-full text-sm"
               >
                 <option value="blank">空行</option>
@@ -433,8 +269,8 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
           <label className="flex items-center gap-2 text-sm text-ink">
             <input
               type="checkbox"
-              checked={includeNotes}
-              onChange={(e) => setIncludeNotes(e.target.checked)}
+              checked={config.includeNotes}
+              onChange={(e) => updateConfig({ includeNotes: e.target.checked })}
               className="rounded border-border text-amber focus:ring-amber"
             />
             包含章节备注
@@ -442,8 +278,8 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
           <label className="flex items-center gap-2 text-sm text-ink">
             <input
               type="checkbox"
-              checked={includeAnnotations}
-              onChange={(e) => setIncludeAnnotations(e.target.checked)}
+              checked={config.includeAnnotations}
+              onChange={(e) => updateConfig({ includeAnnotations: e.target.checked })}
               className="rounded border-border text-amber focus:ring-amber"
             />
             包含批注
@@ -473,7 +309,7 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
             </div>
             <div>
               <p className="font-medium text-success">导出完成</p>
-              <p className="text-sm text-ink-light">{FORMAT_LABELS[format]} 格式</p>
+              <p className="text-sm text-ink-light">{FORMAT_LABELS[config.format]} 格式</p>
               {currentTask.expiresAt && (
                 <p className="text-xs text-ink-light/70">
                   有效期至: {formatDate(currentTask.expiresAt)}
@@ -590,18 +426,18 @@ export function ExportPanel({ projectId, projectName, onClose }: ExportPanelProp
               <div className="bg-parchment/50 rounded-lg p-3 text-sm text-ink-light">
                 <p>将保存当前格式配置：</p>
                 <ul className="mt-1 space-y-1">
-                  <li>格式：{FORMAT_LABELS[format]}</li>
-                  {(format === 'docx' || format === 'pdf') && (
+                  <li>格式：{FORMAT_LABELS[config.format]}</li>
+                  {(config.format === 'docx' || config.format === 'pdf') && (
                     <>
-                      <li>字体：{font}</li>
-                      <li>字号：{fontSize}pt</li>
-                      <li>行距：{lineSpacing}倍</li>
+                      <li>字体：{config.font}</li>
+                      <li>字号：{config.fontSize}pt</li>
+                      <li>行距：{config.lineSpacing}倍</li>
                     </>
                   )}
-                  {format === 'txt' && (
+                  {config.format === 'txt' && (
                     <>
-                      <li>编码：{txtEncoding.toUpperCase()}</li>
-                      <li>分隔：{txtSeparator === 'blank' ? '空行' : txtSeparator === 'line' ? '分隔线' : '无'}</li>
+                      <li>编码：{config.txtEncoding.toUpperCase()}</li>
+                      <li>分隔：{config.txtSeparator === 'blank' ? '空行' : config.txtSeparator === 'line' ? '分隔线' : '无'}</li>
                     </>
                   )}
                 </ul>

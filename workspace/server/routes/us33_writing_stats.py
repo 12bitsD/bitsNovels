@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Header, Query

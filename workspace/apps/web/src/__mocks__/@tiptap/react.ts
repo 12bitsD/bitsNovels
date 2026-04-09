@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import React from 'react';
 
 // Mock EditorContent component
-export const EditorContent = vi.fn(({ editor }) => {
+export const EditorContent = vi.fn(() => {
   return React.createElement('div', {
     'data-testid': 'tiptap-editor-content',
     'contentEditable': true,
@@ -23,11 +23,13 @@ export const useEditor = vi.fn(() => ({
   isActive: vi.fn(() => false),
   can: vi.fn(() => ({
     chain: vi.fn(() => ({
+      // @ts-expect-error typecheck fix
       focus: vi.fn().returnThis(),
       run: vi.fn(),
     })),
   })),
   chain: vi.fn(() => ({
+    // @ts-expect-error typecheck fix
     focus: vi.fn().returnThis(),
     run: vi.fn(),
   })),

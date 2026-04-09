@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, ChevronDown } from 'lucide-react';
 import KBFactionCard from './KBFactionCard';
 import type { KBFaction, FactionType } from './types';
-import { FACTION_TYPE_LABELS } from './types';
 
 interface KBFactionListProps {
   factions: KBFaction[];

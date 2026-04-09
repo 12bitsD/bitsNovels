@@ -3,16 +3,8 @@ import { Link } from 'react-router-dom';
 import { client } from '../../../api/client';
 import { SkeletonLoader } from '../../../components/ui/SkeletonLoader';
 import { Icons } from '../../../components/ui/icons';
-
-type Project = {
-  id: string;
-  name: string;
-  tags: string[];
-  cover_color: string;
-  total_chars: number;
-  chapter_count: number;
-  updated_at: string;
-};
+import { Card, CardContent } from '../../../components/ui/Card';
+import type { Project } from '@bitsnovels/api-types';
 
 export default function ProjectDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -120,41 +112,43 @@ export default function ProjectDashboard() {
         ) : viewMode === 'card' ? (
           <div data-testid="card-view-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map(project => (
-              <div 
+              <Card 
                 key={project.id} 
-                className="card-base card-hover p-6 relative overflow-hidden group cursor-pointer"
+                className="relative overflow-hidden group cursor-pointer"
               >
                 <div 
                   className="absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300 group-hover:w-2"
                   style={{ backgroundColor: project.cover_color }}
                 />
-                <h3 className="text-xl font-bold mb-3 truncate pl-2">{project.name}</h3>
-                <div className="flex gap-2 mb-6 pl-2">
-                  {project.tags.map(tag => (
-                    <span key={tag} className="bg-parchment text-ink-light text-xs px-2.5 py-1 rounded-sm border border-border/30">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="text-sm text-ink-light space-y-1.5 pl-2">
-                  <p className="flex justify-between items-center">
-                    <span>字数</span>
-                    <span className="font-mono text-ink">{project.total_chars.toLocaleString()}</span>
-                  </p>
-                  <p className="flex justify-between items-center">
-                    <span>章节</span>
-                    <span className="font-mono text-ink">{project.chapter_count}</span>
-                  </p>
-                  <p className="flex justify-between items-center text-xs mt-2 pt-2 border-t border-parchment">
-                    <span>最后编辑</span>
-                    <span>{new Date(project.updated_at).toLocaleDateString()}</span>
-                  </p>
-                </div>
-              </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold mb-3 truncate pl-2">{project.name}</h3>
+                  <div className="flex gap-2 mb-6 pl-2">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="bg-parchment text-ink-light text-xs px-2.5 py-1 rounded-sm border border-border/30">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="text-sm text-ink-light space-y-1.5 pl-2">
+                    <p className="flex justify-between items-center">
+                      <span>字数</span>
+                      <span className="font-mono text-ink">{project.total_chars.toLocaleString()}</span>
+                    </p>
+                    <p className="flex justify-between items-center">
+                      <span>章节</span>
+                      <span className="font-mono text-ink">{project.chapter_count}</span>
+                    </p>
+                    <p className="flex justify-between items-center text-xs mt-2 pt-2 border-t border-parchment">
+                      <span>最后编辑</span>
+                      <span>{new Date(project.updated_at).toLocaleDateString()}</span>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : (
-          <div data-testid="list-view-container" className="card-base overflow-hidden">
+          <Card data-testid="list-view-container" className="overflow-hidden">
             {filteredProjects.map((project, index) => (
               <div 
                 key={project.id} 
@@ -169,7 +163,7 @@ export default function ProjectDashboard() {
                 <div className="w-32 text-sm text-ink-light text-right">{new Date(project.updated_at).toLocaleDateString()}</div>
               </div>
             ))}
-          </div>
+          </Card>
         )}
       </div>
     </div>

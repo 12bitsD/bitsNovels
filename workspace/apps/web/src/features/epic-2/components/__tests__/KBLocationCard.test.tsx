@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import KBLocationCard from '../KBLocation/KBLocationCard';
 import type { KBLocation } from '../KBLocation/types';
 
-const createKBLocation = (overrides: Partial<KBLocation> = {}): KBLocation => ({
+const createKBLocation = (overrides: Partial<KBLocation> = {}): KBLocation => ({ type: "location",
   id: '1',
   projectId: 'project1',
   source: 'ai',

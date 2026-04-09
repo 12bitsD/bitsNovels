@@ -28,6 +28,7 @@ export function useFocusMode(): UseFocusModeReturn {
     if (document.exitFullscreen && document.fullscreenElement) {
       try {
         await document.exitFullscreen();
+      // eslint-disable-next-line no-empty
       } catch {
       }
     }

@@ -4,7 +4,7 @@ import KBFactionPanel from '../KBFaction/KBFactionPanel';
 import * as useKBFactionModule from '../../hooks/useKBFaction';
 import type { KBFaction, FactionType } from '../KBFaction/types';
 
-const createFaction = (id: string, overrides: Partial<KBFaction> = {}): KBFaction => ({
+const createFaction = (id: string, overrides: Partial<KBFaction> = {}): KBFaction => ({ type: "faction",
   id,
   projectId: 'project1',
   source: 'ai',

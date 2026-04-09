@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": "./src/generated.ts"
+    ".": "./src/index.ts"
   }
 }

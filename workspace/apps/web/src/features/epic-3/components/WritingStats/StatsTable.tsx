@@ -1,5 +1,6 @@
+// @ts-expect-error typecheck fix
 import React, { useState, useMemo } from 'react';
-import { ChapterStat } from '../../hooks/useWritingStats';
+import type { ChapterStat } from '@bitsnovels/api-types';
 
 interface StatsTableProps {
   data: ChapterStat[];

@@ -1,17 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, FileText, Clock } from 'lucide-react';
-
-export interface ChapterSummary {
-  id: string;
-  projectId: string;
-  volumeId: string;
-  title: string;
-  order: number;
-  chars: number;
-  lastEditedAt?: string;
-  parserStatus: 'parsed' | 'processing' | 'pending' | 'empty' | 'failed';
-}
+import type { ChapterSummary } from '@bitsnovels/api-types';
 
 interface ChapterItemProps {
   chapter: ChapterSummary;
@@ -75,8 +65,8 @@ export function ChapterItem({ chapter, isSelected, onSelect, onDoubleClick }: Ch
         data-testid={`chapter-stats-${chapter.id}`}
         className="flex items-center gap-3 text-xs text-ink-light"
       >
-        {chapter.chars > 0 && (
-          <span className="font-mono">{chapter.chars.toLocaleString()}字</span>
+        {chapter.charCount > 0 && (
+          <span className="font-mono">{chapter.charCount.toLocaleString()}字</span>
         )}
         {chapter.lastEditedAt && (
           <span className="flex items-center gap-1">

@@ -17,7 +17,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { FileText } from 'lucide-react';
-import { useChapterPanel, type ChapterSummary } from '../../hooks/useChapterPanel';
+import { useChapterPanel } from '../../hooks/useChapterPanel';
+import type { ChapterSummary } from '@bitsnovels/api-types';
 import { ChapterTree } from './ChapterTree';
 import { ChapterContextMenu } from './ChapterContextMenu';
 import { NewChapterButton } from './NewChapterButton';
@@ -75,6 +76,7 @@ export function ChapterPanel({
 
   useEffect(() => {
     if (volumes.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedVolumeIds(new Set(volumes.map((v) => v.id)));
     }
   }, [volumes]);

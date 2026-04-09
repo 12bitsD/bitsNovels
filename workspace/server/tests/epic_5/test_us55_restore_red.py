@@ -11,7 +11,6 @@ import json
 from io import BytesIO
 from zipfile import ZipFile
 
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -96,7 +95,7 @@ def test_preview_requires_auth(client: TestClient) -> None:
 
 def test_preview_returns_summary(client: TestClient, app_state: object) -> None:
     """预览返回 projectName, totalChars, chapterCount, kbEntries, backupDate."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(
@@ -127,7 +126,7 @@ def test_preview_returns_summary(client: TestClient, app_state: object) -> None:
 
 def test_preview_invalid_zip(client: TestClient, app_state: object) -> None:
     """无效 ZIP 返回 400 并包含错误信息."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_invalid_backup_zip()).decode()
@@ -175,7 +174,7 @@ def test_preview_backup_file_not_found(client: TestClient, app_state: object) ->
 
 def test_preview_forbidden(client: TestClient, app_state: object) -> None:
     """跨用户预览返回 403."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_valid_backup_zip()).decode()
@@ -206,7 +205,7 @@ def test_restore_create_new_creates_project(
     client: TestClient, app_state: object
 ) -> None:
     """mode=create_new 创建新项目并返回新 ID."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(
@@ -245,7 +244,7 @@ def test_restore_create_new_creates_project(
 
 def test_restore_create_new_invalid_mode(client: TestClient, app_state: object) -> None:
     """无效 mode 返回 422."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_valid_backup_zip()).decode()
@@ -279,7 +278,7 @@ def test_restore_overwrite_requires_confirmation(
     client: TestClient, app_state: object
 ) -> None:
     """mode=overwrite 但未提供 project_name 返回 422."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_valid_backup_zip()).decode()
@@ -299,7 +298,7 @@ def test_restore_overwrite_requires_confirmation(
 
 def test_restore_overwrite_name_mismatch(client: TestClient, app_state: object) -> None:
     """mode=overwrite 但 project_name 不匹配返回 400."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_valid_backup_zip()).decode()
@@ -319,7 +318,7 @@ def test_restore_overwrite_name_mismatch(client: TestClient, app_state: object) 
 
 def test_restore_overwrite_success(client: TestClient, app_state: object) -> None:
     """mode=overwrite 确认后成功覆盖项目数据."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(
@@ -348,7 +347,7 @@ def test_restore_overwrite_success(client: TestClient, app_state: object) -> Non
 
 def test_restore_overwrite_forbidden(client: TestClient, app_state: object) -> None:
     """跨用户恢复返回 403."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_valid_backup_zip()).decode()
@@ -369,7 +368,7 @@ def test_restore_overwrite_forbidden(client: TestClient, app_state: object) -> N
 
 def test_restore_invalid_zip(client: TestClient, app_state: object) -> None:
     """无效 ZIP 返回 400 并包含 '备份文件无效或已损坏'."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
     zip_data = base64.b64encode(_make_invalid_backup_zip()).decode()
@@ -390,7 +389,7 @@ def test_restore_invalid_zip(client: TestClient, app_state: object) -> None:
 
 def test_preview_version_incompatible(client: TestClient, app_state: object) -> None:
     """不支持的备份版本返回 400."""
-    from server.main import app, _next_id
+    from server.main import _next_id, app
 
     backup_id = _next_id("backup_counter", "backup")
 

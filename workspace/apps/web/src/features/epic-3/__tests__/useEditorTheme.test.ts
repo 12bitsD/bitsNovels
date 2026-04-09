@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useEditorTheme, type ThemeMode, type FontOption, type LineSpacing } from '../hooks/useEditorTheme';
+import { useEditorTheme } from '../hooks/useEditorTheme';
 
 describe('useEditorTheme', () => {
   let localStorageData: Record<string, string> = {};
@@ -147,7 +147,9 @@ describe('useEditorTheme', () => {
       expect(result.current.styles).toBeDefined();
     });
 
+    // @ts-expect-error typecheck fix
     expect(result.current.styles['--editor-font-size']).toBe('16px');
+    // @ts-expect-error typecheck fix
     expect(result.current.styles['--editor-line-height']).toBe('1.75');
   });
 

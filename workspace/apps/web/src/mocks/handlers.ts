@@ -156,7 +156,7 @@ export const handlers = [
     });
   }),
 
-  http.post('http://localhost:5173/api/projects/:projectId/backups/restore', async ({ request }) => {
+  http.post('http://localhost:5173/api/projects/:projectId/backups/restore', async () => {
     return HttpResponse.json({
       projectName: 'Test Project',
       totalChars: 15000,
@@ -204,7 +204,7 @@ export const handlers = [
     });
   }),
 
-  http.post('/api/projects/:projectId/backups/restore', async ({ request }) => {
+  http.post('/api/projects/:projectId/backups/restore', async () => {
     return HttpResponse.json({
       projectName: 'Test Project',
       totalChars: 15000,

@@ -64,6 +64,15 @@ describe('KBCharacterPanel', () => {
     expect(screen.getByRole('tab', { name: '新发现' })).toBeInTheDocument();
   });
 
+  it('uses a responsive list rail width to avoid conflicting with the shell right rail', () => {
+    vi.mocked(useKBCharacterModule.useKBCharacter).mockReturnValue(mockUseKBCharacter());
+
+    render(<KBCharacterPanel projectId="project-1" />);
+
+    expect(screen.getByTestId('kb-character-panel')).toHaveClass('min-w-0', 'w-full');
+    expect(screen.getByTestId('kb-character-panel-list-rail')).toHaveClass('w-[clamp(17rem,38%,22rem)]');
+  });
+
   it('filters characters when pending tab is selected', () => {
     vi.mocked(useKBCharacterModule.useKBCharacter).mockReturnValue(
       mockUseKBCharacter({

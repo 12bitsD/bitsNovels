@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { FileText, ChevronDown, ChevronRight, Loader2Icon } from 'lucide-react';
 import { ChapterNoteEditor } from './ChapterNoteEditor';
-import type { ChapterNote } from '../../hooks/useChapterNote';
+import type { ChapterNote } from '@bitsnovels/api-types';
 import type { SaveStatus } from '../../hooks/useAutoSave';
 
 interface ChapterNotePanelProps {

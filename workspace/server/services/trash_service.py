@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from math import ceil
 from typing import Any, Optional, cast
 
-from server.services._base import app, _iso_z, _main_module
+from server.services._base import _iso_z, _main_module, app
 
 KB_STORE_NAMES = {
     "item": "kb_items",

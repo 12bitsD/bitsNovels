@@ -5,6 +5,7 @@ import { client } from '../../../../api/client';
 
 vi.mock('../../../../api/client');
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createFaction = (id: string): any => ({
   id,
   projectId: 'project1',

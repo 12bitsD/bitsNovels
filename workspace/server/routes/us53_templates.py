@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from fastapi import APIRouter, Body, Header
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/me", tags=["us-5.3"])
@@ -81,7 +81,7 @@ def create_export_template(
     payload: dict[str, Any],
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _error, _iso_z, _now
+    from server.main import _error, _iso_z, _now, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -163,7 +163,7 @@ def update_export_template(
     payload: dict[str, Any],
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _error, _iso_z, _now
+    from server.main import _error, _iso_z, _now, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -215,7 +215,7 @@ def delete_export_template(
     template_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _error
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

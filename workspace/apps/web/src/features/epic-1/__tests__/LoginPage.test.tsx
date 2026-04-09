@@ -50,7 +50,7 @@ describe('LoginPage', () => {
       expect(requestBody).toEqual({
         email: 'test@example.com',
         password: 'Password123',
-        remember_me: true
+        rememberMe: true
       });
       // In a real test, we might check for router redirect, but for now we verify mock call
     });

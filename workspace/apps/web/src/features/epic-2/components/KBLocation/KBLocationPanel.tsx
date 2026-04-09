@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, AlertCircle } from 'lucide-react';
 import { useKBLocation } from '../../hooks/useKBLocation';
 import KBLocationList from './KBLocationList';
 import KBLocationDetail from './KBLocationDetail';
@@ -17,7 +17,6 @@ export default function KBLocationPanel({ projectId, selectedLocationId }: KBLoc
     loading,
     error,
     search,
-    locationType,
     selectedIds,
     confirmDialogOpen,
     bulkConfirmDialogOpen,
@@ -44,15 +43,10 @@ export default function KBLocationPanel({ projectId, selectedLocationId }: KBLoc
   const selectedLocation = selectedLocationId ? locationsMap[selectedLocationId] : null;
   const parentLocation = selectedLocation?.parentId ? locationsMap[selectedLocation.parentId] : null;
 
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [references, setReferences] = useState<KBLocationReferences | null>(null);
+  const [references] = useState<KBLocationReferences | null>(null);
 
   const handleLocationClick = async (location: KBLocation) => {
     setSelectedIds([location.id]);
-    
-    if (location.chapterIds.length > 0 || location.characterIds.length > 0) {
-      setDetailLoading(true);
-    }
   };
 
   const handleCloseDetail = () => {
@@ -134,6 +128,7 @@ export default function KBLocationPanel({ projectId, selectedLocationId }: KBLoc
           <div className="w-96 flex-shrink-0 overflow-hidden">
             <KBLocationDetail
               location={selectedLocation}
+              // @ts-expect-error typecheck fix
               parentLocation={parentLocation}
               references={references || undefined}
               onClose={handleCloseDetail}

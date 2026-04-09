@@ -46,6 +46,7 @@ export default function KBForeshadowDetail({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(buildState(foreshadow));
     setError(null);
   }, [foreshadow]);

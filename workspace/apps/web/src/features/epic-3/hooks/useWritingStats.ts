@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { client } from '../../../api/client';
+import type { ChapterStat } from '@bitsnovels/api-types';
 
 export interface WritingStatsSummary {
   todayChars: number;
@@ -24,14 +25,6 @@ export interface WeeklyData {
 export interface HeatmapData {
   hour: number;
   chars: number;
-}
-
-export interface ChapterStat {
-  id: string;
-  title: string;
-  volumeName: string;
-  chars: number;
-  percentage: number;
 }
 
 export interface WritingStatsData {

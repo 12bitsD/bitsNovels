@@ -12,9 +12,7 @@ import zipfile
 from io import BytesIO
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
-
 
 # ─── 1. POST /backups/auto/trigger — 创建自动备份 ─────────────────────────────
 

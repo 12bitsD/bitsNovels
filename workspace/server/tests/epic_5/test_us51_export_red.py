@@ -10,9 +10,7 @@ US-5.1 Export — 红灯测试
 
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
-
 
 # ─── 1. POST /exports — 创建导出任务 ─────────────────────────────────────────
 
@@ -194,7 +192,7 @@ def test_get_export_task_forbidden(client: TestClient) -> None:
 
 def test_download_export_not_ready(client: TestClient) -> None:
     """任务未完成时下载返回 409."""
-    from server.main import app, _next_id, _iso_z, _now
+    from server.main import _iso_z, _next_id, _now, app
 
     task_id = _next_id("export_task_counter", "export")
 
@@ -241,7 +239,7 @@ def test_download_export_forbidden(client: TestClient) -> None:
 
 def test_export_task_progress_flow(client: TestClient) -> None:
     """任务从 pending → generating → done，progress 逐步更新."""
-    from server.main import app, _next_id, _iso_z, _now
+    from server.main import _iso_z, _next_id, _now, app
     from server.services.export_service import process_export_task
 
     task_id = _next_id("export_task_counter", "export")
@@ -468,8 +466,9 @@ def test_format_generator_markdown(client: TestClient) -> None:
 def test_download_expired(client: TestClient, session_clock: Any) -> None:
     """文件过期后返回 410 Gone."""
     # 创建任务并直接设置过期
-    from server.main import app, _next_id, _iso_z
-    from datetime import datetime, timedelta, timezone
+    from datetime import timedelta
+
+    from server.main import _iso_z, _next_id, app
 
     task_id = _next_id("export_task_counter", "export")
     now = session_clock.now
@@ -498,8 +497,9 @@ def test_download_expired(client: TestClient, session_clock: Any) -> None:
 
 def test_download_valid(client: TestClient, session_clock: Any) -> None:
     """文件未过期时返回 200 并可下载."""
-    from server.main import app, _next_id, _iso_z
-    from datetime import timedelta, timezone
+    from datetime import timedelta
+
+    from server.main import _iso_z, _next_id, app
 
     task_id = _next_id("export_task_counter", "export")
     now = session_clock.now

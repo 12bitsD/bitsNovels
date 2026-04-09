@@ -7,9 +7,7 @@ US-5.4 Knowledge Base Transfer — 红灯测试
 3. POST /api/projects/:projectId/kb/import        — 导入 KB JSON
 """
 
-import pytest
 from fastapi.testclient import TestClient
-
 
 # ==============================================================================
 # Export fixtures / helpers

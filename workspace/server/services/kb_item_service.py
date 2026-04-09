@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional, cast
 
+from server.services._base import _iso_z, _main_module, app
 from server.services.kb_core_service import (
     bulk_confirm_entities,
     confirm_kb_entity,
@@ -12,7 +13,6 @@ from server.services.kb_core_service import (
     update_kb_entity,
 )
 from server.utils.kb_helpers import dedupe_entity, ensure_kb_state, merge_aliases
-from server.services._base import app, _iso_z, _main_module
 
 VALID_ITEM_TYPES = {"weapon", "armor", "accessory", "consumable", "token", "other"}
 

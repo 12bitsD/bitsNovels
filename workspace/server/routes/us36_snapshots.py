@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
+from typing import Any, Optional
+
 from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Any, Optional
 
-from server.utils.text_utils import calculate_char_count as _calculate_char_count
-from server.utils.time_utils import iso_z as _iso_z
 from server.routes._deps import require_writable_project as _require_project
+from server.utils.text_utils import calculate_char_count as _calculate_char_count
 
 router = APIRouter(prefix="/api/projects", tags=["us-3.6"])
 
@@ -35,7 +35,7 @@ def _require_chapter(
     chapter_id: str,
     user_id: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
+    from server.main import _error, app
 
     project, err = _require_project(project_id, user_id)
     if err is not None:
@@ -61,7 +61,7 @@ def _require_snapshot(
     snapshot_id: str,
     user_id: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
+    from server.main import _error, app
 
     chapter, err = _require_chapter(project_id, chapter_id, user_id)
     if err is not None:
@@ -94,9 +94,7 @@ def _snapshot_response(snapshot: dict[str, Any]) -> dict[str, Any]:
 
 
 def _check_archived(project_id: str) -> Optional[JSONResponse]:
-    from server.main import _error
-
-    from server.main import app
+    from server.main import _error, app
 
     if project_id in app.state.archived_project_ids:
         return _error(409, "PROJECT_ARCHIVED_READ_ONLY", "Project is archived")
@@ -130,7 +128,7 @@ def create_snapshot(
     payload: CreateSnapshotRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _error, _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -194,7 +192,7 @@ def list_snapshots(
     type: Optional[str] = None,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -311,7 +309,7 @@ def restore_snapshot(
     snapshot_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -379,7 +377,7 @@ def delete_snapshot(
     snapshot_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -440,7 +438,7 @@ def cleanup_old_snapshots(
     preview: bool = False,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _iso_z, app
+    from server.main import _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

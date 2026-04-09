@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, List, Network, CheckCircle2, Loader2 } from 'lucide-react';
+import { Search, List, Network, CheckCircle2, Loader2 } from 'lucide-react';
 import type { KBLocation, KBLocationTreeNode, LocationType } from './types';
 import { LOCATION_TYPE_LABELS } from './types';
 import KBLocationCard from './KBLocationCard';

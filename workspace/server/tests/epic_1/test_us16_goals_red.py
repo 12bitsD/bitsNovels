@@ -6,7 +6,6 @@ They MUST fail on the RED phase.
 
 from fastapi.testclient import TestClient
 
-
 # ==============================================================================
 # GET /api/projects/:projectId/goals
 # ==============================================================================

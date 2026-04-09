@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any, Optional, cast
 
+from server.services._base import _iso_z, _main_module, app
+
 from ..utils.kb_helpers import (
     dedupe_entity,
     ensure_kb_state,
@@ -11,7 +13,6 @@ from ..utils.kb_helpers import (
     sync_entity_store,
     update_entity_statistics,
 )
-from server.services._base import app, _iso_z, _main_module
 
 
 def _now() -> datetime:

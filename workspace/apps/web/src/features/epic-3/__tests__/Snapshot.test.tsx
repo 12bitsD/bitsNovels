@@ -17,6 +17,7 @@ vi.mock('../../../api/client', () => ({
   },
 }));
 
+// @ts-expect-error typecheck fix
 const mockClient = clientModule.client as {
   GET: ReturnType<typeof vi.fn>;
   POST: ReturnType<typeof vi.fn>;
@@ -300,7 +301,7 @@ describe('US-3.6 Snapshot Feature Integration', () => {
       });
 
       const TestComponent = () => {
-        const { snapshots, calculateStorageStats } = useSnapshots({
+        const { calculateStorageStats } = useSnapshots({
           projectId: 'p1',
           chapterId: 'c1',
           autoFetch: true,

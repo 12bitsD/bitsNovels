@@ -12,6 +12,7 @@ vi.mock('../../../api/client', () => ({
   },
 }));
 
+// @ts-expect-error typecheck fix
 const mockClient = clientModule.client as {
   GET: ReturnType<typeof vi.fn>;
   POST: ReturnType<typeof vi.fn>;

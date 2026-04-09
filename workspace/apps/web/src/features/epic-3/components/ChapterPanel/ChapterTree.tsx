@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -13,7 +12,7 @@ import {
   XCircle,
   Minus,
 } from 'lucide-react';
-import type { ChapterSummary, Volume } from '../../hooks/useChapterPanel';
+import type { Volume, ChapterSummary } from '@bitsnovels/api-types';
 
 interface ChapterTreeItemProps {
   chapter: ChapterSummary;

@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import Any, cast
 
-from server.services._base import app, _iso_z, _main_module
+from server.services._base import _iso_z, _main_module, app
 
 
 def _now() -> datetime:

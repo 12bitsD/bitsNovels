@@ -29,6 +29,7 @@ export default function CreateForeshadowDialog({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(EMPTY_FORM);
       setError(null);
     }

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional, cast
 
-from server.services._base import app, _iso_z
+from server.services._base import _iso_z, app
 
 
 def _now() -> datetime:

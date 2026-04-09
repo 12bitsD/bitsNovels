@@ -35,7 +35,7 @@ def _require_chapter(
     chapter_id: str,
     user_id: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
+    from server.main import _error, app
 
     project, err = _require_project(project_id, user_id)
     if err is not None:

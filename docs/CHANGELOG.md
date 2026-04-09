@@ -4,6 +4,29 @@
 
 ------
 
+## v0.3.21（2026-04-09）
+
+### 文档同步
+#### 修正 (Fixed)
+- 同步 `workspace/docs/CHANGELOG.md` 与 `workspace/docs/refactor/` 文档，修正前端 check/test 描述：前端交付以 `npm run test:web`、`npm run -w @bitsnovels/web lint`、`npm run -w @bitsnovels/web typecheck` 为准。
+- 补充说明 `workspace` 根级 `npm run check` 当前受 Python `ruff` 环境阻塞，暂不将该环境问题误记为前端代码失败。
+- 补充最近一次 Playwright E2E 已通过的状态，明确当前结论为“核心功能链路通过”。
+- 补充人工视觉走查仍有待补风险，涉及 `App.tsx`、`ProjectDashboard`、`KBLocationDetail` 与 `NotificationItem` 等模块。
+
+------
+
+## v0.3.20（2026-04-09）
+
+### P2 架构优化: 引入 React Query
+#### 新增 (Added)
+- 引入 `@tanstack/react-query`，并在 `src/main.tsx` 中配置了全局 `QueryClientProvider`。
+- 在 `src/api/client.ts` 中新增了 `fetchApi` 基础调用方法，抛出标准的异常以便 React Query 捕获。
+#### 重构 (Refactored)
+- 试点迁移了 `Epic-6` 的通知分页模块 (`useNotifications.ts`)，使用 `useInfiniteQuery` 和 `useQuery` 进行重写，优化了状态管理和数据缓存逻辑。
+- 修复并更新了 `useNotifications.test.tsx` 及关联组件的测试，增加测试时的 `<QueryClientProvider>` 包装，测试覆盖率维持达标。
+
+------
+
 ## v0.3.19（2026-04-09）
 
 **变更类型：** Backend 可维护性重构 - 去重 / 解耦 / 模块化

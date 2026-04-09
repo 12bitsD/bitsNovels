@@ -3,10 +3,10 @@ Export Service — US-5.1
 异步导出任务处理、格式生成器、范围解析器
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Any, Optional
 
-from server.main import app, _iso_z, _now
+from server.main import _iso_z, _now, app
 
 
 def _resolve_scope(
@@ -154,7 +154,7 @@ def _create_notification(
         "userId": user_id,
         "type": notification_type,
         "title": "导出完成" if notification_type == "export_done" else "导出失败",
-        "body": f"项目导出已完成，可以下载了。"
+        "body": "项目导出已完成，可以下载了。"
         if notification_type == "export_done"
         else "项目导出失败，请重试。",
         "projectId": project_id,
@@ -225,6 +225,6 @@ def process_export_task(
 
         _create_notification(user_id, project_id, "export_done", file_url)
 
-    except Exception as e:
+    except Exception:
         task["status"] = "failed"
         _create_notification(user_id, project_id, "export_failed")
