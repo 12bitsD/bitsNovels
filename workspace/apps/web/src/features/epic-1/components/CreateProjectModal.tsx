@@ -6,8 +6,7 @@ import { Icons } from '../../../components/ui/icons';
 import { FormInput } from '../../../components/ui/FormInput';
 import { ErrorAlert } from '../../../components/ui/ErrorAlert';
 import { LoadingButton } from '../../../components/ui/LoadingButton';
-
-type ProjectType = 'novel' | 'medium' | 'short';
+import type { ProjectType } from '@bitsnovels/api-types';
 
 interface CreateProjectModalProps {
   onClose: () => void;

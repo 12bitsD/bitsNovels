@@ -1,8 +1,8 @@
 import importlib
+from typing import Any, Optional
 
 from fastapi import APIRouter, Header, Query
 from fastapi.responses import JSONResponse
-from typing import Any, Optional
 
 from server.routes._deps import require_project as _require_project
 
@@ -82,7 +82,7 @@ def delete_single_trash_item(
     item_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error
+    from server.main import _error, _require_user_id
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

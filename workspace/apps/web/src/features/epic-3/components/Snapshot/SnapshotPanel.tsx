@@ -85,7 +85,7 @@ export function SnapshotPanel({
             版本历史
           </h2>
           <div className="flex items-center gap-2">
-            <CreateSnapshot onCreate={createSnapshot} disabled={loading} />
+            <CreateSnapshot onCreate={async (label) => { await createSnapshot(label); }} disabled={loading} />
             <button
               onClick={onClose}
               className="p-1.5 text-[#6B5D4D] hover:text-[#2C2416] dark:text-[#9B8E7A] dark:hover:text-[#E8DCC8] rounded transition-colors"

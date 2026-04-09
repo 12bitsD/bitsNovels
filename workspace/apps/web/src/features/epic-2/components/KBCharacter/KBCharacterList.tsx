@@ -1,4 +1,6 @@
 import { ListFilter, Search } from 'lucide-react';
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import KBCharacterCard from './KBCharacterCard';
 import { isNewCharacterDiscovery, type CharacterSortBy, type KBCharacter } from './types';
 
@@ -47,6 +49,19 @@ export default function KBCharacterList({
 
     return 0;
   });
+
+  const shouldVirtualize = orderedCharacters.length >= 80;
+  const parentRef = useRef<HTMLDivElement | null>(null);
+  const virtualizer = useVirtualizer({
+    count: orderedCharacters.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 116,
+    overscan: 8,
+    enabled: shouldVirtualize,
+    initialRect: { width: 0, height: 480 },
+  });
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
 
   const handleSelect = (id: string, selected: boolean) => {
     if (!onSelectionChange) {
@@ -112,22 +127,59 @@ export default function KBCharacterList({
           暂无角色
         </div>
       ) : (
-        <ul role="list" className="space-y-3 overflow-y-auto pr-1">
-          {orderedCharacters.map((character) => (
-            <li key={character.id}>
-              <KBCharacterCard
-                character={character}
-                selected={selectedIds.includes(character.id)}
-                isNew={isNewCharacterDiscovery(character)}
-                lastAppearanceLabel={lastAppearanceLabels[character.id]}
-                onClick={onCharacterSelect}
-                onSelect={onSelectionChange ? handleSelect : undefined}
-                onConfirm={onConfirm}
-                onMarkNotCharacter={onMarkNotCharacter}
-              />
-            </li>
-          ))}
-        </ul>
+        <div ref={parentRef} className="overflow-y-auto pr-1">
+          {shouldVirtualize ? (
+            <div role="list" className="relative space-y-0" style={{ height: `${totalSize}px` }}>
+              {virtualItems.map((virtualRow) => {
+                const character = orderedCharacters[virtualRow.index];
+                return (
+                  <div
+                    key={character.id}
+                    data-index={virtualRow.index}
+                    ref={virtualizer.measureElement}
+                    role="listitem"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                      paddingBottom: '0.75rem',
+                    }}
+                  >
+                    <KBCharacterCard
+                      character={character}
+                      selected={selectedIds.includes(character.id)}
+                      isNew={isNewCharacterDiscovery(character)}
+                      lastAppearanceLabel={lastAppearanceLabels[character.id]}
+                      onClick={onCharacterSelect}
+                      onSelect={onSelectionChange ? handleSelect : undefined}
+                      onConfirm={onConfirm}
+                      onMarkNotCharacter={onMarkNotCharacter}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div role="list" className="space-y-3">
+              {orderedCharacters.map((character) => (
+                <div key={character.id} role="listitem">
+                  <KBCharacterCard
+                    character={character}
+                    selected={selectedIds.includes(character.id)}
+                    isNew={isNewCharacterDiscovery(character)}
+                    lastAppearanceLabel={lastAppearanceLabels[character.id]}
+                    onClick={onCharacterSelect}
+                    onSelect={onSelectionChange ? handleSelect : undefined}
+                    onConfirm={onConfirm}
+                    onMarkNotCharacter={onMarkNotCharacter}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

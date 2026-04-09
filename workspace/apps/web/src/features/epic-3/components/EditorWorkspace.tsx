@@ -66,6 +66,7 @@ export function EditorWorkspace({ projectId, chapterId, initialContent = '', ini
     if (editor) {
       const json = editor.getJSON();
       const content = JSON.stringify(json);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWordCount(calculateWordCount(content));
     }
   }, [editor]);

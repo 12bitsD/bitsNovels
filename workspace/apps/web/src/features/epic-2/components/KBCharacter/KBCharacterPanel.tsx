@@ -86,8 +86,14 @@ export default function KBCharacterPanel({
     : [];
 
   return (
-    <div className="flex h-full overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
-      <div className="flex w-[24rem] flex-shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-parchment)]/40">
+    <div
+      data-testid="kb-character-panel"
+      className="flex h-full min-w-0 w-full overflow-hidden rounded-lg border border-[var(--color-border)] bg-white"
+    >
+      <div
+        data-testid="kb-character-panel-list-rail"
+        className="flex w-[clamp(17rem,38%,22rem)] flex-shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-parchment)]/40"
+      >
         <div className="border-b border-[var(--color-border)] p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-parchment)] text-[var(--color-amber)]">

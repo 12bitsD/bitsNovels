@@ -14,7 +14,6 @@ US-3.6 版本快照 — 红灯测试
 
 from fastapi.testclient import TestClient
 
-
 # ─── 1. POST /snapshots - 创建快照 ─────────────────────────────────────────────
 
 
@@ -531,8 +530,9 @@ def test_get_storage_stats_forbidden(client: TestClient) -> None:
 
 def test_cleanup_old_snapshots(client: TestClient) -> None:
     """清理90天前的自动快照，保留手动快照。"""
-    from server.main import app
     from datetime import timedelta
+
+    from server.main import app
 
     # Create old auto snapshot (91 days ago from session clock)
     old_date = app.state.session_clock.now - timedelta(days=91)
@@ -597,8 +597,9 @@ def test_cleanup_old_snapshots(client: TestClient) -> None:
 
 def test_cleanup_preview(client: TestClient) -> None:
     """预览模式只返回统计，不实际删除。"""
-    from server.main import app
     from datetime import timedelta
+
+    from server.main import app
 
     # Create old auto snapshot (91 days ago from session clock)
     old_date = app.state.session_clock.now - timedelta(days=91)

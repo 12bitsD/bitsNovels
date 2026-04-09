@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@bitsnovels/api-types": "file:../../packages/api-types",
+    "@tanstack/react-query": "^5.97.0",
+    "@tanstack/react-virtual": "^3.13.23",
     "lucide-react": "^1.7.0",
     "openapi-fetch": "^0.17.0",
     "react": "^19.2.4",

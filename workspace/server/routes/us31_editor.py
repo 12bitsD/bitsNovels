@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Header
 from typing import Any, Optional
+
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/projects", tags=["us-3.1"])
@@ -10,7 +11,7 @@ def _require_chapter(
     chapter_id: str,
     user_id: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
+    from server.main import _error, app
 
     project = next(
         (p for p in app.state.fake_db.projects if p["id"] == project_id), None
@@ -62,7 +63,7 @@ def get_chapter(
     chapter_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app
+    from server.main import _require_user_id
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

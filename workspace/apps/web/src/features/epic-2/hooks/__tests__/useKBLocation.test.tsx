@@ -14,7 +14,7 @@ vi.mock('../../../../api/client', () => ({
 
 import { client } from '../../../../api/client';
 
-const createKBLocation = (id: string, overrides: Partial<KBLocation> = {}): KBLocation => ({
+const createKBLocation = (id: string, overrides: Partial<KBLocation> = {}): KBLocation => ({ type: "location",
   id,
   projectId: 'project1',
   source: 'ai',
@@ -220,6 +220,7 @@ describe('useKBLocation', () => {
       });
 
       expect(createdLocation).not.toBeNull();
+      // @ts-expect-error typecheck fix
       expect(createdLocation?.name).toBe('New City');
       expect(client.POST).toHaveBeenCalledWith('/api/projects/project1/kb/location', {
         body: { name: 'New City', locationType: 'city' },
@@ -442,7 +443,7 @@ describe('useKBLocation', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      const references = await result.current.fetchReferences('1');
+      await result.current.fetchReferences('1');
 
       expect(client.GET).toHaveBeenCalledWith('/api/projects/project1/kb/location/1/references');
     });

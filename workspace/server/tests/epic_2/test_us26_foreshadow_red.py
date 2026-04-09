@@ -1,4 +1,3 @@
-from datetime import timedelta
 
 from fastapi.testclient import TestClient
 

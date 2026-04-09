@@ -34,10 +34,8 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentRef = useRef(content);
+  const contentRef = useRef(initialContent);
   const isMountedRef = useRef(true);
-
-  contentRef.current = content;
 
   const clearDebounceTimer = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -46,25 +44,29 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
     }
   }, []);
 
-  const executeSave = useCallback(async (source: SaveSource, currentRetryCount = 0): Promise<void> => {
+  const executeSave = useCallback(async function self(source: SaveSource, currentRetryCount = 0): Promise<void> {
     if (!isMountedRef.current) return;
 
     setSaveStatus('saving');
+    const contentToSave = contentRef.current;
 
     try {
-      await onSave(contentRef.current, source);
+      await onSave(contentToSave, source);
 
       if (!isMountedRef.current) return;
 
-      setSaveStatus('saved');
-      setLastSavedAt(new Date());
-    } catch (error) {
+      // Only update to saved if the content hasn't changed during the save
+      if (contentRef.current === contentToSave) {
+        setSaveStatus('saved');
+        setLastSavedAt(new Date());
+      }
+    } catch {
       if (!isMountedRef.current) return;
 
       if (currentRetryCount < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, retryDelayMs));
         if (isMountedRef.current) {
-          return executeSave(source, currentRetryCount + 1);
+          return self(source, currentRetryCount + 1);
         }
       } else {
         setSaveStatus('error');
@@ -83,6 +85,7 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
 
   const setContent = useCallback((newContent: string) => {
     setContentState(newContent);
+    contentRef.current = newContent;
     clearDebounceTimer();
 
     debounceTimerRef.current = setTimeout(() => {

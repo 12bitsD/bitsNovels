@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Optional, cast
 
-from server.services._base import app, _iso_z, _main_module
+from server.services._base import _iso_z, _main_module, app
 
 
 def _next_id(counter_key: str, prefix: str) -> str:

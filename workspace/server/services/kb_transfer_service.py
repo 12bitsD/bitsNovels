@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple
 
-from server.main import app, _iso_z, _now
-
+from server.main import _iso_z, _now, app
 
 EXPORT_VERSION = "1.0.0"
 
@@ -66,7 +65,6 @@ def _build_export_kb(project_id: str, scope: Dict[str, Any]) -> Dict[str, Any]:
             if entity_type in KB_ENTITY_TYPES:
                 kb[entity_type] = []
     elif mode == "items":
-        item_ids = set(scope.get("itemIds", []))
         kb["items"] = []
     return kb
 
@@ -152,7 +150,6 @@ def _find_existing_entity(
 
 
 def _generate_unique_name(project_id: str, entity_type: str, original_name: str) -> str:
-    singular_type = PLURAL_TO_SINGULAR.get(entity_type, entity_type)
     counter = 1
     new_name = f"{original_name} ({counter})"
     while _find_existing_entity(project_id, entity_type, new_name) is not None:

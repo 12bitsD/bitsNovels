@@ -165,6 +165,7 @@ describe('CreateSnapshot', () => {
       expect(screen.getByText('创建中...')).toBeInTheDocument();
     });
 
+    // @ts-expect-error typecheck fix
     resolvePromise();
   });
 

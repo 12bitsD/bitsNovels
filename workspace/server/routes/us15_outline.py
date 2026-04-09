@@ -1,11 +1,12 @@
 import importlib
-from fastapi import APIRouter, Body, Header
-from pydantic import BaseModel
-from typing import Any, Optional, Union
-from fastapi.responses import JSONResponse
+from typing import Any, Optional
 
-from server.utils.text_utils import calculate_char_count as _calculate_char_count
+from fastapi import APIRouter, Header
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
 from server.routes._deps import require_writable_project as _require_project
+from server.utils.text_utils import calculate_char_count as _calculate_char_count
 
 router = APIRouter(prefix="/api/projects", tags=["us-1.5"])
 
@@ -122,7 +123,7 @@ def get_outline(
     project_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -167,7 +168,7 @@ def create_volume(
     payload: CreateVolumeRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _error, _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -216,7 +217,7 @@ def patch_volume(
     payload: PatchVolumeRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _error, _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -271,7 +272,7 @@ def delete_volume(
     volume_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -328,7 +329,7 @@ def reorder_volumes(
     payload: ReorderVolumesRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -371,7 +372,7 @@ def create_chapter(
     payload: CreateChapterRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _error, _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -446,7 +447,7 @@ def patch_chapter(
     payload: PatchChapterRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, _iso_z, app
+    from server.main import _error, _iso_z, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -541,7 +542,7 @@ def reorder_chapters(
     payload: ReorderChaptersRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -598,7 +599,7 @@ def bulk_move_chapters(
     payload: BulkMoveRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -665,7 +666,7 @@ def bulk_trash_chapters(
     payload: BulkTrashRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -728,7 +729,7 @@ def delete_chapter(
     chapter_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error, app
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

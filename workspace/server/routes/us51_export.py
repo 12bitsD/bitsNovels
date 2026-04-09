@@ -6,14 +6,13 @@ GET    /api/projects/:projectId/exports/:taskId             — 获取任务状�
 GET    /api/projects/:projectId/exports/:taskId/download    — 下载文件
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from typing import Any, Optional, Union
 
 from fastapi import APIRouter, BackgroundTasks, Header
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
-from server.utils.time_utils import iso_z as _iso_z
 from server.routes._deps import require_project as _require_project
 
 router = APIRouter(prefix="/api/projects", tags=["us-5.1"])
@@ -33,7 +32,7 @@ def create_export_task(
     background_tasks: BackgroundTasks,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _next_id, _iso_z, _now
+    from server.main import _iso_z, _next_id, _now, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -153,7 +152,7 @@ def get_export_task(
     task_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _error
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -183,7 +182,7 @@ def download_export(
     task_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> Union[JSONResponse, Response]:
-    from server.main import _require_user_id, app, _error, _now
+    from server.main import _error, _now, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

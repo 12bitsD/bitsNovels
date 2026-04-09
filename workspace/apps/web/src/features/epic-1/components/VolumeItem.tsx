@@ -2,18 +2,8 @@ import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, ChevronDown, ChevronRight, Folder, Pencil, Trash2, Plus } from 'lucide-react';
-import { ChapterItem, type ChapterSummary } from './ChapterItem';
-
-export interface Volume {
-  id: string;
-  projectId: string;
-  name: string;
-  description?: string;
-  order: number;
-  chapterCount: number;
-  totalChars: number;
-  chapters: ChapterSummary[];
-}
+import { ChapterItem } from './ChapterItem';
+import type { Volume } from '@bitsnovels/api-types';
 
 interface VolumeItemProps {
   volume: Volume;

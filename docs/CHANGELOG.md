@@ -1,6 +1,53 @@
 # bitsNovels · 更新日志
 
 > 所有重大文档变更均记录于此。语义化版本号遵循 vMAJOR.MINOR.PATCH。
+> 工作区脚本/门禁/工程细节变更见 `workspace/docs/CHANGELOG.md`，避免在两处重复记录同一内容。
+>
+> 备注：早期历史条目中出现的旧路径（例如 `specs/EPIC/*`、`docs/CONTEXT.md`、`process/TDD.md`、`docs/research/*`）已在后续重构中调整或移除；当前以 `AGENTS.md` 的文档索引与 `specs/epic-*` 结构为准。
+
+------
+
+## v0.3.23（2026-04-09）
+
+### 前端收尾
+#### 修正 (Fixed)
+- `workspace` 根级 `npm run check` 的 `ruff` 环境阻塞已修复：根脚本会自动创建 `.venv` 并同步 `.[dev]` 依赖，CI 与本地口径一致。
+- 继续推进视觉与性能收尾：修复 `App.tsx` / `StatsTable.tsx` 残留硬编码色值、补齐长列表虚拟化（KB 列表 / 通知列表 / 超大卷章节列表）。
+#### 重构 (Refactored)
+- 扩大 TanStack Query 试点范围：`useWritingStats` 迁移到 `useQuery`，统一请求与错误处理（复用 `fetchApi`）。
+
+------
+
+## v0.3.22（2026-04-09）
+
+### 文档去重
+#### 修正 (Fixed)
+- 修正 `process/CONSTRAINTS.md` 的导出格式约束：V1 导出格式统一为 DOCX / TXT / PDF / Markdown（去除 EPUB）。
+- 合并 `docs/FRONTEND_AC_MATRIX_2026-04-09.md` 至 `docs/FRONTEND_AUDIT_2026-04-09.md`，避免两份审计材料重复维护。
+- 清理 `workspace/docs/refactor/` 中过时或重复的文档，并移除 `workspace/` 下的一次性测试输出 txt 文件。
+
+------
+
+## v0.3.21（2026-04-09）
+
+### 文档同步
+#### 修正 (Fixed)
+- 同步 `workspace/docs/CHANGELOG.md` 与 `workspace/docs/refactor/` 文档，修正前端 check/test 描述：前端交付以 `npm run test:web`、`npm run -w @bitsnovels/web lint`、`npm run -w @bitsnovels/web typecheck` 为准。
+- 补充说明 `workspace` 根级 `npm run check` 当前受 Python `ruff` 环境阻塞，暂不将该环境问题误记为前端代码失败。
+- 补充最近一次 Playwright E2E 已通过的状态，明确当前结论为“核心功能链路通过”。
+- 补充人工视觉走查仍有待补风险，涉及 `App.tsx`、`ProjectDashboard`、`KBLocationDetail` 与 `NotificationItem` 等模块。
+
+------
+
+## v0.3.20（2026-04-09）
+
+### P2 架构优化: 引入 React Query
+#### 新增 (Added)
+- 引入 `@tanstack/react-query`，并在 `src/main.tsx` 中配置了全局 `QueryClientProvider`。
+- 在 `src/api/client.ts` 中新增了 `fetchApi` 基础调用方法，抛出标准的异常以便 React Query 捕获。
+#### 重构 (Refactored)
+- 试点迁移了 `Epic-6` 的通知分页模块 (`useNotifications.ts`)，使用 `useInfiniteQuery` 和 `useQuery` 进行重写，优化了状态管理和数据缓存逻辑。
+- 修复并更新了 `useNotifications.test.tsx` 及关联组件的测试，增加测试时的 `<QueryClientProvider>` 包装，测试覆盖率维持达标。
 
 ------
 

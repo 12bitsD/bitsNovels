@@ -1,11 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { client, setAuthTokenGetter } from '../api/client';
 import { AuthContext } from './AuthContextValue';
-
-interface User {
-  id: string;
-  email: string;
-}
+import type { User } from '@bitsnovels/api-types';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -43,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const { data, error } = await client.POST('/api/auth/login', {
-        body: { email, password, remember_me: rememberMe }
+        body: { email, password, rememberMe }
       });
       if (error) throw new Error((error as { detail?: string }).detail || '登录失败');
       const d = data as { token?: string };

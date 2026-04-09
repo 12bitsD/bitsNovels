@@ -1,7 +1,6 @@
 import importlib
 import os
 import re
-import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, AsyncGenerator, Optional, Union
@@ -10,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from .config import get_settings
+from .models.request_models import ErrorBody, ErrorEnvelope, HealthResponse
 
 
 class _FakeDb:
@@ -168,21 +168,6 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     lifespan=lifespan,
-)
-
-
-from server.models.request_models import (
-    HealthResponse,
-    ErrorBody,
-    ErrorEnvelope,
-    RegisterRequest,
-    VerifyEmailRequest,
-    ResendVerificationRequest,
-    LoginRequest,
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-    CreateProjectRequest,
-    DeleteProjectRequest,
 )
 
 PROJECT_TAGS = {"玄幻", "都市", "科幻", "历史", "言情", "悬疑", "其他"}

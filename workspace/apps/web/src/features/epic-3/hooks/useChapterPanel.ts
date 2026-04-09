@@ -1,30 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { client } from '../../../api/client';
-
-export interface ChapterSummary {
-  id: string;
-  projectId: string;
-  volumeId: string;
-  title: string;
-  order: number;
-  charCount: number;
-  parserStatus: 'none' | 'pending' | 'parsing' | 'parsed' | 'failed' | 'empty';
-  lastEditedAt?: string;
-  hasNote: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Volume {
-  id: string;
-  projectId: string;
-  name: string;
-  description?: string;
-  order: number;
-  chapterCount: number;
-  totalChars: number;
-  chapters: ChapterSummary[];
-}
+import type { Volume, ChapterSummary } from '@bitsnovels/api-types';
 
 interface OutlineResponse {
   volumes: Volume[];

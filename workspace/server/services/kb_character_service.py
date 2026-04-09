@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Any, Optional, cast
 
 import server.services.kb_core_service as kb_core_service
+from server.services._base import app
 
 from ..utils.kb_helpers import ensure_kb_state, merge_aliases, sync_entity_store
-from server.services._base import app
 
 VALID_CHARACTER_SORTS = {"firstAppearance", "appearanceCount"}
 

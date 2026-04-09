@@ -4,9 +4,7 @@ These tests define the expected behavior before implementation.
 They MUST fail on the RED phase.
 """
 
-import pytest
 from fastapi.testclient import TestClient
-
 
 # ==============================================================================
 # POST /api/me/export-templates

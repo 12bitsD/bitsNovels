@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ChapterItem, type ChapterSummary } from './ChapterItem';
+import { ChapterItem } from './ChapterItem';
+import type { ChapterSummary } from '@bitsnovels/api-types';
 
 // Mock @dnd-kit modules
 vi.mock('@dnd-kit/sortable', () => ({
@@ -28,7 +29,7 @@ const mockChapter: ChapterSummary = {
   volumeId: 'vol-1',
   title: '第一章：启程',
   order: 0,
-  chars: 5000,
+  charCount: 5000,
   lastEditedAt: '2024-01-15T10:00:00Z',
   parserStatus: 'parsed',
 };
@@ -106,7 +107,7 @@ describe('ChapterItem', () => {
   });
 
   it('should not render character count when chars is 0', () => {
-    const chapterNoChars: ChapterSummary = { ...mockChapter, chars: 0 };
+    const chapterNoChars: ChapterSummary = { ...mockChapter, charCount: 0 };
     render(<ChapterItem {...defaultProps} chapter={chapterNoChars} />);
     expect(screen.queryByText(/字/)).not.toBeInTheDocument();
   });

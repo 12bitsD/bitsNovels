@@ -25,7 +25,6 @@ from fastapi.testclient import TestClient
 
 from server.main import app
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 
@@ -445,9 +444,7 @@ class TestPerformanceBenchmark:
         print("=" * 70)
 
         result = TimingResult("GET /outline", 1000)  # 100 volumes × 10 chapters
-        volumes_data = _create_project_with_volumes(
-            pressure_client, project_id, 100, 10, headers
-        )
+        _create_project_with_volumes(pressure_client, project_id, 100, 10, headers)
         elapsed, response = _time_request(
             pressure_client.get,
             f"/api/projects/{project_id}/outline",
@@ -455,7 +452,7 @@ class TestPerformanceBenchmark:
         )
         result.add(elapsed)
         results.append(result)
-        print(f"\n  [1/4] GET /outline (100 volumes, 1000 chapters total):")
+        print("\n  [1/4] GET /outline (100 volumes, 1000 chapters total):")
         print(f"        Response time: {elapsed * 1000:.1f}ms")
 
         # Verify counts
@@ -484,7 +481,7 @@ class TestPerformanceBenchmark:
         )
         result.add(elapsed)
         results.append(result)
-        print(f"\n  [2/4] POST /chapters/bulk-move (100 chapters):")
+        print("\n  [2/4] POST /chapters/bulk-move (100 chapters):")
         print(f"        Response time: {elapsed * 1000:.1f}ms")
 
         # ── Test 3: POST /chapters/bulk-trash with 100 chapters ──
@@ -505,7 +502,7 @@ class TestPerformanceBenchmark:
         )
         result.add(elapsed)
         results.append(result)
-        print(f"\n  [3/4] POST /chapters/bulk-trash (100 chapters):")
+        print("\n  [3/4] POST /chapters/bulk-trash (100 chapters):")
         print(f"        Response time: {elapsed * 1000:.1f}ms")
 
         # ── Test 4: DELETE /volumes/{volume_id} with 100 chapters ──
@@ -521,7 +518,7 @@ class TestPerformanceBenchmark:
         )
         result.add(elapsed)
         results.append(result)
-        print(f"\n  [4/4] DELETE /volumes/{{volume_id}} (volume with 100 chapters):")
+        print("\n  [4/4] DELETE /volumes/{volume_id} (volume with 100 chapters):")
         print(f"        Response time: {elapsed * 1000:.1f}ms")
 
         # ── Summary ──
@@ -599,7 +596,7 @@ class TestPerformanceDegradation:
 
         # Warning threshold
         if response_time_ms > 1000:
-            print(f"    ⚠️  WARNING: Response time exceeds 1000ms!")
+            print("    ⚠️  WARNING: Response time exceeds 1000ms!")
 
 
 # ─── Run Summary ──────────────────────────────────────────────────────────────

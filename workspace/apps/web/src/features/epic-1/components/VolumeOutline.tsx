@@ -20,8 +20,8 @@ import { Plus, Trash2, BookOpen } from 'lucide-react';
 import { client } from '../../../api/client';
 import { ErrorAlert } from '../../../components/ui/ErrorAlert';
 import { SkeletonLoader } from '../../../components/ui/SkeletonLoader';
-import { VolumeItem, type Volume } from './VolumeItem';
-import { type ChapterSummary } from './ChapterItem';
+import { VolumeItem } from './VolumeItem';
+import type { Volume, ChapterSummary } from '@bitsnovels/api-types';
 
 interface OutlineResponse {
   volumes: Volume[];

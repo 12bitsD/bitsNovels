@@ -1,6 +1,6 @@
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Body, Header
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -34,7 +34,7 @@ def create_kb_export(
     payload: CreateExportRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error
+    from server.main import _error, _require_user_id
     from server.services.kb_transfer_service import (
         create_kb_export as svc_create_export,
     )
@@ -62,7 +62,7 @@ def download_kb_export(
     export_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error
+    from server.main import _error, _require_user_id
     from server.services.kb_transfer_service import get_kb_export as svc_get_export
 
     maybe_user_id = _require_user_id(authorization)
@@ -87,7 +87,7 @@ def import_kb(
     payload: ImportRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, _error
+    from server.main import _error, _require_user_id
     from server.services.kb_transfer_service import import_kb_data as svc_import
 
     maybe_user_id = _require_user_id(authorization)

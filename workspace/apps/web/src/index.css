@@ -10,6 +10,17 @@
   --color-amber: #8B6914;
   --color-amber-dark: #C17F24;
   --color-amber-light: #E8D9B8;
+
+  --color-surface-app: #F5F0E8;
+  --color-surface-editor: #FDF8EF;
+  --color-surface-panel: #FFFDF8;
+  --color-surface-panel-muted: #F2E8D7;
+  --color-surface-sidebar: #F8F2E8;
+  --color-surface-header: rgba(253, 248, 239, 0.96);
+  --color-text-primary: #2C2416;
+  --color-text-secondary: #6B5D4D;
+  --color-border-strong: #C7B79A;
+  --color-overlay: rgba(44, 36, 22, 0.5);
   
   --color-success: #4A7C59;
   --color-warning: #B8860B;

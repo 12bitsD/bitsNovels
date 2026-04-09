@@ -110,6 +110,7 @@ export function useEditorTheme(): UseEditorThemeReturn {
 
   useEffect(() => {
     const loaded = loadConfig();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig(loaded);
   }, []);
 

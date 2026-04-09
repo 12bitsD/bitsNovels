@@ -58,7 +58,7 @@ describe('ProjectSettingsPage', () => {
     expect(screen.getByText('25')).toBeInTheDocument();
   });
 
-  it('should validate project name like US-1.3', async () => {
+  it('should validate project name like US-1.3 with debounce', async () => {
     renderWithRouter(<ProjectSettingsPage />);
 
     await waitFor(() => {
@@ -67,6 +67,26 @@ describe('ProjectSettingsPage', () => {
 
     const nameInput = screen.getByLabelText(/项目名称/);
 
+    // Test empty name debounce validation
+    fireEvent.change(nameInput, { target: { value: '   ' } });
+    await waitFor(() => {
+      expect(screen.getByText(/项目名称不能为空/)).toBeInTheDocument();
+    }, { timeout: 1000 });
+
+    // Test max length debounce validation
+    fireEvent.change(nameInput, { target: { value: 'a'.repeat(51) } });
+    await waitFor(() => {
+      expect(screen.getByText(/不能超过 50 个字符/)).toBeInTheDocument();
+    }, { timeout: 1000 });
+
+    // Test valid name clears error
+    fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
+    await waitFor(() => {
+      expect(screen.queryByText(/不能超过 50 个字符/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/项目名称不能为空/)).not.toBeInTheDocument();
+    }, { timeout: 1000 });
+
+    // The old test clicked "保存更改", let's test that too
     fireEvent.change(nameInput, { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: /保存更改/ }));
     expect(await screen.findByText(/项目名称不能为空/)).toBeInTheDocument();
@@ -91,6 +111,44 @@ describe('ProjectSettingsPage', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /备份与恢复/ }));
     expect(await screen.findByRole('button', { name: '导出项目' })).toBeInTheDocument();
+  });
+
+  it('should handle form fields updates', async () => {
+    renderWithRouter(<ProjectSettingsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/类型/)).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/类型/), { target: { value: 'short' } });
+    fireEvent.change(screen.getByLabelText(/题材标签/), { target: { value: 'sci-fi, drama' } });
+    fireEvent.change(screen.getByLabelText(/简介/), { target: { value: 'New description' } });
+
+    fireEvent.click(screen.getByRole('tab', { name: /写作目标/ }));
+    await waitFor(() => expect(screen.getByLabelText(/每日目标字数/)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/每日目标字数/), { target: { value: '3000' } });
+    fireEvent.change(screen.getByLabelText(/总字数目标/), { target: { value: '200000' } });
+
+    fireEvent.click(screen.getByRole('tab', { name: /AI 配置/ }));
+    await waitFor(() => expect(screen.getByLabelText(/续写风格/)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/续写风格/), { target: { value: 'flowery' } });
+  });
+
+  it('should close archive modal when cancel is clicked', async () => {
+    renderWithRouter(<ProjectSettingsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /归档项目/ })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /归档项目/ }));
+
+    expect(await screen.findByText(/确定要归档项目/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /取消/ }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/确定要归档项目/)).not.toBeInTheDocument();
+    });
   });
 
   it('should show success toast after saving basic info', async () => {

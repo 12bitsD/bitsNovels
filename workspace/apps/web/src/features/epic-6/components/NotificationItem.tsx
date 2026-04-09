@@ -68,12 +68,12 @@ export default function NotificationItem({
   };
 
   return (
-    <li
+    <div
       role="listitem"
       onClick={handleClick}
       aria-label={`${notification.read ? '已读' : '未读'}通知: ${notification.title}`}
       className={`
-        relative flex items-start gap-3 p-4 cursor-pointer
+        group relative flex items-start gap-3 p-4 cursor-pointer
         border-b border-[var(--color-border)]/30
         transition-colors duration-200
         hover:bg-[var(--color-ivory)]
@@ -117,6 +117,6 @@ export default function NotificationItem({
       {!notification.read && (
         <span className="absolute top-4 right-4 w-2 h-2 bg-[var(--color-amber)] rounded-full" aria-hidden="true" />
       )}
-    </li>
+    </div>
   );
 }

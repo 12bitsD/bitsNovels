@@ -4,7 +4,7 @@ import importlib
 from datetime import datetime
 from typing import Any, Optional, cast
 
-from server.services._base import app, _iso_z, _main_module
+from server.services._base import _iso_z, _main_module, app
 
 
 def _kb_core_service() -> Any:

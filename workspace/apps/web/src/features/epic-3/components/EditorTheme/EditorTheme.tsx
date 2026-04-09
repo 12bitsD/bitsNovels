@@ -38,9 +38,9 @@ export function EditorTheme() {
   return (
     <div
       data-testid="editor-theme-panel"
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-5"
+      className="bg-ivory rounded-lg shadow-sm border border-border p-8 space-y-8"
     >
-      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+      <h3 className="text-xl font-medium text-ink mb-4">
         编辑器主题
       </h3>
 
@@ -48,7 +48,7 @@ export function EditorTheme() {
         <div className="flex items-center justify-between">
           <label
             htmlFor="theme-mode"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="text-sm font-medium text-ink-light"
           >
             主题
           </label>
@@ -57,7 +57,7 @@ export function EditorTheme() {
             value={themeMode}
             onChange={(e) => setThemeMode(e.target.value as ThemeMode)}
             disabled={followSystem}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            className="px-4 py-2 text-sm border border-border rounded-md bg-parchment text-ink disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-amber/20 focus:border-amber outline-none transition-colors"
           >
             {themeOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -73,11 +73,11 @@ export function EditorTheme() {
             id="follow-system"
             checked={followSystem}
             onChange={(e) => setFollowSystem(e.target.checked)}
-            className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+            className="w-4 h-4 text-amber border-border rounded focus:ring-amber/20 accent-amber"
           />
           <label
             htmlFor="follow-system"
-            className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+            className="text-sm text-ink-light cursor-pointer"
           >
             跟随系统
           </label>
@@ -86,7 +86,7 @@ export function EditorTheme() {
         <div className="flex items-center justify-between">
           <label
             htmlFor="font-family"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="text-sm font-medium text-ink-light"
           >
             字体
           </label>
@@ -94,7 +94,7 @@ export function EditorTheme() {
             id="font-family"
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value as FontOption)}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            className="px-4 py-2 text-sm border border-border rounded-md bg-parchment text-ink focus:ring-2 focus:ring-amber/20 focus:border-amber outline-none transition-colors"
           >
             {fontOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -108,11 +108,11 @@ export function EditorTheme() {
           <div className="flex items-center justify-between">
             <label
               htmlFor="font-size"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-ink-light"
             >
               字号
             </label>
-            <span className="text-sm text-gray-500">{fontSize}px</span>
+            <span className="text-sm text-ink-light/70">{fontSize}px</span>
           </div>
           <input
             type="range"
@@ -122,9 +122,9 @@ export function EditorTheme() {
             step={1}
             value={fontSize}
             onChange={(e) => setFontSize(parseInt(e.target.value, 10))}
-            className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-600"
+            className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-amber"
           />
-          <div className="flex justify-between text-xs text-gray-400">
+          <div className="flex justify-between text-xs text-ink-light/70">
             <span>14px</span>
             <span>24px</span>
           </div>
@@ -133,7 +133,7 @@ export function EditorTheme() {
         <div className="flex items-center justify-between">
           <label
             htmlFor="line-spacing"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="text-sm font-medium text-ink-light"
           >
             行间距
           </label>
@@ -141,7 +141,7 @@ export function EditorTheme() {
             id="line-spacing"
             value={lineSpacing}
             onChange={(e) => setLineSpacing(parseFloat(e.target.value) as LineSpacing)}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            className="px-4 py-2 text-sm border border-border rounded-md bg-parchment text-ink focus:ring-2 focus:ring-amber/20 focus:border-amber outline-none transition-colors"
           >
             {lineSpacingOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -152,10 +152,10 @@ export function EditorTheme() {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="pt-4 border-t border-border mt-8">
         <button
           onClick={resetToDefaults}
-          className="text-sm text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400 transition-colors"
+          className="text-sm text-ink-light hover:text-amber-dark transition-colors"
         >
           恢复默认
         </button>

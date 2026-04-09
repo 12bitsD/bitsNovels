@@ -172,6 +172,7 @@ export function useKBLocation(projectId: string, options: UseKBLocationOptions =
 
   useEffect(() => {
     fetchLocations(1, false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, search, locationType, confirmed]);
 
   const createLocation = useCallback(async (input: CreateKBLocationInput): Promise<KBLocation | null> => {

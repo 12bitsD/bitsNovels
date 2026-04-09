@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import KBLocationList from '../KBLocation/KBLocationList';
 import type { KBLocation, KBLocationTreeNode } from '../KBLocation/types';
 
 vi.mock('../hooks/useKBLocation');
 
-const createKBLocation = (overrides: Partial<KBLocation> = {}): KBLocation => ({
+const createKBLocation = (overrides: Partial<KBLocation> = {}): KBLocation => ({ type: "location",
   id: '1',
   projectId: 'project1',
   source: 'ai',

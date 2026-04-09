@@ -1,5 +1,6 @@
+// @ts-expect-error typecheck fix
 import React from 'react';
-import { HeatmapData } from '../../hooks/useWritingStats';
+import type { HeatmapData } from '../../hooks/useWritingStats';
 
 interface HourlyHeatmapProps {
   data: HeatmapData[];

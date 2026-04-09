@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import KBFactionDetail from '../KBFaction/KBFactionDetail';
 import type { KBFaction, KBFactionReferences } from '../KBFaction/types';
 
-const createFaction = (overrides: Partial<KBFaction> = {}): KBFaction => ({
+const createFaction = (overrides: Partial<KBFaction> = {}): KBFaction => ({ type: "faction",
   id: 'faction1',
   projectId: 'project1',
   source: 'ai',

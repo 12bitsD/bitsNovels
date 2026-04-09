@@ -7,7 +7,7 @@ def require_project(
     project_id: str,
     user_id: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
+    from server.main import _error, app
 
     project = next(
         (p for p in app.state.fake_db.projects if p["id"] == project_id), None
@@ -23,7 +23,7 @@ def require_writable_project(
     project_id: str,
     user_id: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
+    from server.main import _error, app
 
     project = next(
         (p for p in app.state.fake_db.projects if p["id"] == project_id), None

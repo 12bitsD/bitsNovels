@@ -28,21 +28,6 @@ const normalizeStatus = (status: ParserChapterStatusValue) => {
   return status;
 };
 
-const getStatusLabel = (status: ParserChapterStatusValue) => {
-  switch (normalizeStatus(status)) {
-    case 'parsed':
-      return '已解析';
-    case 'parsing':
-      return '解析中';
-    case 'pending':
-      return '待解析';
-    case 'failed':
-      return '解析失败';
-    default:
-      return '无内容';
-  }
-};
-
 const getStatusIcon = (status: ParserChapterStatusValue) => {
   switch (normalizeStatus(status)) {
     case 'parsed':

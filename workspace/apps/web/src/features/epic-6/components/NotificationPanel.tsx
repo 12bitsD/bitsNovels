@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Loader2, Trash2, CheckCheck } from 'lucide-react';
 import NotificationItem from './NotificationItem';
 import { useNotifications, type NotificationCenterCategory } from '../hooks/useNotifications';
@@ -33,6 +35,18 @@ export default function NotificationPanel({
 
   const hasUnread = notifications.some(n => !n.read);
   const hasRead = notifications.some(n => n.read);
+  const shouldVirtualize = notifications.length >= 80;
+  const parentRef = useRef<HTMLDivElement | null>(null);
+  const virtualizer = useVirtualizer({
+    count: notifications.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 92,
+    overscan: 8,
+    enabled: shouldVirtualize,
+    initialRect: { width: 0, height: 400 },
+  });
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
 
   const handleClearRead = () => {
     notifications
@@ -101,7 +115,7 @@ export default function NotificationPanel({
         ))}
       </div>
 
-      <div className="overflow-y-auto max-h-[400px]">
+      <div ref={parentRef} className="overflow-y-auto max-h-[400px]">
         {loading && notifications.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="animate-spin text-[var(--color-amber)]" size={24} />
@@ -115,16 +129,46 @@ export default function NotificationPanel({
             )}
           </div>
         ) : (
-          <ul role="list" className="divide-y divide-[var(--color-border)]/30">
-            {notifications.map(notification => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onMarkAsRead={markAsRead}
-                onDelete={deleteNotification}
-              />
-            ))}
-          </ul>
+          <>
+            {shouldVirtualize ? (
+              <div role="list" className="relative" style={{ height: `${totalSize}px` }}>
+                {virtualItems.map((virtualRow) => {
+                  const notification = notifications[virtualRow.index];
+                  return (
+                    <div
+                      key={notification.id}
+                      data-index={virtualRow.index}
+                      ref={virtualizer.measureElement}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                    >
+                      <NotificationItem
+                        notification={notification}
+                        onMarkAsRead={markAsRead}
+                        onDelete={deleteNotification}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div role="list">
+                {notifications.map(notification => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                    onMarkAsRead={markAsRead}
+                    onDelete={deleteNotification}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {hasMore && (

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { useWritingStats } from '../hooks/useWritingStats';
 
 vi.mock('../../../api/client', () => ({
-  client: {
-    GET: vi.fn(),
-  },
+  fetchApi: vi.fn(),
 }));
 
-import { client } from '../../../api/client';
+import { fetchApi } from '../../../api/client';
 
 const mockSummary = {
   todayChars: 1250,
@@ -41,19 +41,33 @@ const mockChapters = [
 ];
 
 describe('useWritingStats', () => {
+  const createWrapper = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    return function Wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    };
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('fetches stats successfully', async () => {
-    vi.mocked(client.GET)
-      .mockResolvedValueOnce({ data: mockSummary, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockDaily, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockWeekly, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockHeatmap, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockChapters, error: undefined, response: new Response() });
+    vi.mocked(fetchApi)
+      .mockResolvedValueOnce(mockSummary)
+      .mockResolvedValueOnce(mockDaily)
+      .mockResolvedValueOnce(mockWeekly)
+      .mockResolvedValueOnce(mockHeatmap)
+      .mockResolvedValueOnce(mockChapters);
 
-    const { result } = renderHook(() => useWritingStats('proj-1'));
+    const { result } = renderHook(() => useWritingStats('proj-1'), { wrapper: createWrapper() });
 
     expect(result.current.loading).toBe(true);
 
@@ -69,13 +83,9 @@ describe('useWritingStats', () => {
   });
 
   it('handles API error', async () => {
-    vi.mocked(client.GET).mockResolvedValue({
-      data: undefined,
-      error: { detail: '获取统计失败' },
-      response: new Response(),
-    });
+    vi.mocked(fetchApi).mockRejectedValue(new Error('获取统计失败'));
 
-    const { result } = renderHook(() => useWritingStats('proj-1'));
+    const { result } = renderHook(() => useWritingStats('proj-1'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.error).toBe('获取统计失败');
@@ -86,9 +96,9 @@ describe('useWritingStats', () => {
   });
 
   it('handles network error', async () => {
-    vi.mocked(client.GET).mockRejectedValue(new Error('Network error'));
+    vi.mocked(fetchApi).mockRejectedValue(new Error('Network error'));
 
-    const { result } = renderHook(() => useWritingStats('proj-1'));
+    const { result } = renderHook(() => useWritingStats('proj-1'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.error).toBe('Network error');
@@ -98,14 +108,14 @@ describe('useWritingStats', () => {
   });
 
   it('calculates chapter percentages correctly', async () => {
-    vi.mocked(client.GET)
-      .mockResolvedValueOnce({ data: mockSummary, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockDaily, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockWeekly, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockHeatmap, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockChapters, error: undefined, response: new Response() });
+    vi.mocked(fetchApi)
+      .mockResolvedValueOnce(mockSummary)
+      .mockResolvedValueOnce(mockDaily)
+      .mockResolvedValueOnce(mockWeekly)
+      .mockResolvedValueOnce(mockHeatmap)
+      .mockResolvedValueOnce(mockChapters);
 
-    const { result } = renderHook(() => useWritingStats('proj-1'));
+    const { result } = renderHook(() => useWritingStats('proj-1'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.data).not.toBeNull();
@@ -117,7 +127,7 @@ describe('useWritingStats', () => {
   });
 
   it('handles empty projectId', async () => {
-    const { result } = renderHook(() => useWritingStats(''));
+    const { result } = renderHook(() => useWritingStats(''), { wrapper: createWrapper() });
 
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeNull();
@@ -125,44 +135,40 @@ describe('useWritingStats', () => {
   });
 
   it('refetches stats', async () => {
-    vi.mocked(client.GET)
-      .mockResolvedValueOnce({ data: mockSummary, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockDaily, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockWeekly, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockHeatmap, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockChapters, error: undefined, response: new Response() });
+    vi.mocked(fetchApi)
+      .mockResolvedValueOnce(mockSummary)
+      .mockResolvedValueOnce(mockDaily)
+      .mockResolvedValueOnce(mockWeekly)
+      .mockResolvedValueOnce(mockHeatmap)
+      .mockResolvedValueOnce(mockChapters)
+      .mockResolvedValueOnce(mockSummary)
+      .mockResolvedValueOnce(mockDaily)
+      .mockResolvedValueOnce(mockWeekly)
+      .mockResolvedValueOnce(mockHeatmap)
+      .mockResolvedValueOnce(mockChapters);
 
-    const { result } = renderHook(() => useWritingStats('proj-1'));
+    const { result } = renderHook(() => useWritingStats('proj-1'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
-    vi.mocked(client.GET).mockClear();
-
-    vi.mocked(client.GET)
-      .mockResolvedValueOnce({ data: mockSummary, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockDaily, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockWeekly, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockHeatmap, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockChapters, error: undefined, response: new Response() });
-
     await act(async () => {
       await result.current.refetch();
     });
 
-    expect(client.GET).toHaveBeenCalledTimes(5);
+    expect(fetchApi).toHaveBeenCalledTimes(10);
   });
 
   it('handles chapters API error gracefully', async () => {
-    vi.mocked(client.GET)
-      .mockResolvedValueOnce({ data: mockSummary, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockDaily, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockWeekly, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: mockHeatmap, error: undefined, response: new Response() })
-      .mockResolvedValueOnce({ data: undefined, error: { detail: 'Error' }, response: new Response() });
+    vi.mocked(fetchApi)
+      .mockResolvedValueOnce(mockSummary)
+      .mockResolvedValueOnce(mockDaily)
+      .mockResolvedValueOnce(mockWeekly)
+      .mockResolvedValueOnce(mockHeatmap)
+      .mockRejectedValueOnce(new Error('Error'));
 
-    const { result } = renderHook(() => useWritingStats('proj-1'));
+    const { result } = renderHook(() => useWritingStats('proj-1'), { wrapper: createWrapper() });
 
     await waitFor(() => {
       expect(result.current.data).not.toBeNull();

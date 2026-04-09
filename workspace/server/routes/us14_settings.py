@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Header
 from typing import Optional
+
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/projects", tags=["us-1.4"])
@@ -10,7 +11,7 @@ def get_project_settings(
     project_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import app, _require_user_id
+    from server.main import _require_user_id, app
     from server.routes.projects import _project_response_item
 
     maybe_user_id = _require_user_id(authorization)

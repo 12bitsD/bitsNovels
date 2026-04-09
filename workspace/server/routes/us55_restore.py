@@ -6,17 +6,16 @@ GET  /api/projects/:projectId/backups/:backupId/preview    — 预览备份内�
 
 import base64
 import json
-from datetime import datetime, timezone
 from io import BytesIO
-from typing import Any, Literal, Optional, Union
+from typing import Optional
 from zipfile import ZipFile
 
-from fastapi import APIRouter, Body, Header
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from server.utils.time_utils import iso_z as _iso_z
 from server.routes._deps import require_project as _require_project
+from server.utils.time_utils import iso_z as _iso_z
 
 router = APIRouter(prefix="/api/projects", tags=["us-5.5"])
 
@@ -72,7 +71,7 @@ def preview_backup(
     backup_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _error
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -133,7 +132,7 @@ def restore_backup(
     payload: RestoreRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id, app, _error, _now, _next_id
+    from server.main import _error, _next_id, _now, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

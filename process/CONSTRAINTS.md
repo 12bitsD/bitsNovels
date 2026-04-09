@@ -48,7 +48,7 @@ bitsNovels V1 的硬性约束按**性能 / 可靠性 / 兼容性 / 存储 / AI**
 | 支持导入格式 | TXT、DOCX | US-1.9 AC#1 | - |
 | 单文件导入上限 | 20 MB | US-1.9 AC#1 | - |
 | 知识库 JSON 导入上限 | 20 MB | US-1.3 AC#1 | Step 3 知识库导入 |
-| 导出格式 | DOCX、TXT、PDF、EPUB | US-5.1 AC#1 | - |
+| 导出格式 | DOCX、TXT、PDF、Markdown | US-5.1 AC#1 | - |
 | 编码支持 | UTF-8、GBK、GB2312 | US-1.9 AC#1 | 自动检测，失败则让用户选择 |
 | 最低桌面分辨率 | 1280px | docs/decisions/tech-stack.md | V1 仅桌面端 |
 | 浏览器支持 | 现代浏览器（Chrome/Firefox/Safari/Edge 最新版） | - | 推测，V1 声明 |

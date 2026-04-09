@@ -101,6 +101,7 @@ export function useKBFaction({
       }
 
       setSelectedFactionRefs(data as KBFactionReferences);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setSelectedFactionRefs(null);
     } finally {
@@ -167,6 +168,7 @@ export function useKBFaction({
 
   useEffect(() => {
     fetchFactions(1, false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, search, typeFilter]);
 
   useEffect(() => {

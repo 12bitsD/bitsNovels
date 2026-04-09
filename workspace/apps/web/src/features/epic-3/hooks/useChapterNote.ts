@@ -1,16 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { client } from '../../../api/client';
 import type { SaveStatus } from './useAutoSave';
-
-export interface ChapterNote {
-  id: string;
-  chapterId: string;
-  content: string;
-  charCount: number;
-  autoSavedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { ChapterNote } from '@bitsnovels/api-types';
 
 interface UseChapterNoteOptions {
   debounceMs?: number;
