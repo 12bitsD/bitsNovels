@@ -236,40 +236,6 @@ bitsNovels 的视觉语言是**复古科学 × 数字羊皮纸**。
 
 ------
 
-## 9. 技术栈（已确认）
+## 9. 技术栈
 
-| 决策项 | 已确认方案 | 备注 |
-|--------|-----------|------|
-| 前端框架 | **React + TypeScript** | AI 生成质量最稳，npm 生态最大 |
-| 编辑器引擎 | **TipTap 核心**（免费开源） | Diff/批注自研（`diff-match-patch` + 自定义 Mark） |
-| CSS 方案 | **Tailwind CSS** | AI 写起来最快，与 React 集成最佳 |
-| 前后端类型同步 | **openapi-typescript** | FastAPI 自动生成 openapi.json，前端构建时生成 TS 类型 |
-
-### TipTap 选型依据
-
-详见 `docs/decisions/tech-stack.md`。
-
-**选 TipTap 不选 Slate 的理由**：
-- ProseMirror 底层更成熟，生产案例更多（Notion/Excalidraw 等）
-- `insertContentAt` 命令式 API 对 AI 流式插入更友好
-- `UndoRedo` 可配置 depth + newGroupDelay（500ms 合并），满足 US-3.1
-- `CharacterCount` 原生扩展免费
-- 官方仍标 beta，API 变化风险高于 TipTap
-
-**Markdown 实时渲染（类 Typora）**：
-- 集成 `@tiptap/extension-markdown`（免费开源）
-- 输入 Markdown 语法自动渲染为富文本：`**文字**` → 加粗，`## ` → H2，`---` → 分隔线
-- 编辑器内部存储富文本 JSON，Markdown 是输入快捷方式而非存储格式
-- 导出 Markdown 时将富文本 JSON 反向转换为 Markdown 字符串
-
-**付费扩展不采用的理由**：
-- Comments（批注）和 Snapshot Compare（Diff 对比）均为付费私有 Extensions
-- 两者均可通过开源方案替代：Diff → `diff-match-patch`；批注 → 自定义 Mark + React 侧边栏
-- 额外研发成本约 3-5 个工作日，属于可接受范围
-
-**AI 流式输出实现方案**（免费）：
-- `editor.commands.insertContentAt()` 按位置插入 token
-- 自定义 Mark 标记 AI 生成内容（浅灰底 + 虚线下划线）
-- "采纳"→ 移除 Mark 合并正文；"放弃"→ 删除该 Mark 范围内容
-
-视觉设计规范本身**不依赖具体框架**，上述颜色、字体、间距系统在任何框架中均可复现。
+技术选型详见 `docs/decisions/tech-stack.md`。本文件只定义视觉规范，不重复技术栈决策。

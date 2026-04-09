@@ -2,28 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import re
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from types import ModuleType
 from typing import Any, Optional, cast
 
-
-def _main_module() -> ModuleType:
-    from server import main as server_main
-
-    return server_main
-
-
-class _AppProxy:
-    @property
-    def state(self) -> Any:
-        return _main_module().app.state
-
-
-app = _AppProxy()
-
-
-def _iso_z(ts: datetime) -> str:
-    return cast(str, _main_module()._iso_z(ts))
+from server.services._base import app, _iso_z, _main_module
 
 
 def _next_id(counter_key: str, prefix: str) -> str:
@@ -49,6 +32,28 @@ FACTION_PATTERN = re.compile(r"([\u4e00-\u9fff]{2,12}(?:阁|门|宗|派|会|盟)
 CHARACTER_PATTERN = re.compile(
     r"([\u4e00-\u9fff]{2,3})(?:来到|走进|进入|遇见|加入|发现|得到)"
 )
+
+
+@dataclass
+class DetectionResult:
+    characters: list[str] = field(default_factory=list)
+    locations: list[str] = field(default_factory=list)
+    items: list[str] = field(default_factory=list)
+    item_owners: dict[str, str] = field(default_factory=dict)
+    factions: list[str] = field(default_factory=list)
+
+
+def detect_entities(content: str) -> DetectionResult:
+    return DetectionResult(
+        characters=_detect_characters(content),
+        locations=_detect_locations(content),
+        items=_detect_items(content),
+        item_owners={
+            item_name: owner_name
+            for owner_name, item_name in _detect_item_owners(content)
+        },
+        factions=_detect_factions(content),
+    )
 
 
 def ensure_parser_state() -> None:
@@ -264,6 +269,7 @@ def _materialize_kb_entities(
     project_id: str,
     chapter_id: str,
     content: str,
+    detection: DetectionResult,
 ) -> dict[str, int]:
     from importlib import import_module
 
@@ -285,7 +291,7 @@ def _materialize_kb_entities(
         "newRelations": 0,
         "consistencyIssues": 0,
     }
-    for name in _detect_characters(content):
+    for name in detection.characters:
         _, is_new = upsert_parser_entity(
             project_id,
             "character",
@@ -293,7 +299,7 @@ def _materialize_kb_entities(
         )
         if is_new:
             created["newCharacters"] += 1
-    for name in _detect_locations(content):
+    for name in detection.locations:
         _, is_new = kb_location_service.upsert_location_from_parser(
             project_id,
             {
@@ -305,23 +311,20 @@ def _materialize_kb_entities(
         )
         if is_new:
             created["newLocations"] += 1
-    detected_item_owners = {
-        item_name: owner_name for owner_name, item_name in _detect_item_owners(content)
-    }
-    for name in _detect_items(content):
+    for name in detection.items:
         _, is_new = kb_item_service.upsert_item_from_parser(
             project_id,
             {
                 "name": name,
                 "chapterIds": [chapter_id],
                 "itemType": "other",
-                "ownerCharacterId": detected_item_owners.get(name),
+                "ownerCharacterId": detection.item_owners.get(name),
             },
             return_is_new=True,
         )
         if is_new:
             created["newItems"] += 1
-    for name in _detect_factions(content):
+    for name in detection.factions:
         _, is_new = upsert_parser_entity(
             project_id,
             "faction",
@@ -670,8 +673,12 @@ def process_running_parser_tasks() -> None:
                 task, f"Parser timed out after {PARSER_TIMEOUT_SECONDS} seconds"
             )
             continue
+        detection = detect_entities(task["contentSnapshot"])
         result_summary = _materialize_kb_entities(
-            task["projectId"], task["chapterId"], task["contentSnapshot"]
+            task["projectId"],
+            task["chapterId"],
+            task["contentSnapshot"],
+            detection,
         )
         _handle_task_success(task, result_summary)
 

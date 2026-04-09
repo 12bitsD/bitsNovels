@@ -4,6 +4,30 @@
 
 ------
 
+## v0.3.19（2026-04-09）
+
+**变更类型：** Backend 可维护性重构 - 去重 / 解耦 / 模块化
+
+### 后端重构
+
+- `workspace/server/main.py` 从 838 行收敛到 327 行，认证端点拆分到 `workspace/server/routes/auth.py`，项目 CRUD 拆分到 `workspace/server/routes/projects.py`
+- 请求模型统一迁移到 `workspace/server/models/request_models.py`，入口文件不再混合 schema 定义与路由处理
+- 新增 `workspace/server/routes/_deps.py`，将 `_require_project` 的 11 份重复实现统一收敛为共享依赖
+- 新增 `workspace/server/services/_base.py`，将 11 个 service 中重复的 `_AppProxy` / `_main_module` 样板统一抽取
+- 新增 `workspace/server/utils/time_utils.py` 与 `workspace/server/utils/text_utils.py`，统一收敛 `_iso_z` 与字符统计逻辑
+- 修复认证流中固定 token 硬编码问题，改为随机 token 生成
+- 修复 `app.state.volumes` / `app.state.fake_db.volumes` 双存储分裂问题，统一大纲/备份/恢复/导出路径
+- `parser_service.py` 新增 `DetectionResult` 与 `detect_entities()`，将实体识别与 KB 写入职责解耦
+- `_reset_app_state()` 按 core/auth/export/kb/parser/editor-aux 五个领域拆分为子重置函数
+
+### 测试
+
+- Backend：新增 parser 解耦测试 1 个
+- 全量回归：`403 passed`
+- 总覆盖率：`89.46%`
+
+------
+
 ## v0.3.18（2026-04-07）
 
 **变更类型：** Sprint 5 完成 - Epic 2 知识库实体全系 + US-1.7 回收站 + US-3.7~3.10 编辑器辅助功能

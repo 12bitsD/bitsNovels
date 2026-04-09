@@ -10,7 +10,8 @@ def get_project_settings(
     project_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import app, _require_user_id, _project_response_item
+    from server.main import app, _require_user_id
+    from server.routes.projects import _project_response_item
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):

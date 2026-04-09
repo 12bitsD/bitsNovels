@@ -13,6 +13,9 @@ from fastapi import APIRouter, BackgroundTasks, Header
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
+from server.utils.time_utils import iso_z as _iso_z
+from server.routes._deps import require_project as _require_project
+
 router = APIRouter(prefix="/api/projects", tags=["us-5.1"])
 
 
@@ -21,30 +24,6 @@ class CreateExportRequest(BaseModel):
     scope: str
     scopeIds: Optional[list[str]] = None
 
-
-def _require_project(
-    project_id: str,
-    user_id: str,
-) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
-
-    project = next(
-        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
-    )
-    if project is None:
-        return None, _error(404, "PROJECT_NOT_FOUND", "Project not found")
-    if project["ownerId"] != user_id:
-        return None, _error(403, "FORBIDDEN", "No permission for this project")
-    return project, None
-
-
-def _iso_z(ts: datetime) -> str:
-    return (
-        ts.astimezone(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
 
 
 @router.post("/{project_id}/exports")

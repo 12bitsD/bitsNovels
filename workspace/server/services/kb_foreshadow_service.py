@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import importlib
 from datetime import datetime
-from types import ModuleType
 from typing import Any, Optional, cast
+
+from server.services._base import app, _iso_z, _main_module
 
 
 def _kb_core_service() -> Any:
@@ -19,27 +20,8 @@ FORESHADOW_STATUSES = {
 RESOLUTION_MARKERS = ("原来", "真相", "揭晓", "竟是", "才知")
 
 
-def _main_module() -> ModuleType:
-    from server import main as server_main
-
-    return server_main
-
-
-class _AppProxy:
-    @property
-    def state(self) -> Any:
-        return _main_module().app.state
-
-
-app = _AppProxy()
-
-
 def _now() -> datetime:
     return cast(datetime, _main_module()._now())
-
-
-def _iso_z(ts: datetime) -> str:
-    return cast(str, _main_module()._iso_z(ts))
 
 
 def _next_id(counter_key: str, prefix: str) -> str:

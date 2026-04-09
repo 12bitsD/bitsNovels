@@ -4,32 +4,14 @@ from fastapi import APIRouter, Header, Query
 from fastapi.responses import JSONResponse
 from typing import Any, Optional
 
+from server.routes._deps import require_project as _require_project
+
 router = APIRouter(prefix="/api/projects", tags=["us-1.7"])
 
 
 def _trash_service() -> Any:
     return importlib.import_module("server.services.trash_service")
 
-
-def _require_project(
-    project_id: str,
-    user_id: str,
-) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
-
-    project = next(
-        (
-            project
-            for project in app.state.fake_db.projects
-            if project["id"] == project_id
-        ),
-        None,
-    )
-    if project is None:
-        return None, _error(404, "PROJECT_NOT_FOUND", "Project not found")
-    if project["ownerId"] != user_id:
-        return None, _error(403, "FORBIDDEN", "No permission for this project")
-    return project, None
 
 
 @router.get("/{project_id}/trash")

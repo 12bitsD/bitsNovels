@@ -19,8 +19,8 @@ def _resolve_scope(
     scope: 'all' | 'volume' | 'chapter'
     """
     if scope == "all":
-        volumes = [v for v in app.state.volumes if v["projectId"] == project_id]
-        chapters = [c for c in app.state.chapters if c["projectId"] == project_id]
+        volumes = [v for v in app.state.fake_db.volumes if v["projectId"] == project_id]
+        chapters = [c for c in app.state.fake_db.chapters if c["projectId"] == project_id]
         return sorted(volumes, key=lambda x: x.get("order", 0)) + sorted(
             chapters, key=lambda x: x.get("order", 0)
         )
@@ -29,7 +29,7 @@ def _resolve_scope(
             return []
         return [
             v
-            for v in app.state.volumes
+            for v in app.state.fake_db.volumes
             if v["projectId"] == project_id and v["id"] in scope_ids
         ]
     elif scope == "chapter":
@@ -37,7 +37,7 @@ def _resolve_scope(
             return []
         return [
             c
-            for c in app.state.chapters
+            for c in app.state.fake_db.chapters
             if c["projectId"] == project_id and c["id"] in scope_ids
         ]
     return []

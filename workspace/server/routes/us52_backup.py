@@ -16,6 +16,9 @@ from fastapi import APIRouter, BackgroundTasks, Header
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
+from server.utils.time_utils import iso_z as _iso_z
+from server.routes._deps import require_project as _require_project
+
 router = APIRouter(prefix="/api/projects", tags=["us-5.2"])
 
 MAX_AUTO_BACKUPS = 7
@@ -23,31 +26,6 @@ MAX_AUTO_BACKUPS = 7
 
 class TriggerBackupRequest(BaseModel):
     backup_type: str  # 'auto' or 'manual'
-
-
-def _require_project(
-    project_id: str,
-    user_id: str,
-) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
-
-    project = next(
-        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
-    )
-    if project is None:
-        return None, _error(404, "PROJECT_NOT_FOUND", "Project not found")
-    if project["ownerId"] != user_id:
-        return None, _error(403, "FORBIDDEN", "No permission for this project")
-    return project, None
-
-
-def _iso_z(ts: datetime) -> str:
-    return (
-        ts.astimezone(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
 
 
 def _create_backup_zip(project_id: str, backup_type: str) -> Optional[Tuple[dict, str]]:
@@ -60,8 +38,8 @@ def _create_backup_zip(project_id: str, backup_type: str) -> Optional[Tuple[dict
     if project is None:
         return None
 
-    volumes = [v for v in app.state.volumes if v.get("projectId") == project_id]
-    chapters = [c for c in app.state.chapters if c.get("projectId") == project_id]
+    volumes = [v for v in app.state.fake_db.volumes if v.get("projectId") == project_id]
+    chapters = [c for c in app.state.fake_db.chapters if c.get("projectId") == project_id]
     kb_items = [
         v for v in app.state.kb_items.values() if v.get("projectId") == project_id
     ]

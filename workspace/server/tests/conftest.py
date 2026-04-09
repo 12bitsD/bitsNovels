@@ -180,8 +180,8 @@ def app_state(
     app.state.project_counter = 100
     app.state.user_counter = 100
     # Sprint 2 fixtures: volumes, chapters, goals, writing_stats, trash_items
-    app.state.volumes = []
-    app.state.chapters = []
+    app.state.fake_db.volumes = []
+    app.state.fake_db.chapters = []
     app.state.goals = {}
     app.state.writing_stats = {}
     app.state.trash_items = []

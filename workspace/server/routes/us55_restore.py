@@ -15,6 +15,9 @@ from fastapi import APIRouter, Body, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from server.utils.time_utils import iso_z as _iso_z
+from server.routes._deps import require_project as _require_project
+
 router = APIRouter(prefix="/api/projects", tags=["us-5.5"])
 
 
@@ -23,31 +26,6 @@ class RestoreRequest(BaseModel):
     project_name: Optional[str] = None
 
     model_config = {"extra": "forbid"}
-
-
-def _require_project(
-    project_id: str,
-    user_id: str,
-) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
-
-    project = next(
-        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
-    )
-    if project is None:
-        return None, _error(404, "PROJECT_NOT_FOUND", "Project not found")
-    if project["ownerId"] != user_id:
-        return None, _error(403, "FORBIDDEN", "No permission for this project")
-    return project, None
-
-
-def _iso_z(ts: datetime) -> str:
-    return (
-        ts.astimezone(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
 
 
 def _validate_backup_zip(zip_data: bytes) -> tuple[Optional[dict], Optional[dict]]:
@@ -256,7 +234,7 @@ def restore_backup(
                     new_vol = dict(vol)
                     new_vol["id"] = vol_id
                     new_vol["projectId"] = new_project_id
-                    app.state.volumes.append(new_vol)
+                    app.state.fake_db.volumes.append(new_vol)
 
                 for ch in chapters_data:
                     ch_id = _next_id("chapter_counter", "chapter")
@@ -266,7 +244,7 @@ def restore_backup(
                     new_ch["id"] = ch_id
                     new_ch["projectId"] = new_project_id
                     new_ch["volumeId"] = new_vol_id
-                    app.state.chapters.append(new_ch)
+                    app.state.fake_db.chapters.append(new_ch)
 
                 kb_types = [
                     "characters",
@@ -317,11 +295,11 @@ def restore_backup(
                         }
                         break
 
-                app.state.volumes = [
-                    v for v in app.state.volumes if v.get("projectId") != project_id
+                app.state.fake_db.volumes = [
+                    v for v in app.state.fake_db.volumes if v.get("projectId") != project_id
                 ]
-                app.state.chapters = [
-                    c for c in app.state.chapters if c.get("projectId") != project_id
+                app.state.fake_db.chapters = [
+                    c for c in app.state.fake_db.chapters if c.get("projectId") != project_id
                 ]
                 old_kb_items = {
                     k: v
@@ -338,7 +316,7 @@ def restore_backup(
                     new_vol = dict(vol)
                     new_vol["id"] = vol_id
                     new_vol["projectId"] = project_id
-                    app.state.volumes.append(new_vol)
+                    app.state.fake_db.volumes.append(new_vol)
 
                 for ch in chapters_data:
                     ch_id = _next_id("chapter_counter", "chapter")
@@ -348,7 +326,7 @@ def restore_backup(
                     new_ch["id"] = ch_id
                     new_ch["projectId"] = project_id
                     new_ch["volumeId"] = new_vol_id
-                    app.state.chapters.append(new_ch)
+                    app.state.fake_db.chapters.append(new_ch)
 
                 kb_types = [
                     "characters",

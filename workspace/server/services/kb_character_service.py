@@ -1,28 +1,13 @@
 from __future__ import annotations
 
-from types import ModuleType
 from typing import Any, Optional, cast
 
 import server.services.kb_core_service as kb_core_service
 
 from ..utils.kb_helpers import ensure_kb_state, merge_aliases, sync_entity_store
+from server.services._base import app
 
 VALID_CHARACTER_SORTS = {"firstAppearance", "appearanceCount"}
-
-
-def _main_module() -> ModuleType:
-    from server import main as server_main
-
-    return server_main
-
-
-class _AppProxy:
-    @property
-    def state(self) -> Any:
-        return _main_module().app.state
-
-
-app = _AppProxy()
 
 
 def _project_settings(project_id: str) -> dict[str, Any]:

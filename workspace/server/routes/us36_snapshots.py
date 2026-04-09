@@ -1,9 +1,12 @@
-import re
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Any, Optional
+
+from server.utils.text_utils import calculate_char_count as _calculate_char_count
+from server.utils.time_utils import iso_z as _iso_z
+from server.routes._deps import require_writable_project as _require_project
 
 router = APIRouter(prefix="/api/projects", tags=["us-3.6"])
 
@@ -25,32 +28,6 @@ class CleanupRequest(BaseModel):
     model_config = {"extra": "forbid"}
 
 
-def _calculate_char_count(html_content: str) -> int:
-    text_only = re.sub(r"<[^>]+>", "", html_content)
-    text_only = " ".join(text_only.split())
-    count = 0
-    for char in text_only:
-        if "\u4e00" <= char <= "\u9fff":
-            count += 1
-        elif char.isalnum():
-            count += 1
-    return count
-
-
-def _require_project(
-    project_id: str,
-    user_id: str,
-) -> tuple[Optional[dict[str, Any]], Optional[JSONResponse]]:
-    from server.main import app, _error
-
-    project = next(
-        (p for p in app.state.fake_db.projects if p["id"] == project_id), None
-    )
-    if project is None:
-        return None, _error(404, "PROJECT_NOT_FOUND", "Project not found")
-    if project["ownerId"] != user_id:
-        return None, _error(403, "FORBIDDEN", "No permission for this project")
-    return project, None
 
 
 def _require_chapter(

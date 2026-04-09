@@ -55,18 +55,9 @@
 | 时间格式 | ISO 8601 UTC（`2026-03-20T08:00:00Z`） |
 | 路径前缀 | 所有接口以 `/api/` 开头 |
 
-### 核心端点索引
+### 端点索引
 
-完整端点定义在各 Epic 的 `contract.md` 里。以下为跨 Epic 全局索引：
-
-| Epic | 路径前缀 | 说明 | 状态 |
-|------|---------|------|------|
-| Epic 1 | `/api/auth/`，`/api/projects/` | 认证 + 项目管理 | ✅ 已实现 |
-| Epic 3 | `/api/projects/:id/volumes/`，`/api/projects/:id/chapters/` | 卷章编辑器 | ✅ 已实现 |
-| Epic 2 | `/api/projects/:id/kb/` | 知识库 | ✅ Sprint 5 已完成（Parser + Character/Location/Item/Faction/Foreshadow） |
-| Epic 4 | `/api/ai/tasks/` | AI 任务 | 🔲 Sprint 4+（ARQ队列） |
-| Epic 5 | `/api/projects/:id/exports/`，`/api/projects/:id/backups/` | 导出备份 | 🔲 Sprint 8 |
-| Epic 6 | `/api/users/me/` | 用户设置 | ✅ US-6.6已实现 |
+完整端点定义在各 Epic 的 `specs/epic-N/contract.md` 里，此处不重复。
 
 ### SSE 流式输出规范
 
@@ -161,60 +152,4 @@ SSE 逐字推送 → 前端展示 AI 生成内容（带标记）
 
 ## 6. 项目目录结构
 
-### 当前已落地（脚手架 + Sprint 1 + Sprint 2）
-
-```
-server/
-├── main.py                 ← FastAPI app 入口（含路由定义）
-├── config.py               ← 环境变量 + 配置（Pydantic Settings）
-├── openapi.json            ← 自动生成 OpenAPI 文档
-├── __init__.py
-├── routes/                 ← 路由模块（Sprint 2 拆分）
-│   ├── us14_settings.py   ← 项目设置
-│   ├── us15_outline.py    ← 卷章目录
-│   ├── us16_goals.py      ← 写作目标
-│   └── us18_archive.py    ← 项目归档
-└── tests/                  ← 测试（FakeDb + TestClient）
-    ├── conftest.py          ← Pytest fixtures（已扩展 volumes/chapters/goals/writing_stats/trash）
-    ├── test_app.py          ← 健康检查
-    ├── epic_1/              ← US-1.1~1.8 红灯测试
-    │   ├── test_us11_auth_red.py
-    │   ├── test_us12_projects_list_red.py
-    │   ├── test_us13_create_project_red.py
-    │   ├── test_us14_settings_red.py
-    │   ├── test_us15_outline_red.py
-    │   ├── test_us16_goals_red.py
-    │   └── test_us18_archive_red.py
-    └── engineering/
-        └── test_platform_contract_red.py
-```
-
-> **说明**：当前使用内存 FakeDb 模拟数据库，待 V2 接入真实 PostgreSQL 后补充 `database.py`。
-
-### 目标结构（后续 Sprint 逐步实现）
-
-```
-server/
-├── main.py                 ← FastAPI app 入口
-├── config.py               ← 环境变量 + 配置
-├── database.py             ← SQLAlchemy 连接（V2 接入 PostgreSQL）
-├── auth/                   ← JWT / OAuth 逻辑
-├── epic_1/                 ← 项目管理模块
-│   ├── router.py
-│   ├── service.py
-│   ├── models.py
-│   └── tests/
-├── epic_2/                 ← 知识库模块
-├── epic_3/                 ← 编辑器模块
-├── epic_4/                 ← AI 写作模块
-├── epic_5/                 ← 导出备份模块
-├── epic_6/                 ← 系统设置模块
-├── workers/                ← ARQ Worker 定义
-│   ├── parser_worker.py
-│   ├── ai_worker.py
-│   └── export_worker.py
-└── shared/                 ← 跨模块共享工具
-    ├── pagination.py
-    ├── exceptions.py
-    └── storage.py
-```
+实际目录结构见 `docs/ENGINEERING_WORKSPACE.md`，此处不重复。

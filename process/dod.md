@@ -36,7 +36,7 @@
 | 检查项 | 标准 |
 |--------|------|
 | contract.md | 如有数据结构或接口变更，必须先更新 `specs/epic-N/contract.md` |
-| AGENTS.md 看板 | 将完成的 US 状态更新为 ✅ |
+| AGENTS.md 进度 | 如有 Sprint 级别变更，更新 `AGENTS.md` 当前进度表 |
 | CHANGELOG.md | 新功能或 breaking change 必须记录 |
 
 ---

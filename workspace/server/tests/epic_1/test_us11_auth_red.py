@@ -83,14 +83,18 @@ def test_oauth_callback_create_or_bind_user_red(client: TestClient) -> None:
     assert response.status_code == 302
 
 
-def test_register_success_and_verify_email_red(client: TestClient) -> None:
+def test_register_success_and_verify_email_red(
+    client: TestClient, mail_outbox: Any
+) -> None:
     register = client.post(
         "/api/auth/register",
         json={"email": "verifyme@example.com", "password": "StrongPass1"},
     )
-    verify = client.post("/api/auth/verify-email", json={"token": "verify-token-valid"})
-
     assert register.status_code in {200, 201}
+
+    sent_token = mail_outbox.messages[-1]["token"]
+    verify = client.post("/api/auth/verify-email", json={"token": sent_token})
+
     assert verify.status_code == 200
     assert verify.json()["user"]["emailVerified"] is True
 

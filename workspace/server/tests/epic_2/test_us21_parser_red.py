@@ -312,3 +312,19 @@ def test_dispatch_limits_active_parser_concurrency_to_five(client: TestClient) -
     ]
     assert chapter_statuses.count("parsing") == 5
     assert "queued" in chapter_statuses
+
+
+def test_detect_entities_returns_pure_detection_result() -> None:
+    from server.services import parser_service
+
+    content = "张三在长安城加入天机阁，并得到玄铁剑。"
+    result = parser_service.detect_entities(content)
+
+    assert result.characters == parser_service._detect_characters(content)
+    assert result.locations == parser_service._detect_locations(content)
+    assert result.items == parser_service._detect_items(content)
+    assert result.item_owners == {
+        item_name: owner_name
+        for owner_name, item_name in parser_service._detect_item_owners(content)
+    }
+    assert result.factions == parser_service._detect_factions(content)

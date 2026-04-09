@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from types import ModuleType
 from typing import Any, Optional, cast
 
 from server.services.kb_core_service import (
@@ -12,23 +11,13 @@ from server.services.kb_core_service import (
     update_kb_entity,
 )
 from server.utils.kb_helpers import dedupe_entity, ensure_kb_state, merge_aliases
+from server.services._base import app, _iso_z, _main_module
 
 VALID_LOCATION_TYPES = {"city", "village", "building", "nature", "virtual", "other"}
 
 
-def _main_module() -> ModuleType:
-    from server import main as server_main
-
-    return cast(ModuleType, server_main)
-
-
-class _AppProxy:
-    @property
-    def state(self) -> Any:
-        return _main_module().app.state
-
-
-app = _AppProxy()
+def _now() -> Any:
+    return _main_module()._now()
 
 
 def _ensure_exclusions() -> None:
