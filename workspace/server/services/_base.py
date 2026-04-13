@@ -15,3 +15,7 @@ class _AppProxy:
 
 
 app = _AppProxy()
+
+
+def _iso_z(ts: Any) -> str:
+    return str(_main_module()._iso_z(ts))

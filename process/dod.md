@@ -13,6 +13,39 @@
 
 ---
 
+## 阶段 0：AC → 测试用例映射（立项即完成）
+
+> 进入“红（写失败测试）”前，必须先完成本映射。未完成映射，不得开始实现。
+
+### 映射模板（可复用）
+
+> 每个 US 建立 1 份映射表，可直接复制以下模板使用。
+
+| US | AC-ID | AC 描述 | 测试层级（Unit/Integration/E2E） | 用例ID | Given-When-Then（摘要） | 类型（正向/反向/边界） | 数据集/Mock 依赖 | 预期结果（可量化） | 状态（Planned/Red/Green/Refactor） | 证据（测试文件/报告） |
+|----|------|---------|----------------------------------|--------|-------------------------|-----------------------|------------------|-------------------|-------------------------------------|----------------------|
+| US-x.y | AC-1 | ... | Unit | TC-USx.y-001 | Given... When... Then... | 正向 | fixture_a / mock_api_v1 | 返回 200 且字段完整 | Planned | path/to/test + CI 链接 |
+
+### 最小要求（可审计）
+
+| 检查项 | 最低标准 |
+|--------|----------|
+| AC 可追溯 | 每条 AC 至少关联 1 条测试用例（`AC-ID -> 用例ID` 一对多允许，零映射不允许） |
+| 正反覆盖 | 每条 AC 至少包含 1 条正向用例；涉及异常/空态/超限的 AC 必须包含反向用例 |
+| 边界覆盖 | 存在数值、长度、枚举、时间范围时，必须有边界值用例 |
+| 层级声明 | 每条用例必须声明测试层级（Unit/Integration/E2E），避免全部堆到 E2E |
+| 可执行性 | 用例必须使用 Given-When-Then，且前置数据、Mock 依赖可复现 |
+| 可验证性 | 预期结果必须可量化（状态码、字段、文案、计数、耗时阈值等） |
+| TDD 状态流转 | 用例状态必须可体现 Planned → Red → Green → Refactor，禁止跳步 |
+| 证据留存 | 每条 AC 至少有 1 条“测试文件路径 + 测试结果”证据，支持审计追踪 |
+
+### 审计规则
+
+- PR 描述必须附上映射表（或链接）并标注 AC 覆盖结论。
+- Code Review 必查“AC 是否全部映射 + Red/Green 记录是否存在”。
+- 任一 AC 缺失映射或缺失证据，US 不得标记 Done。
+
+---
+
 ## 代码质量
 
 | 检查项 | 标准 |
@@ -79,6 +112,6 @@ src/features/epic-N/__tests__/useHookName.test.ts
 
 ### BE 测试位置
 ```
-server/epic_N/tests/test_router.py
-server/epic_N/tests/test_service.py
+workspace/server/tests/epic_N/test_usNN_feature_red.py
+workspace/server/tests/epic_N/test_<domain>_service.py
 ```

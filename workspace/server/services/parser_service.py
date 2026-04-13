@@ -158,6 +158,9 @@ def _ensure_state_record(project_id: str, chapter_id: str) -> dict[str, Any]:
         "trigger": "manual",
         "batchJobId": None,
         "resultSummary": None,
+        "fallback": {"used": False},
+        "updatedAt": _current_time_iso(),
+        "lastTaskId": None,
     }
     app.state.parser_states[chapter_id] = state
     return state
@@ -367,19 +370,22 @@ def enqueue_parse_task(
     chapter_id: str,
     trigger: str,
     content: str,
+    content_hash: Optional[str] = None,
     batch_job_id: Optional[str] = None,
+    source_event: Optional[str] = None,
 ) -> dict[str, Any]:
     ensure_parser_state()
     state = _ensure_state_record(project_id, chapter_id)
     now = _now()
-    content_hash = _content_hash(content)
-    if not content.strip():
+    effective_content_hash = content_hash or _content_hash(content)
+    if not content.strip() and content_hash is None:
         state.update(
             {
                 "status": "no_content",
                 "trigger": trigger,
                 "failureReason": None,
                 "resultSummary": None,
+                "updatedAt": _current_time_iso(),
             }
         )
         return {
@@ -389,13 +395,29 @@ def enqueue_parse_task(
             "trigger": trigger,
             "priority": _priority_for_trigger(trigger),
             "batchJobId": batch_job_id,
-            "contentHash": content_hash,
+            "contentHash": effective_content_hash,
             "contentSnapshot": content,
             "status": "no_content",
             "retryCount": 0,
             "failureReason": None,
             "resultSummary": None,
+            "sourceEvent": source_event,
             "createdAt": _current_time_iso(),
+        }
+
+    if (
+        trigger == "auto"
+        and state.get("lastParsedAt") is not None
+        and state.get("lastContentHash") == effective_content_hash
+    ):
+        return {
+            "id": None,
+            "projectId": project_id,
+            "chapterId": chapter_id,
+            "trigger": trigger,
+            "status": "debounced",
+            "errorCode": "PARSER_DEBOUNCED",
+            "reason": "content_hash_unchanged_since_last_parse",
         }
 
     queued_task = _existing_queued_task_for_chapter(chapter_id)
@@ -408,10 +430,12 @@ def enqueue_parse_task(
         if queued_at is not None:
             queued_time = datetime.fromisoformat(queued_at.replace("Z", "+00:00"))
             if now - queued_time <= timedelta(seconds=AUTO_DEBOUNCE_SECONDS):
-                queued_task["contentHash"] = content_hash
+                queued_task["contentHash"] = effective_content_hash
+                queued_task["sourceEvent"] = source_event
                 queued_task["contentSnapshot"] = content
                 queued_task["createdAt"] = _current_time_iso()
-                state["lastContentHash"] = content_hash
+                state["lastContentHash"] = effective_content_hash
+                state["updatedAt"] = _current_time_iso()
                 return queued_task
 
     if queued_task is not None and _priority_for_trigger(trigger) > int(
@@ -428,8 +452,9 @@ def enqueue_parse_task(
         "trigger": trigger,
         "priority": _priority_for_trigger(trigger),
         "batchJobId": batch_job_id,
-        "contentHash": content_hash,
+        "contentHash": effective_content_hash,
         "contentSnapshot": content,
+        "sourceEvent": source_event,
         "status": "queued",
         "retryCount": int(state.get("retryCount") or 0),
         "failureReason": None,
@@ -444,12 +469,15 @@ def enqueue_parse_task(
         {
             "status": "queued",
             "lastQueuedAt": _current_time_iso(),
-            "lastContentHash": content_hash,
+            "lastContentHash": effective_content_hash,
             "retryCount": task["retryCount"],
             "failureReason": None,
             "trigger": trigger,
             "batchJobId": batch_job_id,
             "resultSummary": None,
+            "fallback": {"used": False},
+            "updatedAt": _current_time_iso(),
+            "lastTaskId": task["id"],
         }
     )
     chapter = _get_chapter(project_id, chapter_id)
@@ -581,6 +609,9 @@ def _handle_task_success(task: dict[str, Any], result_summary: dict[str, int]) -
             "resultSummary": result_summary,
             "trigger": task["trigger"],
             "batchJobId": task.get("batchJobId"),
+            "fallback": {"used": False},
+            "updatedAt": _current_time_iso(),
+            "lastTaskId": task["id"],
         }
     )
     chapter = _get_chapter(task["projectId"], task["chapterId"])
@@ -620,11 +651,16 @@ def _handle_task_failure(task: dict[str, Any], failure_reason: str) -> None:
                 "status": "queued",
                 "retryCount": task["retryCount"],
                 "failureReason": failure_reason,
+                "updatedAt": _current_time_iso(),
+                "lastTaskId": task["id"],
             }
         )
         _queue_task_id(str(task["id"]))
         return
 
+    fallback_reason = "degraded_mode"
+    if "timed out" in failure_reason.lower():
+        fallback_reason = "upstream_timeout"
     task["status"] = "failed"
     task["failureReason"] = failure_reason
     task["completedAt"] = _current_time_iso()
@@ -634,6 +670,13 @@ def _handle_task_failure(task: dict[str, Any], failure_reason: str) -> None:
             "retryCount": task["retryCount"],
             "failureReason": failure_reason,
             "resultSummary": None,
+            "fallback": {
+                "used": True,
+                "strategy": "rule_based",
+                "reason": fallback_reason,
+            },
+            "updatedAt": _current_time_iso(),
+            "lastTaskId": task["id"],
         }
     )
     chapter = _get_chapter(task["projectId"], task["chapterId"])
@@ -690,7 +733,52 @@ def process_parser_queue() -> None:
         process_running_parser_tasks()
 
 
-def get_project_status(project_id: str) -> dict[str, Any]:
+def _normalize_status_filter(status: Optional[str]) -> set[str]:
+    if status is None:
+        return set()
+    return {
+        token.strip()
+        for token in status.split(",")
+        if token.strip()
+        in {"no_content", "pending", "queued", "parsing", "parsed", "failed", "cancelled"}
+    }
+
+
+def _observable_state_for_chapter(project_id: str, chapter_id: str) -> dict[str, Any]:
+    state = dict(_ensure_state_record(project_id, chapter_id))
+    queue_position = None
+    if chapter_id in {
+        app.state.parser_tasks[task_id]["chapterId"]
+        for task_id in app.state.parser_queue
+        if task_id in app.state.parser_tasks
+    }:
+        for index, task_id in enumerate(app.state.parser_queue, start=1):
+            task = app.state.parser_tasks.get(task_id)
+            if task is not None and task["chapterId"] == chapter_id:
+                queue_position = index
+                break
+    active_task = next(
+        (
+            app.state.parser_tasks[task_id]
+            for task_id in app.state.parser_active_task_ids
+            if app.state.parser_tasks.get(task_id, {}).get("chapterId") == chapter_id
+        ),
+        None,
+    )
+    state["queuePosition"] = queue_position
+    state["isActive"] = active_task is not None
+    state["activeTaskId"] = active_task["id"] if active_task is not None else None
+    state["updatedAt"] = state.get("updatedAt") or _current_time_iso()
+    return state
+
+
+def get_project_status(
+    project_id: str,
+    page: int = 1,
+    page_size: int = 20,
+    chapter_id: Optional[str] = None,
+    status: Optional[str] = None,
+) -> dict[str, Any]:
     ensure_parser_state()
     summary = {
         "noContentCount": 0,
@@ -703,7 +791,7 @@ def get_project_status(project_id: str) -> dict[str, Any]:
     }
     states: list[dict[str, Any]] = []
     for chapter in _project_chapters(project_id):
-        state = _ensure_state_record(project_id, chapter["id"])
+        state = _observable_state_for_chapter(project_id, chapter["id"])
         states.append(state)
         if state["status"] == "no_content":
             summary["noContentCount"] += 1
@@ -725,6 +813,27 @@ def get_project_status(project_id: str) -> dict[str, Any]:
         if job["projectId"] == project_id
         and job["status"] in {"pending", "running", "cancelled", "completed", "failed"}
     ]
+    filtered_states = states
+    if chapter_id is not None:
+        filtered_states = [
+            chapter_state
+            for chapter_state in filtered_states
+            if chapter_state["chapterId"] == chapter_id
+        ]
+    status_filters = _normalize_status_filter(status)
+    if status_filters:
+        filtered_states = [
+            chapter_state
+            for chapter_state in filtered_states
+            if chapter_state["status"] in status_filters
+        ]
+    safe_page = max(1, int(page))
+    safe_page_size = max(1, min(int(page_size), 100))
+    start = (safe_page - 1) * safe_page_size
+    end = start + safe_page_size
+    paginated_items = filtered_states[start:end]
+    total = len(filtered_states)
+    total_pages = (total + safe_page_size - 1) // safe_page_size if total > 0 else 0
     return {
         "projectId": project_id,
         "summary": summary,
@@ -732,9 +841,20 @@ def get_project_status(project_id: str) -> dict[str, Any]:
         + summary["queuedCount"]
         + summary["failedCount"],
         "activeBatchJobs": active_jobs,
-        "chapters": states,
+        "chapters": filtered_states,
+        "items": paginated_items,
+        "pagination": {
+            "page": safe_page,
+            "pageSize": safe_page_size,
+            "total": total,
+            "totalPages": total_pages,
+        },
+        "appliedFilters": {
+            "chapterId": chapter_id,
+            "status": sorted(status_filters),
+        },
     }
 
 
 def get_chapter_status(project_id: str, chapter_id: str) -> dict[str, Any]:
-    return _ensure_state_record(project_id, chapter_id)
+    return _observable_state_for_chapter(project_id, chapter_id)

@@ -328,3 +328,153 @@ def test_detect_entities_returns_pure_detection_result() -> None:
         for owner_name, item_name in parser_service._detect_item_owners(content)
     }
     assert result.factions == parser_service._detect_factions(content)
+
+
+def test_trigger_endpoint_follows_frozen_contract_request_response_shape(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/projects/project-a-1/parser/chapters/chapter-a-1/trigger",
+        json={
+            "trigger": "manual",
+            "contentHash": "a" * 64,
+            "sourceEvent": "manual_retry",
+        },
+        headers=_auth_headers(),
+    )
+
+    assert response.status_code == 202
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["chapterId"] == "chapter-a-1"
+    assert body["data"]["status"] == "queued"
+
+
+def test_auto_trigger_skips_enqueue_when_content_hash_matches_last_parsed(
+    client: TestClient,
+) -> None:
+    from server.services import parser_service
+
+    content = "张三来到长安城，发现玄铁剑。"
+    trigger_response = client.post(
+        "/api/projects/project-a-1/parser/chapters/chapter-a-1/trigger",
+        json={"content": content},
+        headers=_auth_headers(),
+    )
+    assert trigger_response.status_code == 202
+    parser_service.process_parser_queue()
+    assert len(app.state.parser_queue) == 0
+
+    auto_response = client.post(
+        "/api/projects/project-a-1/parser/chapters/chapter-a-1/auto-trigger",
+        json={"content": content},
+        headers=_auth_headers(),
+    )
+    assert auto_response.status_code == 200
+    assert auto_response.json()["error"]["code"] == "PARSER_DEBOUNCED"
+    assert len(app.state.parser_queue) == 0
+
+
+def test_failed_parse_status_exposes_fallback_meta_for_degraded_path(
+    client: TestClient,
+) -> None:
+    from server.services import parser_service
+
+    app.state.fake_db.add_failpoint("parser_timeout:chapter-a-1")
+    response = client.post(
+        "/api/projects/project-a-1/parser/chapters/chapter-a-1/trigger",
+        json={"content": "触发超时后走降级策略"},
+        headers=_auth_headers(),
+    )
+    assert response.status_code == 202
+
+    parser_service.process_parser_queue()
+
+    status_response = client.get(
+        "/api/projects/project-a-1/parser/chapters/chapter-a-1/status",
+        headers=_auth_headers(),
+    )
+    assert status_response.status_code == 200
+    state = status_response.json()["state"]
+    assert state["status"] == "failed"
+    assert state["fallback"]["used"] is True
+    assert state["fallback"]["reason"] == "upstream_timeout"
+
+
+def test_retry_failure_stops_after_single_retry_without_requeue(
+    client: TestClient,
+) -> None:
+    from server.services import parser_service
+
+    app.state.fake_db.add_failpoint("parser_timeout:chapter-a-1")
+    response = client.post(
+        "/api/projects/project-a-1/parser/chapters/chapter-a-1/trigger",
+        json={"content": "重试失败后不应再次入队"},
+        headers=_auth_headers(),
+    )
+    assert response.status_code == 202
+
+    parser_service.process_parser_queue()
+
+    state = app.state.parser_states["chapter-a-1"]
+    assert state["status"] == "failed"
+    assert state["retryCount"] == 1
+    assert state["lastTaskId"] is not None
+    failed_task = app.state.parser_tasks[state["lastTaskId"]]
+    assert failed_task["status"] == "failed"
+    assert failed_task["retryCount"] == 1
+    assert failed_task["completedAt"] is not None
+    assert app.state.parser_queue == []
+    assert app.state.parser_active_task_ids == []
+
+    failed_notification_count = len(
+        [
+            item
+            for item in app.state.fake_db.notifications
+            if item.get("projectId") == "project-a-1" and item["type"] == "parse_failed"
+        ]
+    )
+    parser_service.process_parser_queue()
+    assert app.state.parser_queue == []
+    assert app.state.parser_active_task_ids == []
+    assert (
+        len(
+            [
+                item
+                for item in app.state.fake_db.notifications
+                if item.get("projectId") == "project-a-1"
+                and item["type"] == "parse_failed"
+            ]
+        )
+        == failed_notification_count
+    )
+
+
+def test_project_status_pagination_clamps_and_handles_out_of_range_page(
+    client: TestClient,
+) -> None:
+    _add_chapter("chapter-a-2", order=1, title="第二章")
+    _add_chapter("chapter-a-3", order=2, title="第三章")
+
+    clamped_response = client.get(
+        "/api/projects/project-a-1/parser/status?page=0&pageSize=999",
+        headers=_auth_headers(),
+    )
+    assert clamped_response.status_code == 200
+    clamped_payload = clamped_response.json()
+    assert clamped_payload["pagination"]["page"] == 1
+    assert clamped_payload["pagination"]["pageSize"] == 100
+    assert clamped_payload["pagination"]["total"] >= 3
+    assert len(clamped_payload["items"]) == clamped_payload["pagination"]["total"]
+
+    out_of_range_response = client.get(
+        "/api/projects/project-a-1/parser/status?page=99&pageSize=1",
+        headers=_auth_headers(),
+    )
+    assert out_of_range_response.status_code == 200
+    out_of_range_payload = out_of_range_response.json()
+    assert out_of_range_payload["pagination"]["page"] == 99
+    assert out_of_range_payload["pagination"]["pageSize"] == 1
+    assert out_of_range_payload["pagination"]["total"] >= 3
+    assert out_of_range_payload["pagination"]["totalPages"] >= 3
+    assert out_of_range_payload["items"] == []

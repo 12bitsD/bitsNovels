@@ -1,6 +1,6 @@
 # Epic 6 Context - 用户级设置、通知与存储的数据契约
 
-> **STATUS: FROZEN** | Date: 2026-03-31
+> **STATUS: FROZEN** | Date: 2026-04-11
 > - Notification types (13 total): CONFIRMED
 > - Category mapping: CONFIRMED
 > - API contracts: CONFIRMED
@@ -10,6 +10,11 @@
 - Epic 6 需要一套跨端共享的数据契约，统一用户设置、通知事件、存储统计和快捷键配置的语义。
 - `US-6.4 通知配置` 与 `US-6.6 通知中心` 的一致性关键在于：通知类型枚举只能有一个事实来源。
 - Epic 6 是系统层，可排在业务 Epic 之后实现，但一旦进入开发，FE 与 BE 必须严格共用这些结构。
+
+## 防漂移主声明
+- `NotificationType` 的唯一来源是本文件「核心类型」章节中的同名定义。
+- `US-6.4` 与 `US-6.6` 只能引用该定义，禁止在 `be.md`、`fe.md`、前端状态层、后端路由层重复声明本地枚举。
+- 如需新增或删除通知类型，必须在同一次变更中同步更新：`NotificationPreferenceItem.type`、`Notification.type`、`notificationCategoryMap`、通知相关测试用例。
 
 ## 核心类型
 
@@ -156,7 +161,7 @@ interface AccountDeletionTicket {
 interface GetNotificationsQuery {
   /** Page number for pagination (1-indexed, default: 1) */
   page?: number
-  /** Items per page (default: 20) */
+  /** Items per page (default: 20, max: 50) */
   page_size?: number
   /** Filter by notification category */
   category?: NotificationCenterCategory
@@ -166,12 +171,14 @@ interface GetNotificationsQuery {
 
 // GET /me/notifications - Response
 interface GetNotificationsResponse {
-  /** List of notification items */
-  items: Notification[]
+  /** List of notification items for current page */
+  items: NotificationListItem[]
   /** Total count of notifications matching the filter */
   total: number
-  /** Pagination cursor for next page (offset index) */
-  cursor?: string
+  /** Current page number (1-indexed) */
+  page: number
+  /** Current page size */
+  page_size: number
   /** Whether there are more items */
   has_more: boolean
 }
@@ -222,6 +229,211 @@ interface NotificationListItem {
 }
 ```
 
+## 统一错误响应（US-6.1 ~ US-6.6）
+
+```typescript
+interface ErrorResponse {
+  code: ErrorCode
+  message: string
+  details?: Record<string, string[]>
+  requestId: string
+}
+
+type ErrorCode =
+  // 通用
+  | 'AUTH_REQUIRED'
+  | 'FORBIDDEN'
+  | 'VALIDATION_ERROR'
+  | 'RESOURCE_NOT_FOUND'
+  | 'CONFLICT'
+  | 'RATE_LIMITED'
+  | 'INTERNAL_ERROR'
+  // US-6.1 用户资料与账号安全
+  | 'PROFILE_NICKNAME_TOO_LONG'
+  | 'PROFILE_PEN_NAME_TOO_LONG'
+  | 'PASSWORD_INCORRECT'
+  | 'PASSWORD_WEAK'
+  | 'SESSION_REVOKE_SELF_FORBIDDEN'
+  | 'ACCOUNT_DELETION_ALREADY_SCHEDULED'
+  | 'ACCOUNT_DELETION_NOT_SCHEDULED'
+  // US-6.2 界面偏好
+  | 'SETTINGS_FONT_SIZE_OUT_OF_RANGE'
+  | 'SETTINGS_LINE_SPACING_INVALID'
+  | 'SETTINGS_THEME_INVALID'
+  | 'TEMPLATE_SERVICE_UNAVAILABLE'
+  // US-6.3 快捷键
+  | 'SHORTCUT_ACTION_NOT_FOUND'
+  | 'SHORTCUT_KEY_INVALID'
+  | 'SHORTCUT_CONFLICT'
+  // US-6.4 通知配置与推送
+  | 'NOTIFICATION_TYPE_UNSUPPORTED'
+  | 'PUSH_PERMISSION_DENIED'
+  | 'PUSH_SUBSCRIPTION_NOT_FOUND'
+  // US-6.6 通知中心
+  | 'NOTIFICATION_NOT_FOUND'
+  | 'NOTIFICATION_CATEGORY_INVALID'
+  | 'NOTIFICATION_SCOPE_INVALID'
+```
+
+## US-6.1 ~ US-6.4 API 契约（结构 + 错误码）
+
+### US-6.1 用户资料管理
+
+```typescript
+// GET /me/profile
+interface GetProfileResponse {
+  userId: string
+  nickname: string
+  penName: string
+  avatarUrl?: string
+  deletionStatus: 'normal' | 'scheduled'
+  scheduledDeleteAt?: string
+}
+
+// PATCH /me/profile
+interface UpdateProfileRequest {
+  nickname?: string // max 20
+  penName?: string // max 20
+  avatarUrl?: string
+}
+
+// POST /me/password/change
+interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+// POST /me/password/change - Response: 204 No Content
+
+type ConnectionProvider = 'google' | 'github'
+
+interface AccountConnection {
+  provider: ConnectionProvider
+  connected: boolean
+  connectedAt?: string
+  emailMasked?: string
+}
+
+// GET /me/connections
+interface GetConnectionsResponse {
+  items: AccountConnection[]
+}
+
+// POST /me/connections/{provider} - Path Parameter: provider (ConnectionProvider)
+// POST /me/connections/{provider} - Response: 204 No Content
+
+// DELETE /me/connections/{provider} - Path Parameter: provider (ConnectionProvider)
+// DELETE /me/connections/{provider} - Response: 204 No Content
+
+// GET /me/sessions
+interface GetSessionsResponse {
+  items: ActiveSession[]
+}
+
+// DELETE /me/sessions/{sessionId} - Path Parameter: sessionId (string)
+// DELETE /me/sessions/{sessionId} - Response: 204 No Content
+
+// POST /me/deletion
+interface ScheduleDeletionRequest {
+  password: string
+}
+
+interface ScheduleDeletionResponse {
+  status: 'scheduled'
+  scheduledDeleteAt: string
+}
+
+// DELETE /me/deletion - Response: 204 No Content
+```
+
+US-6.1 关键错误码：
+- `PROFILE_NICKNAME_TOO_LONG`、`PROFILE_PEN_NAME_TOO_LONG`
+- `PASSWORD_INCORRECT`、`PASSWORD_WEAK`
+- `SESSION_REVOKE_SELF_FORBIDDEN`
+- `ACCOUNT_DELETION_ALREADY_SCHEDULED`、`ACCOUNT_DELETION_NOT_SCHEDULED`
+
+### US-6.2 界面偏好设置
+
+```typescript
+// GET /me/settings -> Response: UserSettings
+
+// PATCH /me/settings
+interface PatchUserSettingsRequest {
+  preferences?: Partial<UserSettings['preferences']>
+  aiGlobal?: Partial<UserSettings['aiGlobal']>
+}
+```
+
+US-6.2 关键错误码：
+- `SETTINGS_FONT_SIZE_OUT_OF_RANGE`
+- `SETTINGS_LINE_SPACING_INVALID`
+- `SETTINGS_THEME_INVALID`
+- `TEMPLATE_SERVICE_UNAVAILABLE`
+
+### US-6.3 快捷键配置
+
+```typescript
+// PATCH /me/settings/shortcuts
+interface PatchShortcutsRequest {
+  mode: 'single' | 'batch'
+  items: Array<{
+    actionId: string
+    currentKeys: string[]
+  }>
+}
+
+// POST /me/settings/shortcuts/reset
+interface ResetShortcutsRequest {
+  actionId?: string
+  scope?: 'all'
+}
+```
+
+US-6.3 关键错误码：
+- `SHORTCUT_ACTION_NOT_FOUND`
+- `SHORTCUT_KEY_INVALID`
+- `SHORTCUT_CONFLICT`
+
+### US-6.4 通知配置
+
+```typescript
+// GET /me/notification-preferences -> Response: NotificationPreferences
+
+// PATCH /me/notification-preferences
+interface PatchNotificationPreferencesRequest {
+  muteAll?: boolean
+  items?: Array<{
+    type: NotificationType
+    browserPush: boolean
+  }>
+}
+
+// POST /me/push-subscriptions
+interface CreatePushSubscriptionRequest {
+  endpoint: string
+  p256dh: string
+  auth: string
+  userAgent?: string
+}
+
+// DELETE /me/push-subscriptions/{subscriptionId} - Path Parameter: subscriptionId (string)
+// DELETE /me/push-subscriptions/{subscriptionId} - Response: 204 No Content
+```
+
+US-6.4 关键错误码：
+- `NOTIFICATION_TYPE_UNSUPPORTED`
+- `PUSH_PERMISSION_DENIED`
+- `PUSH_SUBSCRIPTION_NOT_FOUND`
+- `VALIDATION_ERROR`
+
+### US-6.6 通知中心
+
+US-6.6 关键错误码：
+- `NOTIFICATION_NOT_FOUND`
+- `NOTIFICATION_CATEGORY_INVALID`
+- `NOTIFICATION_SCOPE_INVALID`
+- `VALIDATION_ERROR`
+
 ## 通知分类映射
 
 ```typescript
@@ -254,6 +466,7 @@ const notificationCategoryMap: Record<
 - `Notification.type` 必须来自统一枚举，供设置页、通知中心和推送系统共用。
 - `actionTarget` 用于 FE 跳转相关上下文，不同通知类型可以落到不同页面或下载地址。
 - 保留期固定为 `90 天`；分页读取默认每页 `20` 条。
+- `US-6.4` 与 `US-6.6` 共享 `NotificationType` + `notificationCategoryMap`，任何一侧禁止单独扩展类型。
 
 ### 存储使用明细
 - `StorageUsage.total` 和 `StorageUsage.used` 使用字节数，前端自行格式化为 `MB / GB`。

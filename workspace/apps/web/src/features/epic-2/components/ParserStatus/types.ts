@@ -31,6 +31,16 @@ export interface ParserChapterState {
   trigger?: ParserTrigger;
   batchJobId?: string;
   resultSummary?: ParserResultSummary | null;
+  fallback?: {
+    used: boolean;
+    strategy?: 'cache' | 'snapshot' | 'rule_based';
+    reason?: 'upstream_timeout' | 'upstream_unavailable' | 'partial_data' | 'degraded_mode' | string;
+    staleSeconds?: number;
+  };
+  queuePosition?: number | null;
+  isActive?: boolean;
+  activeTaskId?: string | null;
+  updatedAt?: string;
 }
 
 export interface ParserBatchJob {

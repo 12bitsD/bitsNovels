@@ -7,6 +7,156 @@
 
 ------
 
+## v0.3.32（2026-04-11）
+
+### Stage 0 Task 8 门禁矩阵补齐与 Checklist 闭合
+#### 修正 (Fixed)
+- 更新 `.trae/specs/continue-stage0-task-execution/tasks.md`：Task 8 与全部子项勾选完成，新增 Task 1~7「六项门禁（TDD/覆盖率/typecheck/lint/AC-NFR/CHANGELOG）」矩阵并标注缺口闭合结果。
+- 更新 `.trae/specs/continue-stage0-task-execution/tasks.md`：补录缺失证据（修复后覆盖率复跑、Task3/Task6 CHANGELOG 缺口说明、一致性结论）。
+- 更新 `.trae/specs/continue-stage0-task-execution/checklist.md`：勾选第 5 项“每个已完成 task 均满足 TDD、覆盖率、类型检查、lint、AC/NFR 对照”。
+
+#### 测试 (Tests)
+- `npm run ensure:python && node scripts/run_python.mjs -m pytest --no-cov server/tests/epic_2/test_us21_parser_red.py`：`14 passed`
+- `npm run ensure:python && node scripts/run_python.mjs -m pytest server/tests/epic_2/test_us21_parser_red.py --cov-reset --cov=server.routes.us21_parser --cov=server.services.parser_service --cov-report=term-missing --cov-fail-under=73`：`14 passed`，`us21_parser.py=83%`，`parser_service.py=88%`，`TOTAL=87%`
+- `cd workspace/apps/web && npx vitest run src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx src/features/epic-2/components/__tests__/ParserStatusPanel.test.tsx src/features/epic-2/components/__tests__/ChapterParseStatus.test.tsx --coverage.enabled=false`：`3 files passed, 21 tests passed`
+- `cd workspace/apps/web && npx vitest run src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx src/features/epic-2/components/__tests__/ParserStatusPanel.test.tsx src/features/epic-2/components/__tests__/ChapterParseStatus.test.tsx --coverage.enabled=true --coverage.include=src/features/epic-2/hooks/useParserStatus.ts --coverage.include=src/features/epic-2/components/ParserStatus/ParserStatusPanel.tsx --coverage.include=src/features/epic-2/components/ParserStatus/ChapterParseStatus.tsx --coverage.reporter=text-summary`：`Statements 82.05%`，`Lines 81.89%`
+- `cd workspace/apps/web && npm run typecheck`：通过（`tsc -b` 0 error）
+- `npm run ensure:python && node scripts/run_python.mjs -m mypy --config-file=/dev/null --ignore-missing-imports --follow-imports=skip --check-untyped-defs server/routes/us21_parser.py server/services/parser_service.py`：`Success: no issues found in 2 source files`
+- `cd workspace && npm run lint`：通过（ESLint 0 error 3 warning；Ruff `All checks passed`）
+
+#### 约束核对 (NFR)
+- 复核 `process/CONSTRAINTS.md` 在 US-2.1 相关约束：Parser 同章防抖 `60s`、单章超时 `60s`、批量并发上限 `5`，与现有实现和本次复跑结果一致。
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-2/contract.md` 与 `specs/epic-6/contract.md`，仅补齐门禁证据矩阵与任务一致性留痕。
+
+------
+
+## v0.3.31（2026-04-11）
+
+### US-2.1 Task 7 修复补录（ruff 导入排序 + typecheck 口径闭环）
+#### 修正 (Fixed)
+- 修复 `workspace/server/routes/us21_parser.py` 的 ruff 导入排序问题，按 isort 规则调整 `server.services` 导入顺序。
+- 更新 `.trae/specs/continue-stage0-task-execution/checklist.md`：新增并勾选“US-2.1 typecheck 按变更范围闭环并留存证据”检查项。
+- 更新 `.trae/specs/continue-stage0-task-execution/tasks.md`：新增 Task 7 执行记录，明确 BE typecheck 口径为 US-2.1 scoped 闭环，并补充 test/typecheck/lint 复跑证据。
+
+#### 测试 (Tests)
+- `npm run ensure:python && node scripts/run_python.mjs -m ruff check server/routes/us21_parser.py`：`All checks passed!`
+- `npm run ensure:python && node scripts/run_python.mjs -m pytest --no-cov server/tests/epic_2/test_us21_parser_red.py`：`14 passed`
+- `cd workspace/apps/web && npx vitest run src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx src/features/epic-2/components/__tests__/ParserStatusPanel.test.tsx src/features/epic-2/components/__tests__/ChapterParseStatus.test.tsx --coverage.enabled=false`：`3 files passed, 21 tests passed`
+- `cd workspace/apps/web && npm run typecheck`：通过（`tsc -b` 0 error）
+- `cd workspace && npm run lint`：通过（ESLint 0 error 3 warning；Ruff `All checks passed`）
+- `npm run ensure:python && node scripts/run_python.mjs -m mypy --config-file=/dev/null --ignore-missing-imports --follow-imports=skip --check-untyped-defs server/routes/us21_parser.py server/services/parser_service.py`：`Success: no issues found in 2 source files`
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-2/contract.md`，仅修复 lint 与质量门禁口径留痕。
+
+------
+
+## v0.3.30（2026-04-11）
+
+### Stage 0 Task 5 并行泳道建卡与统一门禁落版
+#### 修正 (Fixed)
+- 更新 `.trae/specs/continue-stage0-task-execution/tasks.md`：Task 5 及全部子项已勾选完成，已按顺序启动 `US-2.7/2.8`，并并行启动 `US-2.9/2.10/2.11` 与 `US-6.1~6.4` 任务卡（`T2.7-01`~`T2.11-01`、`T6.1-01`~`T6.4-01`）。
+- 更新 `.trae/specs/continue-stage0-task-execution/tasks.md`：为每个 US 统一绑定质量门禁 `Q-01~Q-06`（TDD、覆盖率≥73%、类型检查、lint、AC/NFR、契约冻结）与变更日志执行要求 `L-01~L-03`（US 完成即记日志、契约变更强制说明、多次提交增量留痕）。
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-2/contract.md` 与 `specs/epic-6/contract.md`，仅完成并行泳道启动与门禁/日志规则绑定。
+
+------
+
+## v0.3.29（2026-04-11）
+
+### US-2.1 Task 4 质量门禁收口
+#### 修正 (Fixed)
+- 更新 `.trae/specs/continue-stage0-task-execution/tasks.md`：Task 4 全部子项已勾选完成，并补充门禁执行记录（测试、覆盖率、类型检查、lint、AC/NFR 对照）。
+
+#### 测试 (Tests)
+- `npm run test:backend -- server/tests/epic_2/test_us21_parser_red.py --cov=server.routes.us21_parser --cov=server.services.parser_service --cov-report=term-missing --cov-fail-under=73`（在 `workspace`）：
+  - `12 passed`；`server/routes/us21_parser.py` 覆盖率 `83%`，`server/services/parser_service.py` 覆盖率 `88%`。
+- `npx vitest run src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx src/features/epic-2/components/__tests__/ParserStatusPanel.test.tsx src/features/epic-2/components/__tests__/ChapterParseStatus.test.tsx --coverage.enabled=true --coverage.include=src/features/epic-2/hooks/useParserStatus.ts --coverage.include=src/features/epic-2/components/ParserStatus/ParserStatusPanel.tsx --coverage.include=src/features/epic-2/components/ParserStatus/ChapterParseStatus.tsx --coverage.reporter=text-summary`（在 `workspace/apps/web`）：
+  - `3 files passed, 21 tests passed`；覆盖率 `Statements 82.05%`、`Lines 81.89%`。
+- `npm run typecheck`：通过（FE `tsc -b` 0 error）。
+- `npm run typecheck:backend`：未通过（mypy 存量问题 `91 errors in 18 files`，集中在 `auth/projects/us55_restore` 等非 US-2.1 本次改动范围）。
+- `npm run lint`：通过（ESLint 0 error 3 warning；Ruff `All checks passed`）。
+
+#### 约束核对 (NFR)
+- 对照 `process/CONSTRAINTS.md` 完成 US-2.1 关键约束核对：Parser 同章防抖 `60s`、单章超时 `60s`、批量并发上限 `5`，均与实现/测试结果一致。
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-2/contract.md`，继续遵循已冻结契约。
+
+------
+
+## v0.3.28（2026-04-11）
+
+### US-2.1 Task 2 后端主链路转绿 + Task 1 红测转绿
+#### 新增 (Added)
+- `workspace/server/routes/us21_parser.py`：Trigger/Auto-Trigger 接口对齐冻结契约字段（`trigger/contentHash/sourceEvent`），并返回 `success/data` 结构；保留兼容字段 `task`。
+- `workspace/server/services/parser_service.py`：新增自动触发内容哈希幂等去重、失败 `fallback` 元数据落库、状态查询分页/章节筛选/状态筛选与可观测字段（`queuePosition/isActive/activeTaskId/updatedAt`）。
+- `workspace/server/services/_base.py`：补齐 `_iso_z` 导出，修复 service 层公共时间函数导入断裂。
+- `workspace/apps/web/src/features/epic-2/hooks/useParserStatus.ts`：自动触发补齐冻结契约字段（含 64 位 `contentHash`），beforeunload 补偿触发同步契约字段。
+- `workspace/apps/web/src/features/epic-2/components/ParserStatus/ParserStatusPanel.tsx`：新增章节级状态列表与失败原因可视化（含“解析失败”可访问标签）。
+
+#### 修正 (Fixed)
+- `workspace/apps/web/src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx`：同步自动触发断言到冻结契约字段。
+- `.trae/specs/continue-stage0-task-execution/tasks.md`：Task 2 全部子项已勾选完成，并补充 Task 1 红测转绿执行记录。
+
+#### 测试 (Tests)
+- `npm run test:backend -- server/tests/epic_2/test_us21_parser_red.py`：`12 passed`（US-2.1 相关 BE 红测转绿）。
+- `npx vitest run src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx src/features/epic-2/components/__tests__/ParserStatusPanel.test.tsx --coverage.enabled=false`（在 `workspace/apps/web`）：`11 passed`（Task 1 FE 红测转绿）。
+- `npm run typecheck && npm run lint`：通过（存在历史 `react-hooks/incompatible-library` warning，无 error）。
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-2/contract.md`，实现严格对齐已冻结契约。
+
+------
+
+## v0.3.27（2026-04-11）
+
+### US-2.1 Task 1 红测补齐（FE + BE）
+#### 新增 (Added)
+- 新增后端红测（`workspace/server/tests/epic_2/test_us21_parser_red.py`）覆盖冻结契约请求/响应形态、已解析内容幂等去重、超时失败 fallback 元数据三类缺口，保持 Red 状态用于驱动 Task 2 实现。
+- 新增前端红测（`workspace/apps/web/src/features/epic-2/hooks/__tests__/useParserStatus.test.tsx`）校验自动触发请求必须携带 `trigger/sourceEvent/contentHash` 冻结契约字段，当前保持失败。
+- 新增前端红测（`workspace/apps/web/src/features/epic-2/components/__tests__/ParserStatusPanel.test.tsx`）校验章节级失败状态可见性（章节名/失败图标/失败原因入口），当前保持失败。
+- 更新任务执行文件（`.trae/specs/continue-stage0-task-execution/tasks.md`）：完成 Task 1 勾选，并补齐 US-2.1 `AC -> 用例` 映射与执行记录证据。
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-2/contract.md`，仅基于已冻结契约补充红测用例与映射证据。
+
+------
+
+## v0.3.26（2026-04-11）
+
+### Epic 6 契约冻结与口径同步
+#### 修正 (Fixed)
+- 更新 `specs/epic-6/contract.md`：契约冻结日期同步为 `2026-04-11`，与当前冻结状态保持一致。
+- 更新 `specs/epic-6/contract.md`：统一通知中心分页口径说明（`page` 从 1 开始、`page_size` 默认 `20`、最大 `50`）。
+- 更新 `specs/epic-6/contract.md`：补齐 `US-6.1` 接口契约项，确保资料、会话、连接与注销链路定义完整。
+- 更新 `specs/epic-6/contract.md`：更新 `US-6.6` 错误码与 DoD 映射说明，确保验收口径一致。
+
+------
+
+## v0.3.25（2026-04-11）
+
+### Epic 2 契约与 DoD 文档同步
+#### 修正 (Fixed)
+- 更新 `specs/epic-2/contract.md`：统一 Parser 事件命名为 `parse_*` 口径，`parse_completed` 调整为 `parse_done`，`batch_parse_progress` 调整为 `parse_batch_progress`。
+- 更新 `specs/epic-2/contract.md`：刷新契约冻结元信息，补充冻结日期与变更协同约束说明。
+- 更新 `process/dod.md`：修正 BE 测试路径示例为当前工程真实目录（`workspace/server/tests/epic_N/...`）。
+
+------
+
+## v0.3.24（2026-04-11）
+
+### Epic 6 契约对齐
+#### 修正 (Fixed)
+- 更新 `specs/epic-6/contract.md`：补充 `US-6.1 ~ US-6.4` 的结构化 API 契约与统一错误响应模型，新增分故事错误码清单。
+- 更新 `specs/epic-6/contract.md`：新增 `NotificationType` 唯一来源声明与变更联动要求，明确 `US-6.4` 与 `US-6.6` 禁止各自维护本地通知类型。
+- 更新 `specs/epic-6/be.md`：按 `US-6.1 ~ US-6.4` 补齐后端结构落地要求与错误码映射，并加入通知分类映射复用约束，防止 `US-6.4/6.6` 语义漂移。
+
+------
+
 ## v0.3.23（2026-04-09）
 
 ### 前端收尾

@@ -1,18 +1,24 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from server.routes.us24_item import _require_project
+from server.routes._deps import require_project as _require_project
 from server.routes.us31_editor import _require_chapter
 from server.services import parser_service
+from server.services._base import app
 
 router = APIRouter(prefix="/api/projects", tags=["us-2.1"])
 
 
 class TriggerParserRequest(BaseModel):
-    content: str = ""
+    trigger: Optional[Literal["auto", "manual"]] = None
+    contentHash: Optional[str] = None
+    sourceEvent: Optional[
+        Literal["chapter_switch", "chapter_close", "manual_retry"]
+    ] = None
+    content: Optional[str] = None
 
     model_config = {"extra": "forbid"}
 
@@ -32,7 +38,7 @@ def trigger_parser(
     payload: TriggerParserRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -40,10 +46,23 @@ def trigger_parser(
     chapter, err = _require_chapter(project_id, chapter_id, maybe_user_id)
     if err is not None:
         return err
+    if payload.trigger not in {None, "manual"}:
+        return _error(400, "VALIDATION_ERROR", "Invalid trigger value for manual API")
+    content = payload.content
+    if content is None:
+        content = app.state.chapter_contents.get(chapter_id, {}).get("content", "")
     task = parser_service.enqueue_parse_task(
-        project_id, chapter_id, "manual", payload.content
+        project_id,
+        chapter_id,
+        "manual",
+        content,
+        content_hash=payload.contentHash,
+        source_event=payload.sourceEvent,
     )
-    return JSONResponse(status_code=202, content={"task": task})
+    return JSONResponse(
+        status_code=202,
+        content={"success": True, "data": task, "task": task},
+    )
 
 
 @router.post("/{project_id}/parser/chapters/{chapter_id}/auto-trigger")
@@ -53,7 +72,7 @@ def auto_trigger_parser(
     payload: TriggerParserRequest,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
-    from server.main import _require_user_id
+    from server.main import _error, _require_user_id, app
 
     maybe_user_id = _require_user_id(authorization)
     if isinstance(maybe_user_id, JSONResponse):
@@ -61,10 +80,34 @@ def auto_trigger_parser(
     chapter, err = _require_chapter(project_id, chapter_id, maybe_user_id)
     if err is not None:
         return err
+    if payload.trigger not in {None, "auto"}:
+        return _error(400, "VALIDATION_ERROR", "Invalid trigger value for auto API")
+    content = payload.content
+    if content is None:
+        content = app.state.chapter_contents.get(chapter_id, {}).get("content", "")
     task = parser_service.enqueue_parse_task(
-        project_id, chapter_id, "auto", payload.content
+        project_id,
+        chapter_id,
+        "auto",
+        content,
+        content_hash=payload.contentHash,
+        source_event=payload.sourceEvent,
     )
-    return JSONResponse(status_code=202, content={"task": task})
+    if task.get("status") == "debounced":
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": False,
+                "error": {
+                    "code": "PARSER_DEBOUNCED",
+                    "message": "Auto trigger skipped due to debounce/dedup",
+                },
+            },
+        )
+    return JSONResponse(
+        status_code=202,
+        content={"success": True, "data": task, "task": task},
+    )
 
 
 @router.post("/{project_id}/parser/batch")
@@ -127,7 +170,7 @@ def get_batch_parser_job_progress(
     project, err = _require_project(project_id, maybe_user_id)
     if err is not None:
         return err
-    job = parser_service.app.state.parser_jobs.get(job_id)
+    job = app.state.parser_jobs.get(job_id)
     if job is None or job["projectId"] != project_id:
         return _error(404, "BATCH_JOB_NOT_FOUND", "Batch parse job not found")
     finished = (
@@ -142,6 +185,10 @@ def get_batch_parser_job_progress(
 @router.get("/{project_id}/parser/status")
 def get_parser_project_status(
     project_id: str,
+    page: int = 1,
+    pageSize: int = 20,
+    chapterId: Optional[str] = None,
+    status: Optional[str] = None,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> JSONResponse:
     from server.main import _require_user_id
@@ -153,7 +200,14 @@ def get_parser_project_status(
     if err is not None:
         return err
     return JSONResponse(
-        status_code=200, content=parser_service.get_project_status(project_id)
+        status_code=200,
+        content=parser_service.get_project_status(
+            project_id,
+            page=page,
+            page_size=pageSize,
+            chapter_id=chapterId,
+            status=status,
+        ),
     )
 
 

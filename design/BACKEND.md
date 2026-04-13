@@ -65,9 +65,12 @@ AI 续写等长时间任务使用 SSE 推送：
 
 ```
 GET /api/ai/tasks/:taskId/stream
-→ data: {"type": "chunk", "content": "逐字内容..."}
-→ data: {"type": "done"}
-→ data: {"type": "error", "message": "原因"}
+→ data: {"type": "task.started", "taskId": "xxx"}
+→ data: {"type": "task.delta", "content": "逐字内容..."}
+→ data: {"type": "task.delta", "content": "..."}
+→ data: {"type": "task.completed", "result": {...}}
+→ data: {"type": "task.stopped"}
+→ data: {"type": "task.failed", "error": "原因"}
 ```
 
 ---

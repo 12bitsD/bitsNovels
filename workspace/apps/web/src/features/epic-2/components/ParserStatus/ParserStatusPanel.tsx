@@ -3,7 +3,7 @@ import { CheckCircle2, ChevronDown, Loader2, Sparkles, TriangleAlert, X } from '
 import { LoadingButton } from '../../../../components/ui/LoadingButton';
 import { useParserStatus } from '../../hooks/useParserStatus';
 import BatchParseDialog from './BatchParseDialog';
-import type { BatchParseStartInput, ParserToast, ParserVolumeOption } from './types';
+import type { BatchParseStartInput, ParserChapterState, ParserToast, ParserVolumeOption } from './types';
 
 interface ParserStatusPanelProps {
   projectId: string;
@@ -25,6 +25,80 @@ const getToastClasses = (toast: ParserToast) => {
   }
 };
 
+const deriveChapterUiStatus = (
+  chapterState: ParserChapterState,
+): 'queued' | 'running' | 'succeeded' | 'failed' | 'retrying' | 'fallback' | 'no_content' | 'pending' => {
+  if (chapterState.status === 'failed' && chapterState.fallback?.used) {
+    return 'fallback';
+  }
+
+  if ((chapterState.status === 'queued' || chapterState.status === 'parsing') && chapterState.retryCount > 0) {
+    return 'retrying';
+  }
+
+  if (chapterState.status === 'queued') {
+    return 'queued';
+  }
+
+  if (chapterState.status === 'parsing') {
+    return 'running';
+  }
+
+  if (chapterState.status === 'parsed') {
+    return 'succeeded';
+  }
+
+  if (chapterState.status === 'failed') {
+    return 'failed';
+  }
+
+  if (chapterState.status === 'no_content') {
+    return 'no_content';
+  }
+
+  return 'pending';
+};
+
+const getUiStatusLabel = (status: ReturnType<typeof deriveChapterUiStatus>) => {
+  switch (status) {
+    case 'queued':
+      return '排队中';
+    case 'running':
+      return '运行中';
+    case 'succeeded':
+      return '已成功';
+    case 'failed':
+      return '失败';
+    case 'retrying':
+      return '重试中';
+    case 'fallback':
+      return '已降级';
+    case 'no_content':
+      return '无内容';
+    default:
+      return '待解析';
+  }
+};
+
+const getUiStatusClass = (status: ReturnType<typeof deriveChapterUiStatus>) => {
+  switch (status) {
+    case 'succeeded':
+      return 'bg-success/10 text-success border-success/30';
+    case 'failed':
+    case 'fallback':
+      return 'bg-error/10 text-error border-error/30';
+    case 'running':
+    case 'retrying':
+      return 'bg-amber/10 text-amber border-amber/30';
+    case 'queued':
+      return 'bg-warning/10 text-warning border-warning/30';
+    case 'no_content':
+      return 'bg-border/30 text-ink-light border-border/40';
+    default:
+      return 'bg-info/10 text-info border-info/30';
+  }
+};
+
 export default function ParserStatusPanel({
   projectId,
   activeChapterId,
@@ -36,8 +110,10 @@ export default function ParserStatusPanel({
     activeBatchJob,
     isLoading,
     isManualTriggering,
+    retryingChapterId,
     toast,
     triggerManualParse,
+    retryChapter,
     startBatchParse,
     cancelBatchParse,
     dismissToast,
@@ -52,6 +128,16 @@ export default function ParserStatusPanel({
   const pendingCount = projectStatus?.pendingCount ?? 0;
 
   const totalChapterCount = useMemo(() => volumes.flatMap((volume) => volume.chapters).length, [volumes]);
+  const chapterTitleMap = useMemo(
+    () =>
+      volumes
+        .flatMap((volume) => volume.chapters)
+        .reduce<Record<string, string>>((accumulator, chapter) => {
+          accumulator[chapter.id] = chapter.title;
+          return accumulator;
+        }, {}),
+    [volumes],
+  );
 
   useEffect(() => {
     if (!toast) {
@@ -170,6 +256,64 @@ export default function ParserStatusPanel({
           <div className="h-2 overflow-hidden rounded-full bg-border/40">
             <div className="h-full bg-amber transition-all" style={{ width: `${activeBatchJob.progress ?? 0}%` }} />
           </div>
+        </div>
+      )}
+
+      {!isLoading && (projectStatus?.chapters?.length ?? 0) > 0 && (
+        <div className="border-t border-border/20 px-4 py-3">
+          <ul className="space-y-2">
+            {(projectStatus?.chapters ?? []).map((chapterState) => {
+              const uiStatus = deriveChapterUiStatus(chapterState);
+              return (
+                <li key={chapterState.chapterId} className="rounded-md border border-border/20 bg-parchment/10 px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-ink">
+                    {chapterTitleMap[chapterState.chapterId] ?? chapterState.chapterId}
+                  </span>
+                  <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs ${getUiStatusClass(uiStatus)}`}>
+                    {getUiStatusLabel(uiStatus)}
+                  </span>
+                </div>
+                {chapterState.status === 'failed' && (
+                  <div className="mt-1 flex items-center gap-2 text-sm text-error">
+                    <TriangleAlert size={14} aria-label="解析失败" />
+                    <span>{chapterState.failureReason ?? '解析失败'}</span>
+                  </div>
+                )}
+                {chapterState.fallback?.used && (
+                  <p className="mt-1 text-xs text-warning">
+                    降级原因：{chapterState.fallback.reason ?? 'degraded_mode'}
+                  </p>
+                )}
+                {chapterState.status === 'failed' && (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => void retryChapter(chapterState.chapterId)}
+                      className="btn-secondary w-auto px-3 py-1 text-xs"
+                      aria-label={`重试解析 ${chapterTitleMap[chapterState.chapterId] ?? chapterState.chapterId}`}
+                    >
+                      重试解析
+                    </button>
+                  </div>
+                )}
+                {(chapterState.status === 'queued' || chapterState.status === 'parsing') &&
+                  retryingChapterId === chapterState.chapterId && (
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        disabled
+                        className="btn-secondary w-auto cursor-not-allowed px-3 py-1 text-xs opacity-60"
+                        aria-label={`重试中 ${chapterTitleMap[chapterState.chapterId] ?? chapterState.chapterId}`}
+                      >
+                        重试中
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 

@@ -15,12 +15,25 @@ interface UseParserStatusOptions {
   autoTriggerDebounceMs?: number;
   progressPollMs?: number;
   completionPollMs?: number;
+  pollTimeoutMs?: number;
 }
 
 interface ChapterContentResponse {
   chapter?: {
     content?: string;
   };
+}
+
+interface ApiErrorShape {
+  code?: string;
+  message?: string;
+}
+
+interface ApiEnvelope<T> {
+  success?: boolean;
+  data?: T;
+  error?: ApiErrorShape;
+  task?: T;
 }
 
 interface UseParserStatusReturn {
@@ -69,6 +82,43 @@ const buildSuccessToastDescription = (state: ParserChapterState) => {
   return `新增角色 ${summary.newCharacters}，地点 ${summary.newLocations}，道具 ${summary.newItems}。`;
 };
 
+const buildFailureToast = (state: ParserChapterState) => {
+  const reason = state.failureReason ?? '请稍后重试当前章节。';
+  const timeoutLike = /timeout|timed out|超时/i.test(reason);
+  const fallbackHint = state.fallback?.used
+    ? `（已启用降级：${state.fallback.reason ?? 'degraded_mode'}）`
+    : '';
+
+  return {
+    title: timeoutLike ? '解析超时' : '解析失败',
+    description: `${reason}${fallbackHint}`,
+  };
+};
+
+const toHex = (bytes: Uint8Array) =>
+  Array.from(bytes)
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+
+const fallbackHash = (content: string) => {
+  let acc = 0n;
+  for (const char of content) {
+    acc = (acc * 131n + BigInt(char.codePointAt(0) ?? 0)) % (1n << 256n);
+  }
+  return acc.toString(16).padStart(64, '0').slice(0, 64);
+};
+
+const computeContentHash = async (content: string) => {
+  if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto?.subtle) {
+    const digest = await globalThis.crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(content),
+    );
+    return toHex(new Uint8Array(digest));
+  }
+  return fallbackHash(content);
+};
+
 export function useParserStatus({
   projectId,
   activeChapterId = null,
@@ -76,6 +126,7 @@ export function useParserStatus({
   autoTriggerDebounceMs = 60_000,
   progressPollMs = 2_000,
   completionPollMs = 2_000,
+  pollTimeoutMs = 90_000,
 }: UseParserStatusOptions): UseParserStatusReturn {
   const [projectStatus, setProjectStatus] = useState<ParserProjectStatus | null>(null);
   const [chapterStates, setChapterStates] = useState<Record<string, ParserChapterState>>({});
@@ -87,7 +138,10 @@ export function useParserStatus({
 
   const previousActiveChapterIdRef = useRef<string | null>(null);
   const previousActiveContentRef = useRef('');
+  const chapterStatesRef = useRef<Record<string, ParserChapterState>>({});
   const lastTriggeredSnapshotsRef = useRef<Record<string, string>>({});
+  const manualTriggerInFlightRef = useRef(false);
+  const retryingChapterIdRef = useRef<string | null>(null);
   const autoTriggerTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const chapterPollingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const batchPollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,6 +195,10 @@ export function useParserStatus({
     setIsLoading(false);
   }, [projectId]);
 
+  useEffect(() => {
+    chapterStatesRef.current = chapterStates;
+  }, [chapterStates]);
+
   const fetchChapterStatus = useCallback(async (chapterId: string) => {
     const { data } = await client.GET(`/api/projects/${projectId}/parser/chapters/${chapterId}/status`);
     const nextState = (data as { state?: ParserChapterState } | undefined)?.state;
@@ -158,8 +216,30 @@ export function useParserStatus({
   const pollChapterUntilTerminal = useCallback(
     (chapterId: string) =>
       new Promise<ParserChapterState | undefined>((resolve, reject) => {
+        const startedAt = Date.now();
+
         const poll = async () => {
           try {
+            if (Date.now() - startedAt >= pollTimeoutMs) {
+              clearChapterPollingTimer(chapterId);
+              const timeoutState: ParserChapterState = {
+                chapterId,
+                status: 'failed',
+                retryCount: chapterStatesRef.current[chapterId]?.retryCount ?? 0,
+                trigger: chapterStatesRef.current[chapterId]?.trigger ?? 'manual',
+                failureReason: `章节 ${chapterId} 解析超时，请稍后重试。`,
+              };
+              setChapterStates((currentStates) => ({
+                ...currentStates,
+                [chapterId]: {
+                  ...(currentStates[chapterId] ?? timeoutState),
+                  ...timeoutState,
+                },
+              }));
+              resolve(timeoutState);
+              return;
+            }
+
             const nextState = await fetchChapterStatus(chapterId);
 
             if (!nextState) {
@@ -182,7 +262,7 @@ export function useParserStatus({
 
         void poll();
       }),
-    [clearChapterPollingTimer, completionPollMs, fetchChapterStatus],
+    [clearChapterPollingTimer, completionPollMs, fetchChapterStatus, pollTimeoutMs],
   );
 
   const scheduleBatchProgressPoll = useCallback(
@@ -239,9 +319,28 @@ export function useParserStatus({
         return;
       }
 
-      await client.POST(`/api/projects/${projectId}/parser/chapters/${chapterId}/auto-trigger`, {
-        body: { content },
+      const contentHash = await computeContentHash(content);
+
+      const { data, error, response } = await client.POST(`/api/projects/${projectId}/parser/chapters/${chapterId}/auto-trigger`, {
+        body: {
+          trigger: 'auto',
+          sourceEvent: 'chapter_switch',
+          contentHash,
+          content,
+        },
       });
+
+      const envelope = data as ApiEnvelope<ParserChapterState> | undefined;
+      if (error || !response.ok || envelope?.success === false) {
+        if (envelope?.error?.code === 'PARSER_DEBOUNCED') {
+          setToast({
+            type: 'info',
+            title: '自动触发已去重',
+            description: '60 秒内重复触发已合并为最后一次快照。',
+          });
+        }
+        return;
+      }
 
       lastTriggeredSnapshotsRef.current[chapterId] = content;
       setChapterStates((currentStates) => ({
@@ -259,20 +358,46 @@ export function useParserStatus({
   );
 
   const triggerManualParse = useCallback(async () => {
-    if (!activeChapterId) {
+    if (!activeChapterId || manualTriggerInFlightRef.current) {
       return;
     }
 
+    manualTriggerInFlightRef.current = true;
     setIsManualTriggering(true);
     clearAutoTriggerTimer(activeChapterId);
 
     try {
       const content = await getChapterContent(activeChapterId, currentContent);
-      await client.POST(`/api/projects/${projectId}/parser/chapters/${activeChapterId}/trigger`, {
-        body: { content },
+      const contentHash = await computeContentHash(content);
+      const { data, error, response } = await client.POST(`/api/projects/${projectId}/parser/chapters/${activeChapterId}/trigger`, {
+        body: {
+          trigger: 'manual',
+          sourceEvent: 'manual_retry',
+          contentHash,
+          content,
+        },
       });
+      const envelope = data as ApiEnvelope<ParserChapterState> | undefined;
+      if (error || !response.ok || envelope?.success === false) {
+        setToast({
+          type: 'error',
+          title: envelope?.error?.code === 'PARSER_TASK_ALREADY_RUNNING' ? '解析进行中' : '触发失败',
+          description: envelope?.error?.message ?? '当前章节无法触发解析，请稍后重试。',
+        });
+        return;
+      }
 
       lastTriggeredSnapshotsRef.current[activeChapterId] = content;
+      setChapterStates((currentStates) => ({
+        ...currentStates,
+        [activeChapterId]: {
+          chapterId: activeChapterId,
+          retryCount: currentStates[activeChapterId]?.retryCount ?? 0,
+          status: 'queued',
+          trigger: 'manual',
+          lastQueuedAt: new Date().toISOString(),
+        },
+      }));
       const completedState = await pollChapterUntilTerminal(activeChapterId);
       await refreshProjectStatus();
 
@@ -285,13 +410,21 @@ export function useParserStatus({
       }
 
       if (completedState?.status === 'failed') {
+        const failureToast = buildFailureToast(completedState);
         setToast({
           type: 'error',
-          title: '解析失败',
-          description: completedState.failureReason ?? '请稍后重试当前章节。',
+          title: failureToast.title,
+          description: failureToast.description,
         });
       }
+    } catch {
+      setToast({
+        type: 'error',
+        title: '触发失败',
+        description: '触发解析时发生异常，请检查网络后重试。',
+      });
     } finally {
+      manualTriggerInFlightRef.current = false;
       setIsManualTriggering(false);
     }
   }, [
@@ -305,13 +438,33 @@ export function useParserStatus({
   ]);
 
   const retryChapter = useCallback(async (chapterId: string, contentOverride?: string) => {
+    if (retryingChapterIdRef.current === chapterId) {
+      return;
+    }
+
+    retryingChapterIdRef.current = chapterId;
     setRetryingChapterId(chapterId);
 
     try {
       const content = await getChapterContent(chapterId, contentOverride);
-      await client.POST(`/api/projects/${projectId}/parser/chapters/${chapterId}/trigger`, {
-        body: { content },
+      const contentHash = await computeContentHash(content);
+      const { data, error, response } = await client.POST(`/api/projects/${projectId}/parser/chapters/${chapterId}/trigger`, {
+        body: {
+          trigger: 'manual',
+          sourceEvent: 'manual_retry',
+          contentHash,
+          content,
+        },
       });
+      const envelope = data as ApiEnvelope<ParserChapterState> | undefined;
+      if (error || !response.ok || envelope?.success === false) {
+        setToast({
+          type: 'error',
+          title: envelope?.error?.code === 'PARSER_TASK_ALREADY_RUNNING' ? '解析进行中' : '重试失败',
+          description: envelope?.error?.message ?? '当前章节无法重试，请稍后再试。',
+        });
+        return;
+      }
 
       lastTriggeredSnapshotsRef.current[chapterId] = content;
       const completedState = await pollChapterUntilTerminal(chapterId);
@@ -320,19 +473,27 @@ export function useParserStatus({
       if (completedState?.status === 'parsed') {
         setToast({
           type: 'success',
-          title: '解析完成',
+          title: (completedState.retryCount ?? 0) > 0 ? '重试成功' : '解析完成',
           description: buildSuccessToastDescription(completedState),
         });
       }
 
       if (completedState?.status === 'failed') {
+        const failureToast = buildFailureToast(completedState);
         setToast({
           type: 'error',
-          title: '解析失败',
-          description: completedState.failureReason ?? '请稍后再试。',
+          title: failureToast.title,
+          description: failureToast.description,
         });
       }
+    } catch {
+      setToast({
+        type: 'error',
+        title: '重试失败',
+        description: '触发重试时发生异常，请稍后再试。',
+      });
     } finally {
+      retryingChapterIdRef.current = null;
       setRetryingChapterId(null);
     }
   }, [getChapterContent, pollChapterUntilTerminal, projectId, refreshProjectStatus]);
@@ -410,6 +571,7 @@ export function useParserStatus({
       }
 
       const token = window.localStorage.getItem('token');
+      const hashSeed = fallbackHash(compensationPayload.content);
 
       void fetch(`/api/projects/${projectId}/parser/chapters/${compensationPayload.chapterId}/auto-trigger`, {
         method: 'POST',
@@ -418,7 +580,12 @@ export function useParserStatus({
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ content: compensationPayload.content }),
+        body: JSON.stringify({
+          trigger: 'auto',
+          sourceEvent: 'chapter_close',
+          contentHash: hashSeed,
+          content: compensationPayload.content,
+        }),
       });
     };
 

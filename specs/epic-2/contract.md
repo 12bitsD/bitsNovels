@@ -1,8 +1,9 @@
 # Epic 2 Context
 
-// US-2.1 Parser Engine Contract
-// Updated: 2026-04-02
-// Status: FROZEN
+> **STATUS: FROZEN** | 冻结日期: 2026-04-11
+> - Parser 事件命名：CONFIRMED（统一为 `parse_*`）
+> - API 契约：CONFIRMED
+> - 如需修改请先同步 FE/BE 并更新 `docs/CHANGELOG.md`
 
 Epic 2 的上下文要先定义统一知识库模型，再围绕 `US-2.1` 提供 Parser、图谱、搜索和手动编辑接口；其中关系图谱节点/边结构已包含 FE 渲染所需字段。
 
@@ -342,7 +343,7 @@ interface AIParseResponse {
 ```typescript
 // 解析完成事件
 interface ParseCompletedEvent {
-  type: 'parse_completed'
+  type: 'parse_done'
   projectId: string
   chapterId: string
   taskId: string
@@ -362,7 +363,7 @@ interface ParseFailedEvent {
 
 // 批量解析进度事件
 interface BatchParseProgressEvent {
-  type: 'batch_parse_progress'
+  type: 'parse_batch_progress'
   projectId: string
   jobId: string
   totalChapters: number
@@ -486,6 +487,442 @@ interface KBGraphPayload {
 | `PATCH` | `/api/projects/:projectId/graph/edges/:edgeId` | 编辑关系边 |
 | `DELETE` | `/api/projects/:projectId/graph/edges/:edgeId` | 删除关系边 |
 | `GET` | `/api/projects/:projectId/graph/export` | 获取图谱导出数据或导出文件 |
+
+## US-2.1 / US-2.7 ~ US-2.11 统一请求响应契约
+
+```typescript
+// 分页请求（用于列表型接口）
+interface PageQuery {
+  page?: number        // 默认 1
+  pageSize?: number    // 默认 20，最大 100
+}
+
+interface PageMeta {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+}
+
+// fallback 标记（用于降级返回）
+interface FallbackMeta {
+  used: boolean
+  strategy?: 'cache' | 'snapshot' | 'rule_based'
+  reason?:
+    | 'upstream_timeout'
+    | 'upstream_unavailable'
+    | 'partial_data'
+    | 'degraded_mode'
+  staleSeconds?: number
+}
+
+interface APIError {
+  code: ContractErrorCode
+  message: string
+  requestId: string
+  details?: Record<string, unknown>
+}
+
+// 统一响应信封
+interface APIResponse<T> {
+  success: true
+  data: T
+  fallback?: FallbackMeta
+}
+
+interface APIErrorResponse {
+  success: false
+  error: APIError
+}
+
+type ContractErrorCode =
+  | 'VALIDATION_ERROR'
+  | 'NOT_FOUND'
+  | 'CONFLICT'
+  | 'FORBIDDEN'
+  | 'RATE_LIMITED'
+  | 'INTERNAL_ERROR'
+  // US-2.1
+  | 'PARSER_CHAPTER_EMPTY'
+  | 'PARSER_DEBOUNCED'
+  | 'PARSER_TASK_ALREADY_RUNNING'
+  | 'PARSER_TASK_NOT_FOUND'
+  | 'PARSER_BATCH_NOT_FOUND'
+  | 'PARSER_BATCH_ALREADY_FINISHED'
+  // US-2.7
+  | 'GRAPH_EDGE_NOT_FOUND'
+  | 'GRAPH_EDGE_SELF_LOOP_NOT_ALLOWED'
+  | 'GRAPH_EXPORT_UNAVAILABLE'
+  // US-2.8
+  | 'CONSISTENCY_ISSUE_NOT_FOUND'
+  | 'CONSISTENCY_ACTION_INVALID'
+  // US-2.9
+  | 'SEARCH_QUERY_TOO_SHORT'
+  // US-2.10
+  | 'SETTING_CATEGORY_INVALID'
+  | 'SETTING_REFERENCE_INVALID'
+  // US-2.11
+  | 'KB_ENTITY_NOT_FOUND'
+  | 'KB_ENTITY_ALREADY_DELETED'
+  | 'KB_RESTORE_EXPIRED'
+  | 'KB_MERGE_TARGET_INVALID'
+```
+
+## US-2.1 Parser 请求/响应
+
+```typescript
+type ParseTrigger = 'auto' | 'manual'
+
+interface TriggerParseRequest {
+  trigger: ParseTrigger
+  contentHash: string
+  sourceEvent?: 'chapter_switch' | 'chapter_close' | 'manual_retry'
+}
+
+interface TriggerParseResponse {
+  taskId: string
+  chapterId: string
+  status: ChapterParseStatus
+  queuedAt: string
+}
+
+interface BatchParseRequest {
+  scope: 'all' | 'volume' | 'selected'
+  volumeId?: string
+  chapterIds?: string[]
+}
+
+interface BatchParseResponse {
+  job: BatchParseJob
+}
+
+interface BatchParseProgressResponse {
+  jobId: string
+  status: BatchParseJob['status']
+  totalChapters: number
+  completedChapters: number
+  failedChapters: number
+  runningChapters: string[]
+  progress: number // 0-100
+}
+
+interface ProjectParseStatusResponse {
+  totalChapters: number
+  parsedChapters: number
+  pendingChapters: number
+  failedChapters: number
+  parsingChapters: number
+  overallStatus: 'all_parsed' | 'has_pending' | 'has_failed' | 'running'
+  updatedAt: string
+}
+
+interface ChapterParseStatusResponse {
+  chapterId: string
+  status: ChapterParseStatus
+  retryCount: number
+  failureReason?: string
+  lastParsedAt?: string
+  lastQueuedAt?: string
+  lastContentHash?: string
+}
+```
+
+## US-2.7 关系图谱请求/响应
+
+```typescript
+interface GraphQuery extends PageQuery {
+  relationTypes?: GraphRelationType[]
+  factionIds?: string[]
+  focusCharacterId?: string
+  includeIsolatedNodes?: boolean // 默认 true
+}
+
+interface GraphResponse {
+  graph: KBGraphPayload
+  pagination?: PageMeta  // 边数量较大时启用分页
+  appliedFilters: {
+    relationTypes: GraphRelationType[]
+    factionIds: string[]
+    focusCharacterId?: string
+    includeIsolatedNodes: boolean
+  }
+}
+
+type GraphEdgeSource = 'ai' | 'manual'
+
+interface CreateGraphEdgeRequest {
+  sourceEntityId: string
+  targetEntityId: string
+  relationType: GraphRelationType
+  relationLabel: string
+  description?: string
+  chapterId: string
+  sourceType: GraphEdgeSource
+  directed?: boolean
+}
+
+interface UpdateGraphEdgeRequest {
+  relationType?: GraphRelationType
+  relationLabel?: string
+  description?: string
+  chapterId?: string
+  directed?: boolean
+}
+
+interface GraphEdgeResponse {
+  edge: KBGraphEdge
+}
+
+interface GraphExportQuery {
+  format: 'json' | 'png'
+  relationTypes?: GraphRelationType[]
+  factionIds?: string[]
+}
+
+interface GraphExportResponse {
+  format: 'json' | 'png'
+  fileName: string
+  downloadUrl?: string      // png 导出
+  payload?: KBGraphPayload  // json 导出
+}
+```
+
+## US-2.8 一致性检查请求/响应
+
+```typescript
+type ConsistencyIssueType =
+  | 'appearance_conflict'
+  | 'relation_conflict'
+  | 'location_conflict'
+  | 'item_owner_conflict'
+  | 'timeline_conflict'
+  | 'dead_character_reappear'
+  | 'title_conflict'
+  | 'other'
+
+type ConsistencyIssueStatus = 'open' | 'fixed' | 'ignored' | 'intentional'
+
+interface ConsistencyIssue {
+  id: string
+  projectId: string
+  type: ConsistencyIssueType
+  description: string
+  confidence: 'high' | 'medium' | 'low'
+  chapterIds: string[]
+  relatedEntityRefs: KBEntityRef[]
+  status: ConsistencyIssueStatus
+  discoveredAt: string
+  resolvedAt?: string
+  resolutionNote?: string
+}
+
+interface ConsistencyIssueListQuery extends PageQuery {
+  confidence?: Array<'high' | 'medium' | 'low'>
+  status?: ConsistencyIssueStatus[]
+  type?: ConsistencyIssueType[]
+}
+
+interface ConsistencyIssueListResponse {
+  items: ConsistencyIssue[]
+  pagination: PageMeta
+  appliedFilters: {
+    confidence: Array<'high' | 'medium' | 'low'>
+    status: ConsistencyIssueStatus[]
+    type: ConsistencyIssueType[]
+  }
+}
+
+interface ConsistencyIssueDetailResponse {
+  issue: ConsistencyIssue
+  kbSnapshot: string
+  chapterSnapshot: string
+  diffSegments: Array<{
+    kbText: string
+    chapterText: string
+    highlightRanges: Array<{ start: number; end: number }>
+  }>
+}
+
+interface ResolveConsistencyIssueRequest {
+  action: 'fixed' | 'ignored' | 'intentional'
+  note?: string
+}
+```
+
+## US-2.9 知识库搜索请求/响应
+
+```typescript
+interface KBSearchQuery extends PageQuery {
+  q: string             // 最少 2 字
+  entityTypes?: KBEntityType[]
+}
+
+interface KBSearchHit {
+  entityType: KBEntityType
+  entityId: string
+  title: string
+  subtitle?: string
+  matchedField: 'name' | 'aliases' | 'summary' | 'description' | 'remark' | 'content'
+  snippet: string
+  score: number
+  highlightRanges: Array<{ start: number; end: number }>
+}
+
+interface KBSearchResponse {
+  query: string
+  items: KBSearchHit[]
+  pagination: PageMeta
+  appliedFilters: {
+    entityTypes: KBEntityType[]
+  }
+}
+```
+
+## US-2.10 世界观设定请求/响应
+
+```typescript
+interface SettingListQuery extends PageQuery {
+  category?: string
+  q?: string
+}
+
+interface SettingListResponse {
+  items: KBSetting[]
+  pagination: PageMeta
+  appliedFilters: {
+    category?: string
+    q?: string
+  }
+}
+
+interface CreateSettingRequest {
+  title: string
+  category: string
+  content: string
+  order?: number
+  relatedEntityRefs?: KBEntityRef[]
+}
+
+interface UpdateSettingRequest {
+  title?: string
+  category?: string
+  content?: string
+  order?: number
+  relatedEntityRefs?: KBEntityRef[]
+}
+
+interface SettingReferencesRequest {
+  relatedEntityRefs: KBEntityRef[]
+}
+
+interface SettingReorderRequest {
+  orderedIds: string[]
+}
+
+interface SettingSuggestion {
+  id: string
+  chapterId: string
+  title: string
+  category: string
+  content: string
+  confidence: 'high' | 'medium' | 'low'
+  createdAt: string
+}
+```
+
+## US-2.11 手动编辑请求/响应（通用于角色/地点/道具/势力/伏笔/设定）
+
+```typescript
+interface KBListQuery extends PageQuery {
+  q?: string
+  confirmed?: boolean
+  source?: KBSource
+  chapterId?: string
+  includeDeleted?: boolean
+}
+
+interface KBListResponse<T> {
+  items: T[]
+  pagination: PageMeta
+  appliedFilters: {
+    q?: string
+    confirmed?: boolean
+    source?: KBSource
+    chapterId?: string
+    includeDeleted?: boolean
+  }
+}
+
+interface CreateKBEntityResponse<T> {
+  entity: T
+}
+
+interface UpdateKBEntityRequest<T> {
+  patch: Partial<T>
+  saveMode?: 'auto' | 'manual'   // auto 对应 1 秒防抖自动保存
+  idempotencyKey?: string
+}
+
+interface DeleteKBEntityResponse {
+  deletedAt: string
+  restoreUntil: string
+}
+
+interface RecycleBinQuery extends PageQuery {
+  entityTypes?: KBEntityType[]
+}
+
+interface RecycleBinItem {
+  entityType: KBEntityType
+  entityId: string
+  title: string
+  deletedAt: string
+  restoreUntil: string
+}
+
+interface RecycleBinResponse {
+  items: RecycleBinItem[]
+  pagination: PageMeta
+  appliedFilters: {
+    entityTypes: KBEntityType[]
+  }
+}
+
+interface ReferenceCheckResponse {
+  total: number
+  refs: Array<{
+    refType: 'setting' | 'graph_edge' | 'chapter_mention' | 'other'
+    refId: string
+    refTitle: string
+    fromEntityType?: KBEntityType
+    fromEntityId?: string
+  }>
+}
+
+interface RestoreKBEntityResponse<T> {
+  entity: T
+  restoredReferenceCount: number
+}
+
+interface MergeKBEntityRequest {
+  targetEntityId: string
+}
+
+interface MergePreviewResponse {
+  sourceEntityId: string
+  targetEntityId: string
+  refMigrationCount: number
+  remarkAppendPreview?: string
+  irreversible: true
+}
+
+interface MergeExecuteResponse {
+  targetEntityId: string
+  mergedSourceEntityId: string
+  migratedReferenceCount: number
+  deletedSourceAt: string
+}
+```
 
 ## 补充上下文
 
