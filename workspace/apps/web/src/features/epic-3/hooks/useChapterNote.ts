@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { client } from '../../../api/client';
+import { client, extractApiErrorMessage } from '../../../api/client';
 import type { SaveStatus } from './useAutoSave';
 import type { ChapterNote } from '@bitsnovels/api-types';
 
 interface UseChapterNoteOptions {
+  projectId: string;
   debounceMs?: number;
 }
 
@@ -73,8 +74,8 @@ function calculatePlainCharCount(text: string): number {
 
 const MAX_CHAR_COUNT = 2000;
 
-export function useChapterNote(chapterId: string, options: UseChapterNoteOptions = {}): UseChapterNoteReturn {
-  const { debounceMs = 3000 } = options;
+export function useChapterNote(chapterId: string, options: UseChapterNoteOptions): UseChapterNoteReturn {
+  const { projectId, debounceMs = 3000 } = options;
 
   const [note, setNote] = useState<ChapterNote | null>(null);
   const [content, setContent] = useState('');
@@ -84,10 +85,7 @@ export function useChapterNote(chapterId: string, options: UseChapterNoteOptions
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentRef = useRef(content);
   const isMountedRef = useRef(true);
-
-  contentRef.current = content;
 
   const fetchNote = useCallback(async () => {
     if (!isMountedRef.current) return;
@@ -95,17 +93,19 @@ export function useChapterNote(chapterId: string, options: UseChapterNoteOptions
     try {
       setLoading(true);
       setError(null);
-      const { data, error: apiError } = await client.GET(`/api/chapters/${chapterId}/note`);
+      const { data, error: apiError } = await client.GET(
+        `/api/projects/${projectId}/chapters/${chapterId}/note`
+      );
 
       if (!isMountedRef.current) return;
 
       if (apiError) {
-        setError('加载备注失败');
+        setError(extractApiErrorMessage(apiError, '加载备注失败'));
         return;
       }
 
       if (data) {
-        const noteData = data as ChapterNote;
+        const noteData = (data as { note: ChapterNote }).note;
         setNote(noteData);
         setContent(noteData.content);
       }
@@ -118,7 +118,7 @@ export function useChapterNote(chapterId: string, options: UseChapterNoteOptions
         setLoading(false);
       }
     }
-  }, [chapterId]);
+  }, [chapterId, projectId]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -137,29 +137,34 @@ export function useChapterNote(chapterId: string, options: UseChapterNoteOptions
     setSaveStatus('saving');
 
     try {
-      const { data, error: apiError } = await client.PUT(`/api/chapters/${chapterId}/note`, {
-        body: { content: contentToSave },
-      });
+      const { data, error: apiError } = await client.PATCH(
+        `/api/projects/${projectId}/chapters/${chapterId}/note`,
+        {
+          body: { content: contentToSave, saveSource: 'manual' },
+        }
+      );
 
       if (!isMountedRef.current) return;
 
       if (apiError) {
+        setError(extractApiErrorMessage(apiError, '保存备注失败'));
         setSaveStatus('error');
         return;
       }
 
       if (data) {
-        const savedNote = data as ChapterNote;
+        const savedNote = (data as { note: ChapterNote }).note;
         setNote(savedNote);
         setSaveStatus('saved');
         setLastSavedAt(new Date());
       }
     } catch {
       if (isMountedRef.current) {
+        setError('保存备注失败');
         setSaveStatus('error');
       }
     }
-  }, [chapterId]);
+  }, [chapterId, projectId]);
 
   const saveNote = useCallback(async (contentToSave: string) => {
     if (debounceTimerRef.current) {
@@ -181,7 +186,7 @@ export function useChapterNote(chapterId: string, options: UseChapterNoteOptions
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      executeSave(truncatedContent);
+      void executeSave(truncatedContent);
     }, debounceMs);
   }, [executeSave, debounceMs]);
 

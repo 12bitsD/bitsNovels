@@ -22,7 +22,7 @@ def test_iso8601_utc_time_format_red(client: TestClient) -> None:
     response = client.post(
         "/api/auth/login",
         json={
-            "email": "demo@example.com",
+            "email": "a@example.com",
             "password": "StrongPass1",
             "rememberMe": False,
         },
@@ -59,7 +59,7 @@ def test_session_ttl_policy_red(client: TestClient) -> None:
     response_default = client.post(
         "/api/auth/login",
         json={
-            "email": "demo@example.com",
+            "email": "a@example.com",
             "password": "StrongPass1",
             "rememberMe": False,
         },
@@ -67,7 +67,7 @@ def test_session_ttl_policy_red(client: TestClient) -> None:
     response_remember = client.post(
         "/api/auth/login",
         json={
-            "email": "demo@example.com",
+            "email": "a@example.com",
             "password": "StrongPass1",
             "rememberMe": True,
         },

@@ -6,10 +6,10 @@ export interface Project {
   id: string;
   name: string;
   tags: string[];
-  cover_color: string;
-  total_chars: number;
-  chapter_count: number;
-  updated_at: string;
+  coverColor: string;
+  totalChars: number;
+  chapterCount: number;
+  updatedAt: string;
   type?: ProjectType;
   description?: string;
   structureMode?: string;

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { client } from '../../../api/client';
+import { client, extractApiErrorMessage } from '../../../api/client';
 
 export type SnapshotType = 'manual' | 'auto' | 'daily' | 'restore_backup';
 
@@ -14,9 +14,9 @@ export interface Snapshot {
 }
 
 export interface DiffResult {
-  added: Array<{ text: string; position: number }>;
-  removed: Array<{ text: string; position: number }>;
-  modified: Array<{ text: string; position: number }>;
+  diff: string;
+  snapshotContent: string;
+  currentContent: string;
 }
 
 export interface StorageStats {
@@ -73,10 +73,10 @@ export function useSnapshots(options: UseSnapshotsOptions): UseSnapshotsReturn {
       const result = await client.GET(`/api/projects/${projectId}/chapters/${chapterId}/snapshots`);
 
       if (result.error) {
-        const msg = (result.error as { detail?: string }).detail || '获取快照失败';
+        const msg = extractApiErrorMessage(result.error, '获取快照失败');
         setError(msg);
       } else {
-        setSnapshots(result.data as Snapshot[]);
+        setSnapshots(((result.data as { snapshots: Snapshot[] } | undefined)?.snapshots) || []);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '获取快照失败';
@@ -104,30 +104,30 @@ export function useSnapshots(options: UseSnapshotsOptions): UseSnapshotsReturn {
     });
 
     if (result.error) {
-      const msg = (result.error as { detail?: string }).detail || '创建快照失败';
+      const msg = extractApiErrorMessage(result.error, '创建快照失败');
       throw new Error(msg);
     }
 
     await fetchSnapshots();
-    return result.data as Snapshot;
+    return (result.data as { snapshot: Snapshot }).snapshot;
   }, [projectId, chapterId, fetchSnapshots]);
 
   const getSnapshot = useCallback(async (snapshotId: string): Promise<Snapshot> => {
     const result = await client.GET(`/api/projects/${projectId}/chapters/${chapterId}/snapshots/${snapshotId}`);
 
     if (result.error) {
-      const msg = (result.error as { detail?: string }).detail || '获取快照详情失败';
+      const msg = extractApiErrorMessage(result.error, '获取快照详情失败');
       throw new Error(msg);
     }
 
-    return result.data as Snapshot;
+    return (result.data as { snapshot: Snapshot }).snapshot;
   }, [projectId, chapterId]);
 
   const deleteSnapshot = useCallback(async (snapshotId: string): Promise<void> => {
     const result = await client.DELETE(`/api/projects/${projectId}/chapters/${chapterId}/snapshots/${snapshotId}`);
 
     if (result.error) {
-      const msg = (result.error as { detail?: string }).detail || '删除快照失败';
+      const msg = extractApiErrorMessage(result.error, '删除快照失败');
       throw new Error(msg);
     }
 
@@ -138,7 +138,7 @@ export function useSnapshots(options: UseSnapshotsOptions): UseSnapshotsReturn {
     const result = await client.POST(`/api/projects/${projectId}/chapters/${chapterId}/snapshots/${snapshotId}/restore`);
 
     if (result.error) {
-      const msg = (result.error as { detail?: string }).detail || '恢复快照失败';
+      const msg = extractApiErrorMessage(result.error, '恢复快照失败');
       throw new Error(msg);
     }
 
@@ -150,7 +150,7 @@ export function useSnapshots(options: UseSnapshotsOptions): UseSnapshotsReturn {
     const result = await client.GET(`/api/projects/${projectId}/chapters/${chapterId}/snapshots/${snapshotId}/diff`);
 
     if (result.error) {
-      const msg = (result.error as { detail?: string }).detail || '获取差异对比失败';
+      const msg = extractApiErrorMessage(result.error, '获取差异对比失败');
       throw new Error(msg);
     }
 

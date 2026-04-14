@@ -1,7 +1,8 @@
+import json
 from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Header
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from server.routes._deps import require_project as _require_project
@@ -61,7 +62,7 @@ def download_kb_export(
     project_id: str,
     export_id: str,
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
-) -> JSONResponse:
+) -> Response:
     from server.main import _error, _require_user_id
     from server.services.kb_transfer_service import get_kb_export as svc_get_export
 
@@ -78,7 +79,15 @@ def download_kb_export(
     if svc_err is not None:
         return _error(404, svc_err["error"], svc_err["message"])
 
-    return JSONResponse(status_code=200, content=result)
+    return Response(
+        content=json.dumps(result, ensure_ascii=False).encode("utf-8"),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="kb-export-{export_id}.json"'
+            )
+        },
+    )
 
 
 @router.post("/{project_id}/kb/import")

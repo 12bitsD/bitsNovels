@@ -6,8 +6,10 @@ import { client } from '../../../api/client';
 vi.mock('../../../api/client', () => ({
   client: {
     GET: vi.fn().mockResolvedValue({ data: null, error: null, response: new Response() }),
-    PUT: vi.fn().mockResolvedValue({ data: null, error: null, response: new Response() }),
+    PATCH: vi.fn().mockResolvedValue({ data: null, error: null, response: new Response() }),
   },
+  extractApiErrorMessage: (error: { detail?: string; error?: { message?: string } } | null | undefined, fallback: string) =>
+    error?.detail ?? error?.error?.message ?? fallback,
 }));
 
 describe('useChapterNote', () => {
@@ -30,17 +32,17 @@ describe('useChapterNote', () => {
       data: null, error: null, response: new Response() 
     } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     expect(result.current.loading).toBe(true);
   });
 
   it('should fetch note successfully', async () => {
     vi.mocked(client.GET).mockResolvedValueOnce({ 
-      data: mockNote, error: null, response: new Response() 
+      data: { note: mockNote }, error: null, response: new Response() 
     } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     await waitFor(() => {
       expect(result.current.note).toEqual(mockNote);
@@ -55,10 +57,10 @@ describe('useChapterNote', () => {
       data: null, error: { detail: 'Not found' }, response: new Response() 
     } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     await waitFor(() => {
-      expect(result.current.error).toBe('加载备注失败');
+      expect(result.current.error).toBe('Not found');
     });
     
     expect(result.current.note).toBeNull();
@@ -66,13 +68,13 @@ describe('useChapterNote', () => {
 
   it('should update content when updateContent is called', async () => {
     vi.mocked(client.GET).mockResolvedValueOnce({ 
-      data: mockNote, error: null, response: new Response() 
+      data: { note: mockNote }, error: null, response: new Response() 
     } as never);
-    vi.mocked(client.PUT).mockResolvedValueOnce({ 
-      data: mockNote, error: null, response: new Response() 
+    vi.mocked(client.PATCH).mockResolvedValueOnce({ 
+      data: { note: mockNote }, error: null, response: new Response() 
     } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     await waitFor(() => {
       expect(result.current.content).toBe(mockNote.content);
@@ -87,10 +89,10 @@ describe('useChapterNote', () => {
 
   it('should calculate charCount correctly', async () => {
     vi.mocked(client.GET).mockResolvedValueOnce({ 
-      data: mockNote, error: null, response: new Response() 
+      data: { note: mockNote }, error: null, response: new Response() 
     } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     await waitFor(() => {
       expect(result.current.content).toBe(mockNote.content);
@@ -104,7 +106,7 @@ describe('useChapterNote', () => {
       data: null, error: null, response: new Response() 
     } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -117,10 +119,10 @@ describe('useChapterNote', () => {
 
   it('should call refetch to reload note', async () => {
     vi.mocked(client.GET)
-      .mockResolvedValueOnce({ data: mockNote, error: null, response: new Response() } as never)
-      .mockResolvedValueOnce({ data: { ...mockNote, content: 'updated' }, error: null, response: new Response() } as never);
+      .mockResolvedValueOnce({ data: { note: mockNote }, error: null, response: new Response() } as never)
+      .mockResolvedValueOnce({ data: { note: { ...mockNote, content: 'updated' } }, error: null, response: new Response() } as never);
     
-    const { result } = renderHook(() => useChapterNote('chapter-1'));
+    const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     
     await waitFor(() => {
       expect(result.current.content).toBe(mockNote.content);

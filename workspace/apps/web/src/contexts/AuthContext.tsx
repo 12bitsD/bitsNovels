@@ -20,16 +20,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchUser = async () => {
       try {
-        const { data } = await client.GET('/api/auth/me');
-        if (data) {
-          const d = data as { user: User; is_verified?: boolean };
-          setUser(d.user);
-          setIsVerified(d.is_verified ?? false);
+        const { data, error } = await client.GET('/api/auth/me');
+        if (error || !data) {
+          throw new Error('Authentication required');
         }
+
+        const d = data as {
+          user: User;
+          isVerified?: boolean;
+          is_verified?: boolean;
+        };
+        setUser(d.user);
+        setIsVerified(d.isVerified ?? d.is_verified ?? false);
       } catch {
         localStorage.removeItem('token');
         setToken(null);
         setUser(null);
+        setIsVerified(false);
       }
     };
     fetchUser();
@@ -41,7 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await client.POST('/api/auth/login', {
         body: { email, password, rememberMe }
       });
-      if (error) throw new Error((error as { detail?: string }).detail || '登录失败');
+      const detail =
+        (error as { detail?: string; error?: { message?: string } } | undefined)?.detail
+        ?? (error as { error?: { message?: string } } | undefined)?.error?.message;
+      if (error) throw new Error(detail || '登录失败');
       const d = data as { token?: string };
       if (d?.token) {
         localStorage.setItem('token', d.token);

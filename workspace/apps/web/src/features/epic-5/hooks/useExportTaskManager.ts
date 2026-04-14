@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { client } from '../../../api/client';
+import { client, downloadFile, extractApiErrorMessage } from '../../../api/client';
 import { type ExportFormat, type ExportTemplate } from './useExportTemplates';
 
 export type ExportScope = 'all' | 'volume' | 'chapter';
@@ -140,7 +140,7 @@ export function useExportTaskManager(projectId: string) {
       });
 
       if (result.error) {
-        const msg = (result.error as { detail?: string }).detail || '导出失败';
+        const msg = extractApiErrorMessage(result.error, '导出失败');
         setExportError(msg);
         setExporting(false);
         return;
@@ -160,9 +160,16 @@ export function useExportTaskManager(projectId: string) {
     }
   }, [projectId, config.format, config.scope, pollTaskStatus]);
 
-  const handleDownload = useCallback((taskId: string) => {
-    window.open(`/api/projects/${projectId}/exports/${taskId}/download`, '_blank');
-  }, [projectId]);
+  const handleDownload = useCallback(async (taskId: string) => {
+    try {
+      await downloadFile(
+        `/api/projects/${projectId}/exports/${taskId}/download`,
+        `export-${taskId}.${config.format === 'markdown' ? 'md' : config.format}`,
+      );
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : '下载失败');
+    }
+  }, [config.format, projectId]);
 
   return {
     config,

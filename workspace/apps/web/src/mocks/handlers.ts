@@ -9,9 +9,16 @@ export const handlers = [
   http.post('http://localhost:5173/api/auth/login', () => {
     return HttpResponse.json({
       token: 'mock-token',
-      userId: 'mock-user',
+      user: { id: 'mock-user', email: 'mock@example.com' },
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      rememberMe: false
+      emailVerified: true
+    });
+  }),
+  http.get('http://localhost:5173/api/auth/me', () => {
+    return HttpResponse.json({
+      user: { id: 'mock-user', email: 'mock@example.com' },
+      isVerified: true,
+      is_verified: true
     });
   }),
   http.post('http://localhost:5173/api/auth/forgot-password', () => {
@@ -33,9 +40,16 @@ export const handlers = [
   http.post('/api/auth/login', () => {
     return HttpResponse.json({
       token: 'mock-token',
-      userId: 'mock-user',
+      user: { id: 'mock-user', email: 'mock@example.com' },
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
-      rememberMe: false
+      emailVerified: true
+    });
+  }),
+  http.get('/api/auth/me', () => {
+    return HttpResponse.json({
+      user: { id: 'mock-user', email: 'mock@example.com' },
+      isVerified: true,
+      is_verified: true
     });
   }),
   http.post('/api/auth/forgot-password', () => {
@@ -52,70 +66,78 @@ export const handlers = [
   }),
 
   // Chapter Note handlers
-  http.get('http://localhost:5173/api/chapters/:chapterId/note', ({ params }) => {
+  http.get('http://localhost:5173/api/projects/:projectId/chapters/:chapterId/note', ({ params }) => {
     const { chapterId } = params;
     if (chapterId === 'error-chapter') {
       return new HttpResponse(JSON.stringify({ detail: '备注不存在' }), { status: 404 });
     }
     return HttpResponse.json({
-      id: `note-${chapterId}`,
-      chapterId,
-      content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"测试备注"}]}]}',
-      charCount: 4,
-      autoSavedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      note: {
+        id: `note-${chapterId}`,
+        chapterId,
+        content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"测试备注"}]}]}',
+        charCount: 4,
+        autoSavedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     });
   }),
 
-  http.put('http://localhost:5173/api/chapters/:chapterId/note', async ({ params, request }) => {
+  http.patch('http://localhost:5173/api/projects/:projectId/chapters/:chapterId/note', async ({ params, request }) => {
     const { chapterId } = params;
     const body = await request.json() as { content?: string };
     if (chapterId === 'fail-chapter') {
       return new HttpResponse(JSON.stringify({ detail: '保存失败' }), { status: 500 });
     }
     return HttpResponse.json({
-      id: `note-${chapterId}`,
-      chapterId,
-      content: body.content || '',
-      charCount: body.content ? body.content.length : 0,
-      autoSavedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      note: {
+        id: `note-${chapterId}`,
+        chapterId,
+        content: body.content || '',
+        charCount: body.content ? body.content.length : 0,
+        autoSavedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     });
   }),
 
   // Relative path fallbacks
-  http.get('/api/chapters/:chapterId/note', ({ params }) => {
+  http.get('/api/projects/:projectId/chapters/:chapterId/note', ({ params }) => {
     const { chapterId } = params;
     if (chapterId === 'error-chapter') {
       return new HttpResponse(JSON.stringify({ detail: '备注不存在' }), { status: 404 });
     }
     return HttpResponse.json({
-      id: `note-${chapterId}`,
-      chapterId,
-      content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"测试备注"}]}]}',
-      charCount: 4,
-      autoSavedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      note: {
+        id: `note-${chapterId}`,
+        chapterId,
+        content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"测试备注"}]}]}',
+        charCount: 4,
+        autoSavedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     });
   }),
 
-  http.put('/api/chapters/:chapterId/note', async ({ params, request }) => {
+  http.patch('/api/projects/:projectId/chapters/:chapterId/note', async ({ params, request }) => {
     const { chapterId } = params;
     const body = await request.json() as { content?: string };
     if (chapterId === 'fail-chapter') {
       return new HttpResponse(JSON.stringify({ detail: '保存失败' }), { status: 500 });
     }
     return HttpResponse.json({
-      id: `note-${chapterId}`,
-      chapterId,
-      content: body.content || '',
-      charCount: body.content ? body.content.length : 0,
-      autoSavedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      note: {
+        id: `note-${chapterId}`,
+        chapterId,
+        content: body.content || '',
+        charCount: body.content ? body.content.length : 0,
+        autoSavedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     });
   }),
 

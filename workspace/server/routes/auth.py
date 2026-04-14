@@ -1,5 +1,5 @@
 import secrets
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Header
@@ -132,32 +132,45 @@ def login(payload: LoginRequest) -> JSONResponse:
     if not m._email_valid(email):
         return m._error(400, "EMAIL_INVALID", "Email format is invalid")
     existing_user_id = m.app.state.email_index.get(email)
-    if existing_user_id is not None:
-        user = m.app.state.auth_users[existing_user_id]
-        if user["password"] != payload.password:
-            return m._error(401, "INVALID_CREDENTIALS", "Invalid email or password")
-    else:
-        user = m._ensure_user(email=email, password=payload.password)
+    if existing_user_id is None:
+        return m._error(401, "INVALID_CREDENTIALS", "Invalid email or password")
+
+    user = m.app.state.auth_users[existing_user_id]
+    if not m._verify_password(user, payload.password):
+        return m._error(401, "INVALID_CREDENTIALS", "Invalid email or password")
+
     ttl = timedelta(days=30 if payload.rememberMe else 1)
-    expires_at = m._now() + ttl
-    session_token = m._next_id("session_counter", "session")
-    m.app.state.sessions[session_token] = user["id"]
-    user_payload = {
-        "id": user["id"],
-        "email": user["email"],
-        "nickname": user["nickname"],
-        "authProvider": user["authProvider"],
-        "emailVerified": user["emailVerified"],
-        "createdAt": user["createdAt"],
-        "updatedAt": user["updatedAt"],
-    }
+    session_token, expires_at = m._create_session(user["id"], ttl)
     return JSONResponse(
         status_code=200,
         content={
             "token": session_token,
-            "user": user_payload,
+            "user": m._user_payload(user),
             "expiresAt": m._iso_z(expires_at),
             "emailVerified": user["emailVerified"],
+        },
+    )
+
+
+@router.get("/api/auth/me")
+def get_me(
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+) -> JSONResponse:
+    m = _m()
+    user_id = m._resolve_user_id(authorization)
+    if user_id is None:
+        return m._error(401, "UNAUTHORIZED", "Authentication required")
+
+    user = m.app.state.auth_users.get(user_id)
+    if user is None:
+        return m._error(401, "UNAUTHORIZED", "Authentication required")
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "user": m._user_payload(user),
+            "isVerified": user["emailVerified"],
+            "is_verified": user["emailVerified"],
         },
     )
 
@@ -218,12 +231,14 @@ def reset_password(payload: ResetPasswordRequest) -> JSONResponse:
         token_data["used"] = True
         return m._error(410, "RESET_TOKEN_EXPIRED", "Reset token expired")
     user = m.app.state.auth_users[token_data["userId"]]
-    user["password"] = payload.newPassword
+    user["password"] = m._hash_password(payload.newPassword)
     user["updatedAt"] = m._iso_z(m._now())
     token_data["used"] = True
     user_id = user["id"]
     m.app.state.sessions = {
-        token: uid for token, uid in m.app.state.sessions.items() if uid != user_id
+        token: session
+        for token, session in m.app.state.sessions.items()
+        if m._session_user_id(session) != user_id
     }
     return JSONResponse(status_code=200, content={"ok": True})
 
@@ -233,13 +248,19 @@ def oauth_start(provider: str) -> Any:
     m = _m()
     if provider not in ALLOWED_PROVIDERS:
         return m._error(400, "OAUTH_PROVIDER_UNSUPPORTED", "Unsupported oauth provider")
-    m.app.state.state_counter = getattr(m.app.state, "state_counter", 0) + 1
-    state = f"state-{m.app.state.state_counter}"
+    state = secrets.token_urlsafe(24)
+    m.app.state.oauth_states[state] = {
+        "provider": provider,
+        "expiresAt": m._now() + timedelta(minutes=10),
+    }
     oauth_stub = getattr(m.app.state, "oauth_provider_stub", None)
-    if oauth_stub is None:
-        redirect_to = f"https://oauth.example.com/{provider}/authorize?state={state}"
-    else:
-        redirect_to = f"{oauth_stub.start(provider)}?state={state}"
+    try:
+        if oauth_stub is None:
+            redirect_to = f"https://oauth.example.com/{provider}/authorize?state={state}"
+        else:
+            redirect_to = f"{oauth_stub.start(provider)}?state={state}"
+    except RuntimeError:
+        return m._error(502, "OAUTH_PROVIDER_ERROR", "OAuth provider unavailable")
     return RedirectResponse(url=redirect_to, status_code=302)
 
 
@@ -248,29 +269,51 @@ def oauth_callback(provider: str, code: str, state: str) -> Any:
     m = _m()
     if provider not in ALLOWED_PROVIDERS:
         return m._error(400, "OAUTH_PROVIDER_UNSUPPORTED", "Unsupported oauth provider")
+
+    state_record = m.app.state.oauth_states.pop(state, None)
+    expires_at = state_record.get("expiresAt") if isinstance(state_record, dict) else None
+    if (
+        state_record is None
+        or state_record.get("provider") != provider
+        or not isinstance(expires_at, datetime)
+        or expires_at <= m._now()
+    ):
+        return m._error(400, "OAUTH_STATE_INVALID", "OAuth state is invalid or expired")
+
     oauth_stub = getattr(m.app.state, "oauth_provider_stub", None)
-    if oauth_stub is None:
-        payload = {"email": "oauth@example.com", "nickname": "oauth-user"}
-    else:
-        callback_payload = oauth_stub.callback(
-            provider=provider, code=code, state=state
-        )
-        payload = {
-            "email": callback_payload.email.lower(),
-            "nickname": callback_payload.nickname,
-        }
+    try:
+        if oauth_stub is None:
+            payload = {"email": "oauth@example.com", "nickname": "oauth-user"}
+        else:
+            callback_payload = oauth_stub.callback(
+                provider=provider, code=code, state=state
+            )
+            payload = {
+                "email": callback_payload.email.lower(),
+                "nickname": callback_payload.nickname,
+            }
+    except PermissionError:
+        return m._error(400, "OAUTH_ACCESS_DENIED", "OAuth access denied")
+    except RuntimeError:
+        return m._error(502, "OAUTH_PROVIDER_ERROR", "OAuth provider unavailable")
+
     existing_user_id = m.app.state.email_index.get(payload["email"])
     if existing_user_id is None:
         user = m._ensure_user(
-            email=payload["email"], password="OAuthPass1", auth_provider=provider
+            email=payload["email"],
+            password=secrets.token_urlsafe(32),
+            auth_provider=provider,
+            email_verified=True,
         )
     else:
         user = m.app.state.auth_users[existing_user_id]
         user["authProvider"] = provider
+        user["emailVerified"] = True
+        user["nickname"] = payload["nickname"]
         user["updatedAt"] = m._iso_z(m._now())
-    session_token = m._next_id("session_counter", "session")
-    m.app.state.sessions[session_token] = user["id"]
+
+    session_token, _ = m._create_session(user["id"], timedelta(days=30))
     return RedirectResponse(
-        url=f"https://bitsnovels.app/auth/callback?ok=1&token={session_token}",
+        url=f"https://bitsnovels.app/auth/callback#ok=1&token={session_token}",
         status_code=302,
     )

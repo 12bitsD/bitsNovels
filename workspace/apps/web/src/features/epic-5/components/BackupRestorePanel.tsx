@@ -5,7 +5,7 @@ import {
   FileArchive,
   AlertTriangle,
 } from 'lucide-react';
-import { client } from '../../../api/client';
+import { client, downloadFile, extractApiErrorMessage } from '../../../api/client';
 import { ErrorAlert } from '../../../components/ui/ErrorAlert';
 import { LoadingButton } from '../../../components/ui/LoadingButton';
 
@@ -71,7 +71,7 @@ export function BackupRestorePanel({
       const result = await client.POST(`/api/projects/${projectId}/backups/auto/trigger`);
 
       if (result.error) {
-        const msg = (result.error as { detail?: string }).detail || '创建备份失败';
+        const msg = extractApiErrorMessage(result.error, '创建备份失败');
         setError(msg);
       } else {
         await fetchBackups();
@@ -83,8 +83,15 @@ export function BackupRestorePanel({
     }
   };
 
-  const handleDownload = (backupId: string) => {
-    window.open(`/api/projects/${projectId}/backups/${backupId}/download`, '_blank');
+  const handleDownload = async (backupId: string) => {
+    try {
+      await downloadFile(
+        `/api/projects/${projectId}/backups/${backupId}/download`,
+        `backup-${backupId}.zip`,
+      );
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : '下载备份失败');
+    }
   };
 
   const formatDate = (dateString: string): string => {

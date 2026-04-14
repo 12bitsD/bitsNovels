@@ -118,7 +118,7 @@ export default function ProjectDashboard() {
               >
                 <div 
                   className="absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300 group-hover:w-2"
-                  style={{ backgroundColor: project.cover_color }}
+                  style={{ backgroundColor: project.coverColor }}
                 />
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold mb-3 truncate pl-2">{project.name}</h3>
@@ -132,15 +132,15 @@ export default function ProjectDashboard() {
                   <div className="text-sm text-ink-light space-y-1.5 pl-2">
                     <p className="flex justify-between items-center">
                       <span>字数</span>
-                      <span className="font-mono text-ink">{project.total_chars.toLocaleString()}</span>
+                      <span className="font-mono text-ink">{project.totalChars.toLocaleString()}</span>
                     </p>
                     <p className="flex justify-between items-center">
                       <span>章节</span>
-                      <span className="font-mono text-ink">{project.chapter_count}</span>
+                      <span className="font-mono text-ink">{project.chapterCount}</span>
                     </p>
                     <p className="flex justify-between items-center text-xs mt-2 pt-2 border-t border-parchment">
                       <span>最后编辑</span>
-                      <span>{new Date(project.updated_at).toLocaleDateString()}</span>
+                      <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
                     </p>
                   </div>
                 </CardContent>
@@ -156,11 +156,11 @@ export default function ProjectDashboard() {
                   index !== filteredProjects.length - 1 ? 'border-b border-parchment' : ''
                 }`}
               >
-                <div className="w-3 h-3 rounded-full mr-4 shadow-sm" style={{ backgroundColor: project.cover_color }} />
+                <div className="w-3 h-3 rounded-full mr-4 shadow-sm" style={{ backgroundColor: project.coverColor }} />
                 <div className="flex-1 font-bold">{project.name}</div>
-                <div className="w-32 text-sm text-ink-light font-mono">{project.total_chars.toLocaleString()} 字</div>
-                <div className="w-32 text-sm text-ink-light font-mono">{project.chapter_count} 章</div>
-                <div className="w-32 text-sm text-ink-light text-right">{new Date(project.updated_at).toLocaleDateString()}</div>
+                <div className="w-32 text-sm text-ink-light font-mono">{project.totalChars.toLocaleString()} 字</div>
+                <div className="w-32 text-sm text-ink-light font-mono">{project.chapterCount} 章</div>
+                <div className="w-32 text-sm text-ink-light text-right">{new Date(project.updatedAt).toLocaleDateString()}</div>
               </div>
             ))}
           </Card>

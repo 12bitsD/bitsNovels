@@ -10,6 +10,8 @@ vi.mock('../../../api/client', () => ({
     POST: vi.fn(),
     DELETE: vi.fn(),
   },
+  extractApiErrorMessage: (error: { detail?: string; error?: { message?: string } } | null | undefined, fallback: string) =>
+    error?.detail ?? error?.error?.message ?? fallback,
 }));
 
 // @ts-expect-error typecheck fix
@@ -74,7 +76,7 @@ describe('useSnapshots', () => {
 
   describe('fetchSnapshots', () => {
     it('should fetch snapshots on mount when autoFetch is true', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
 
@@ -108,7 +110,7 @@ describe('useSnapshots', () => {
     });
 
     it('should allow manual refetch', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: false }));
 
@@ -124,8 +126,7 @@ describe('useSnapshots', () => {
 
   describe('createSnapshot', () => {
     it('should create a new snapshot with label', async () => {
-      mockClient.POST.mockResolvedValueOnce({ data: mockSnapshot, error: undefined });
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
 
@@ -134,9 +135,10 @@ describe('useSnapshots', () => {
       });
 
       mockClient.POST.mockResolvedValueOnce({
-        data: { ...mockSnapshot, id: 'new-snapshot', label: 'New label' },
+        data: { snapshot: { ...mockSnapshot, id: 'new-snapshot', label: 'New label' } },
         error: undefined,
       });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       act(() => {
         result.current.createSnapshot('New label');
@@ -151,7 +153,7 @@ describe('useSnapshots', () => {
     });
 
     it('should handle create error', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: [], error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: [] }, error: undefined });
       mockClient.POST.mockResolvedValueOnce({ data: undefined, error: { detail: 'Creation failed' } });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
@@ -173,7 +175,7 @@ describe('useSnapshots', () => {
     });
 
     it('should reject label longer than 100 characters', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: [], error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: [] }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
 
@@ -200,7 +202,7 @@ describe('useSnapshots', () => {
 
   describe('getSnapshot', () => {
     it('should fetch a single snapshot by id', async () => {
-      mockClient.GET.mockResolvedValue({ data: mockSnapshot, error: undefined });
+      mockClient.GET.mockResolvedValue({ data: { snapshot: mockSnapshot }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: false }));
 
@@ -218,7 +220,7 @@ describe('useSnapshots', () => {
 
   describe('deleteSnapshot', () => {
     it('should delete a snapshot and refresh list', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
       mockClient.DELETE.mockResolvedValueOnce({ data: undefined, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
@@ -227,7 +229,7 @@ describe('useSnapshots', () => {
         expect(result.current.snapshots).toEqual(mockSnapshotsList);
       });
 
-      mockClient.GET.mockResolvedValueOnce({ data: [mockSnapshotsList[1], mockSnapshotsList[2]], error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: [mockSnapshotsList[1], mockSnapshotsList[2]] }, error: undefined });
 
       act(() => {
         result.current.deleteSnapshot('snapshot-1');
@@ -244,9 +246,10 @@ describe('useSnapshots', () => {
   describe('restoreSnapshot', () => {
     it('should restore a snapshot', async () => {
       mockClient.POST.mockResolvedValueOnce({ data: { success: true }, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const onRestore = vi.fn();
-      const { result } = renderHook(() => useSnapshots({ projectId, chapterId, onRestore }));
+      const { result } = renderHook(() => useSnapshots({ projectId, chapterId, onRestore, autoFetch: false }));
 
       act(() => {
         result.current.restoreSnapshot('snapshot-1');
@@ -264,7 +267,7 @@ describe('useSnapshots', () => {
     it('should handle restore error', async () => {
       mockClient.POST.mockResolvedValueOnce({ data: undefined, error: { detail: 'Restore failed' } });
 
-      const { result } = renderHook(() => useSnapshots({ projectId, chapterId }));
+      const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: false }));
 
       let errorMsg: string | undefined;
       act(() => {
@@ -282,9 +285,9 @@ describe('useSnapshots', () => {
   describe('getDiff', () => {
     it('should fetch diff between snapshot and current', async () => {
       const mockDiff = {
-        added: [{ text: 'new text', position: 10 }],
-        removed: [{ text: 'old text', position: 5 }],
-        modified: [],
+        diff: '--- snapshot\n+++ current',
+        snapshotContent: 'old text',
+        currentContent: 'new text',
       };
       mockClient.GET.mockResolvedValue({ data: mockDiff, error: undefined });
 
@@ -304,7 +307,7 @@ describe('useSnapshots', () => {
 
   describe('selectSnapshot', () => {
     it('should select a snapshot', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
 
@@ -320,7 +323,7 @@ describe('useSnapshots', () => {
     });
 
     it('should clear selected snapshot', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
 
@@ -344,7 +347,7 @@ describe('useSnapshots', () => {
 
   describe('calculateStorageStats', () => {
     it('should calculate total size and count', async () => {
-      mockClient.GET.mockResolvedValueOnce({ data: mockSnapshotsList, error: undefined });
+      mockClient.GET.mockResolvedValueOnce({ data: { snapshots: mockSnapshotsList }, error: undefined });
 
       const { result } = renderHook(() => useSnapshots({ projectId, chapterId, autoFetch: true }));
 

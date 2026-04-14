@@ -6,6 +6,7 @@ const LoginPage = lazy(() => import('./features/epic-1/components/LoginPage'));
 const RegisterPage = lazy(() => import('./features/epic-1/components/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./features/epic-1/components/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./features/epic-1/components/ResetPasswordPage'));
+const OAuthCallbackPage = lazy(() => import('./features/epic-1/components/OAuthCallbackPage'));
 const VerificationResultPage = lazy(() => import('./features/epic-1/components/VerificationResultPage'));
 const ProjectDashboard = lazy(() => import('./features/epic-1/components/ProjectDashboard'));
 const CreateProjectModal = lazy(() => import('./features/epic-1/components/CreateProjectModal'));
@@ -45,6 +46,7 @@ function DevNavigation() {
         <li><Link to="/register" className="hover:underline">/register</Link></li>
         <li><Link to="/forgot-password" className="hover:underline">/forgot-password</Link></li>
         <li><Link to="/reset-password?token=dev" className="hover:underline">/reset-password</Link></li>
+        <li><Link to="/auth/callback#ok=1&token=dev" className="hover:underline">/auth/callback</Link></li>
         <li><Link to="/verify?token=dev" className="hover:underline">/verify</Link></li>
         <li><Link to="/dashboard" className="hover:underline">/dashboard</Link></li>
         <li><Link to="/projects/1/settings" className="hover:underline">/projects/1/settings</Link></li>
@@ -70,6 +72,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/auth/callback" element={<OAuthCallbackPage />} />
             <Route path="/verify" element={<VerificationResultPage />} />
             <Route path="/dashboard" element={<ProjectDashboard />} />
             <Route path="/projects/new" element={<DashboardWithModal />} />

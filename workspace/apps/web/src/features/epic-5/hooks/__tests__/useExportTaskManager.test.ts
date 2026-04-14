@@ -8,7 +8,10 @@ vi.mock('../../../../api/client', () => ({
   client: {
     GET: vi.fn(),
     POST: vi.fn(),
-  }
+  },
+  downloadFile: vi.fn(),
+  extractApiErrorMessage: (error: { detail?: string; error?: { message?: string } } | null | undefined, fallback: string) =>
+    error?.detail ?? error?.error?.message ?? fallback,
 }));
 
 describe('useExportTaskManager', () => {
@@ -116,11 +119,14 @@ describe('useExportTaskManager', () => {
     const { result } = renderHook(() => useExportTaskManager('p1'));
     await waitFor(() => expect(result.current.loadingHistory).toBe(false));
 
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    await act(async () => {
+      await result.current.handleDownload('task-1');
+    });
 
-    result.current.handleDownload('task-1');
-
-    expect(openSpy).toHaveBeenCalledWith('/api/projects/p1/exports/task-1/download', '_blank');
-    openSpy.mockRestore();
+    const apiModule = await import('../../../../api/client');
+    expect(apiModule.downloadFile).toHaveBeenCalledWith(
+      '/api/projects/p1/exports/task-1/download',
+      'export-task-1.docx',
+    );
   });
 });

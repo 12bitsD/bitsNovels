@@ -20,6 +20,8 @@ def _project_response_item(project: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": project["id"],
         "name": project["name"],
+        "tags": project.get("tags", []),
+        "description": project.get("description"),
         "coverColor": project.get("coverColor", "#5B8FF9"),
         "type": project.get("type", "novel"),
         "totalChars": project.get("totalChars", 0),
@@ -158,6 +160,27 @@ def patch_project(
         if len(name) < 1 or len(name) > 50:
             return m._error(400, "PROJECT_NAME_INVALID", "Project name is invalid")
         project["name"] = name
+    if "type" in payload:
+        project_type = str(payload["type"])
+        if project_type not in {"novel", "medium", "short"}:
+            return m._error(400, "PROJECT_TYPE_INVALID", "Project type is invalid")
+        project["type"] = project_type
+    if "tags" in payload:
+        raw_tags = payload["tags"]
+        if not isinstance(raw_tags, list):
+            return m._error(400, "PROJECT_TAGS_INVALID", "Project tags are invalid")
+        tags = [str(tag) for tag in raw_tags]
+        if len(tags) > 5 or any(tag not in PROJECT_TAGS for tag in tags):
+            return m._error(400, "PROJECT_TAGS_INVALID", "Project tags are invalid")
+        project["tags"] = tags
+    if "description" in payload:
+        description = payload["description"]
+        if description is not None and len(str(description)) > 500:
+            return m._error(
+                400, "PROJECT_DESCRIPTION_TOO_LONG", "Project description is too long"
+            )
+        project["description"] = None if description is None else str(description)
+    if {"name", "type", "tags", "description"} & payload.keys():
         project["updatedAt"] = m._iso_z(m._now())
     return JSONResponse(
         status_code=200,

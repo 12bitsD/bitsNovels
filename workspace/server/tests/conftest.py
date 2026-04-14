@@ -174,6 +174,7 @@ def app_state(
         }
     }
     app.state.sessions = {"token-of-user-a": "user-a", "token-of-user-b": "user-b"}
+    app.state.oauth_states = {}
     app.state.archived_project_ids = set()
     app.state.state_counter = 0
     app.state.session_counter = 0

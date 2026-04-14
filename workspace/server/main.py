@@ -1,8 +1,10 @@
 import importlib
+import hashlib
+import hmac
 import os
 import re
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, AsyncGenerator, Optional, Union
 
 from fastapi import FastAPI
@@ -17,6 +19,7 @@ class _FakeDb:
         self.projects: list[dict[str, Any]] = []
         self.volumes: list[dict[str, Any]] = []
         self.chapters: list[dict[str, Any]] = []
+        self.notifications: list[dict[str, Any]] = []
         self.failpoints: set[str] = set()
 
 
@@ -40,6 +43,7 @@ def _reset_auth_state() -> None:
     app.state.auth_users = {}
     app.state.email_index = {}
     app.state.sessions = {}
+    app.state.oauth_states = {}
     app.state.session_counter = 0
     app.state.user_counter = 0
     app.state.verify_tokens = {}
@@ -225,8 +229,78 @@ def _next_id(counter_key: str, prefix: str) -> str:
     return f"{prefix}-{current}"
 
 
+def _hash_password(password: str) -> str:
+    iterations = 600_000
+    salt = os.urandom(16).hex()
+    digest = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt.encode("utf-8"), iterations
+    ).hex()
+    return f"pbkdf2_sha256${iterations}${salt}${digest}"
+
+
+def _verify_password(user: dict[str, Any], candidate_password: str) -> bool:
+    stored_password = user.get("password")
+    if not isinstance(stored_password, str):
+        return False
+
+    if not stored_password.startswith("pbkdf2_sha256$"):
+        matched = hmac.compare_digest(stored_password, candidate_password)
+        if matched:
+            user["password"] = _hash_password(candidate_password)
+        return matched
+
+    try:
+        _, raw_iterations, salt, expected_digest = stored_password.split("$", 3)
+        digest = hashlib.pbkdf2_hmac(
+            "sha256",
+            candidate_password.encode("utf-8"),
+            salt.encode("utf-8"),
+            int(raw_iterations),
+        ).hex()
+    except (TypeError, ValueError):
+        return False
+
+    return hmac.compare_digest(digest, expected_digest)
+
+
+def _user_payload(user: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": user["id"],
+        "email": user["email"],
+        "nickname": user["nickname"],
+        "authProvider": user["authProvider"],
+        "emailVerified": user["emailVerified"],
+        "createdAt": user["createdAt"],
+        "updatedAt": user["updatedAt"],
+    }
+
+
+def _session_user_id(session: Any) -> Optional[str]:
+    if isinstance(session, str):
+        return session
+    if isinstance(session, dict):
+        user_id = session.get("userId")
+        if isinstance(user_id, str):
+            return user_id
+    return None
+
+
+def _create_session(user_id: str, ttl: timedelta) -> tuple[str, datetime]:
+    expires_at = _now() + ttl
+    session_token = _next_id("session_counter", "session")
+    app.state.sessions[session_token] = {
+        "userId": user_id,
+        "expiresAt": expires_at,
+    }
+    return session_token, expires_at
+
+
 def _ensure_user(
-    email: str, password: str, auth_provider: str = "email"
+    email: str,
+    password: str,
+    auth_provider: str = "email",
+    *,
+    email_verified: bool = False,
 ) -> dict[str, Any]:
     existing_user_id = app.state.email_index.get(email)
     if existing_user_id is not None:
@@ -238,8 +312,8 @@ def _ensure_user(
         "email": email,
         "nickname": email.split("@")[0],
         "authProvider": auth_provider,
-        "emailVerified": False,
-        "password": password,
+        "emailVerified": email_verified,
+        "password": _hash_password(password),
         "createdAt": now_iso,
         "updatedAt": now_iso,
     }
@@ -252,7 +326,28 @@ def _resolve_user_id(authorization: Optional[str]) -> Optional[str]:
     if not authorization or not authorization.startswith("Bearer "):
         return None
     token = authorization.split(" ", 1)[1]
-    return app.state.sessions.get(token)  # type: ignore[no-any-return]
+    session = app.state.sessions.get(token)
+    if session is None:
+        return None
+
+    if isinstance(session, str):
+        return session
+
+    if not isinstance(session, dict):
+        app.state.sessions.pop(token, None)
+        return None
+
+    expires_at = session.get("expiresAt")
+    if isinstance(expires_at, datetime) and expires_at <= _now():
+        app.state.sessions.pop(token, None)
+        return None
+
+    user_id = session.get("userId")
+    if not isinstance(user_id, str):
+        app.state.sessions.pop(token, None)
+        return None
+
+    return user_id
 
 
 def _require_user_id(authorization: Optional[str]) -> Union[str, JSONResponse]:

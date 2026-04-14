@@ -13,22 +13,19 @@ import type { ProjectType } from '@bitsnovels/api-types';
 type TabId = 'basic' | 'goals' | 'ai' | 'backup';
 
 interface ProjectSettings {
-  id: string;
-  name: string;
-  type: ProjectType;
-  tags: string[];
-  description: string;
-  status: string;
-  cover_color: string;
-  total_chars: number;
-  volume_count: number;
-  chapter_count: number;
-  knowledge_base_count: number;
-  created_at: string;
-  updated_at: string;
-  daily_goal?: number;
-  total_goal?: number;
-  ai_style?: string;
+  project: {
+    id: string;
+    name: string;
+    type: ProjectType;
+    tags?: string[];
+    description?: string | null;
+  };
+  stats: {
+    volumeCount: number;
+    chapterCount: number;
+    totalChars: number;
+    kbEntryCount: number;
+  };
 }
 
 type ProjectSettingsState = {
@@ -48,10 +45,10 @@ type ProjectSettingsState = {
   totalGoal: number;
   aiStyle: string;
   stats: {
-    volume_count: number;
-    chapter_count: number;
-    total_chars: number;
-    knowledge_base_count: number;
+    volumeCount: number;
+    chapterCount: number;
+    totalChars: number;
+    kbEntryCount: number;
   };
 };
 
@@ -72,10 +69,10 @@ const initialState: ProjectSettingsState = {
   totalGoal: 100000,
   aiStyle: 'balanced',
   stats: {
-    volume_count: 0,
-    chapter_count: 0,
-    total_chars: 0,
-    knowledge_base_count: 0,
+    volumeCount: 0,
+    chapterCount: 0,
+    totalChars: 0,
+    kbEntryCount: 0,
   }
 };
 
@@ -96,33 +93,42 @@ export default function ProjectSettingsPage() {
 
   useEffect(() => {
     if (!projectId) return;
-    client.GET(`/api/projects/${projectId}/settings`).then(({ data, error: apiError }) => {
-      if (apiError) {
+    const loadSettings = async () => {
+      const [{ data, error: settingsError }, { data: goalsData }] = await Promise.all([
+        client.GET(`/api/projects/${projectId}/settings`),
+        client.GET(`/api/projects/${projectId}/goals`),
+      ]);
+
+      if (settingsError || !data) {
         dispatch({ error: '加载项目设置失败', loading: false });
         return;
       }
-      if (data) {
-        const settings = data as ProjectSettings;
-        dispatch({
-          name: settings.name,
-          type: settings.type as ProjectType,
-          tags: settings.tags || [],
-          description: settings.description || '',
-          dailyGoal: settings.daily_goal || 2000,
-          totalGoal: settings.total_goal || 100000,
-          aiStyle: settings.ai_style || 'balanced',
-          stats: {
-            volume_count: settings.volume_count || 0,
-            chapter_count: settings.chapter_count || 0,
-            total_chars: settings.total_chars || 0,
-            knowledge_base_count: settings.knowledge_base_count || 0,
-          },
-          loading: false,
-        });
-      } else {
-        dispatch({ loading: false });
-      }
-    });
+
+      const settings = data as ProjectSettings;
+      const goals = goalsData as {
+        dailyWordTarget?: number | null;
+        totalWordTarget?: number | null;
+      } | null;
+
+      dispatch({
+        name: settings.project.name,
+        type: settings.project.type as ProjectType,
+        tags: settings.project.tags || [],
+        description: settings.project.description || '',
+        dailyGoal: goals?.dailyWordTarget ?? 2000,
+        totalGoal: goals?.totalWordTarget ?? 100000,
+        aiStyle: 'balanced',
+        stats: {
+          volumeCount: settings.stats.volumeCount || 0,
+          chapterCount: settings.stats.chapterCount || 0,
+          totalChars: settings.stats.totalChars || 0,
+          kbEntryCount: settings.stats.kbEntryCount || 0,
+        },
+        loading: false,
+      });
+    };
+
+    void loadSettings();
   }, [projectId]);
 
   // 分离防抖验证逻辑
@@ -168,9 +174,14 @@ export default function ProjectSettingsPage() {
       const detail =
         typeof apiError === 'object' &&
         apiError !== null &&
-        'detail' in apiError &&
-        typeof (apiError as { detail?: unknown }).detail === 'string'
-          ? (apiError as { detail: string }).detail
+        'error' in apiError &&
+        typeof (apiError as { error?: { message?: unknown } }).error?.message === 'string'
+          ? (apiError as { error: { message: string } }).error.message
+          : typeof apiError === 'object' &&
+              apiError !== null &&
+              'detail' in apiError &&
+              typeof (apiError as { detail?: unknown }).detail === 'string'
+            ? (apiError as { detail: string }).detail
           : '更新失败';
       dispatch({ error: detail, saving: false });
     } else {
@@ -192,7 +203,9 @@ export default function ProjectSettingsPage() {
   const handleDelete = async () => {
     if (deleteConfirmName !== name) return;
     dispatch({ error: '' });
-    const { error: apiError } = await client.DELETE(`/api/projects/${projectId}`);
+    const { error: apiError } = await client.DELETE(`/api/projects/${projectId}`, {
+      body: { confirmationName: deleteConfirmName },
+    });
     if (apiError) {
       dispatch({ error: '删除失败' });
     } else {
@@ -313,19 +326,19 @@ export default function ProjectSettingsPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-parchment/50 rounded-md p-3">
                       <p className="text-xs text-ink-light">卷数</p>
-                      <p className="text-lg font-mono font-bold text-ink">{stats.volume_count}</p>
+                      <p className="text-lg font-mono font-bold text-ink">{stats.volumeCount}</p>
                     </div>
                     <div className="bg-parchment/50 rounded-md p-3">
                       <p className="text-xs text-ink-light">章数</p>
-                      <p className="text-lg font-mono font-bold text-ink">{stats.chapter_count}</p>
+                      <p className="text-lg font-mono font-bold text-ink">{stats.chapterCount}</p>
                     </div>
                     <div className="bg-parchment/50 rounded-md p-3">
                       <p className="text-xs text-ink-light">总字数</p>
-                      <p className="text-lg font-mono font-bold text-ink">{stats.total_chars.toLocaleString()}</p>
+                      <p className="text-lg font-mono font-bold text-ink">{stats.totalChars.toLocaleString()}</p>
                     </div>
                     <div className="bg-parchment/50 rounded-md p-3">
                       <p className="text-xs text-ink-light">知识库条目</p>
-                      <p className="text-lg font-mono font-bold text-ink">{stats.knowledge_base_count}</p>
+                      <p className="text-lg font-mono font-bold text-ink">{stats.kbEntryCount}</p>
                     </div>
                   </div>
                 </div>

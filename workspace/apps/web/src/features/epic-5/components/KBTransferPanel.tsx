@@ -12,7 +12,7 @@ import {
   Users,
   Link,
 } from 'lucide-react';
-import { client } from '../../../api/client';
+import { client, downloadFile, extractApiErrorMessage } from '../../../api/client';
 import { ErrorAlert } from '../../../components/ui/ErrorAlert';
 import { LoadingButton } from '../../../components/ui/LoadingButton';
 
@@ -90,7 +90,7 @@ export function KBTransferPanel({ projectId }: KBTransferPanelProps) {
       });
 
       if (result.error) {
-        const msg = (result.error as { detail?: string }).detail || '导出失败';
+        const msg = extractApiErrorMessage(result.error, '导出失败');
         setExportError(msg);
         return;
       }
@@ -104,9 +104,18 @@ export function KBTransferPanel({ projectId }: KBTransferPanelProps) {
     }
   };
 
-  const handleDownloadExport = () => {
-    if (exportResult) {
-      window.open(`/api/projects/${projectId}/kb/export/${exportResult.exportId}/download`, '_blank');
+  const handleDownloadExport = async () => {
+    if (!exportResult) {
+      return;
+    }
+
+    try {
+      await downloadFile(
+        `/api/projects/${projectId}/kb/export/${exportResult.exportId}/download`,
+        `kb-export-${exportResult.exportId}.json`,
+      );
+    } catch (downloadError) {
+      setExportError(downloadError instanceof Error ? downloadError.message : '导出失败');
     }
   };
 
@@ -158,7 +167,7 @@ export function KBTransferPanel({ projectId }: KBTransferPanelProps) {
         if (err.conflicts && err.conflicts.length > 0) {
           setConflicts(err.conflicts.map((c) => ({ ...c, strategy: 'skip' })));
         } else {
-          setImportError(err.detail || '导入失败');
+          setImportError(extractApiErrorMessage(err, '导入失败'));
         }
         return;
       }
@@ -195,7 +204,7 @@ export function KBTransferPanel({ projectId }: KBTransferPanelProps) {
       });
 
       if (result.error) {
-        const msg = (result.error as { detail?: string }).detail || '导入失败';
+        const msg = extractApiErrorMessage(result.error, '导入失败');
         setImportError(msg);
         return;
       }
