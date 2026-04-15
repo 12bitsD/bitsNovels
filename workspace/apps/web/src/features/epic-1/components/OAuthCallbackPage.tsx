@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function readHashParams(hash: string) {
@@ -8,7 +8,6 @@ function readHashParams(hash: string) {
 
 export default function OAuthCallbackPage() {
   const navigate = useNavigate();
-  const [error, setError] = useState('');
 
   useEffect(() => {
     const params = readHashParams(window.location.hash);
@@ -21,13 +20,12 @@ export default function OAuthCallbackPage() {
       return;
     }
 
-    setError('第三方登录失败');
     navigate('/login', { replace: true, state: { oauthError: true } });
   }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-parchment text-ink">
-      {error || '正在完成登录...'}
+      正在完成登录...
     </div>
   );
 }

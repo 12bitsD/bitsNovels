@@ -253,6 +253,7 @@ def get_snapshot(
     snapshot, err = _require_snapshot(project_id, chapter_id, snapshot_id, user_id)
     if err is not None:
         return err
+    assert snapshot is not None
 
     return JSONResponse(
         status_code=200,
@@ -278,6 +279,7 @@ def get_snapshot_diff(
     snapshot, err = _require_snapshot(project_id, chapter_id, snapshot_id, user_id)
     if err is not None:
         return err
+    assert snapshot is not None
 
     content_data = app.state.chapter_contents.get(chapter_id, {})
     current_content = content_data.get("content", "")
@@ -319,6 +321,7 @@ def restore_snapshot(
     chapter, err = _require_chapter(project_id, chapter_id, user_id)
     if err is not None:
         return err
+    assert chapter is not None
 
     archived_err = _check_archived(project_id)
     if archived_err is not None:
@@ -327,6 +330,7 @@ def restore_snapshot(
     snapshot, err = _require_snapshot(project_id, chapter_id, snapshot_id, user_id)
     if err is not None:
         return err
+    assert snapshot is not None
 
     content_data = app.state.chapter_contents.get(chapter_id, {})
     current_content = content_data.get("content", "")
@@ -387,6 +391,7 @@ def delete_snapshot(
     snapshot, err = _require_snapshot(project_id, chapter_id, snapshot_id, user_id)
     if err is not None:
         return err
+    assert snapshot is not None
 
     if snapshot["type"] != "manual":
         return _error(

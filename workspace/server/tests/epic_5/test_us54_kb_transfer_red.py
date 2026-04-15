@@ -7,6 +7,8 @@ US-5.4 Knowledge Base Transfer — 红灯测试
 3. POST /api/projects/:projectId/kb/import        — 导入 KB JSON
 """
 
+from typing import Any
+
 from fastapi.testclient import TestClient
 
 # ==============================================================================
@@ -16,7 +18,7 @@ from fastapi.testclient import TestClient
 
 def _sample_kb_export_json(
     project_id: str = "project-a-1", project_name: str = "A-1"
-) -> dict:
+) -> dict[str, Any]:
     """Returns a minimal valid KnowledgeBaseExportFile structure."""
     return {
         "version": "1.0.0",

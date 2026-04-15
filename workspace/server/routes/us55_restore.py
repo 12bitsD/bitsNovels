@@ -7,7 +7,7 @@ GET  /api/projects/:projectId/backups/:backupId/preview    — 预览备份内�
 import base64
 import json
 from io import BytesIO
-from typing import Optional
+from typing import Any, Optional
 from zipfile import ZipFile
 
 from fastapi import APIRouter, Header
@@ -19,6 +19,9 @@ from server.utils.time_utils import iso_z as _iso_z
 
 router = APIRouter(prefix="/api/projects", tags=["us-5.5"])
 
+ManifestData = dict[str, Any]
+BackupValidationError = dict[str, str]
+
 
 class RestoreRequest(BaseModel):
     mode: str
@@ -27,7 +30,9 @@ class RestoreRequest(BaseModel):
     model_config = {"extra": "forbid"}
 
 
-def _validate_backup_zip(zip_data: bytes) -> tuple[Optional[dict], Optional[dict]]:
+def _validate_backup_zip(
+    zip_data: bytes,
+) -> tuple[Optional[ManifestData], Optional[BackupValidationError]]:
     """Validate ZIP structure and return (manifest, error)."""
     try:
         with ZipFile(BytesIO(zip_data), "r") as zf:
@@ -81,6 +86,7 @@ def preview_backup(
     project, err = _require_project(project_id, user_id)
     if err is not None:
         return err
+    assert project is not None
 
     backup = next(
         (b for b in app.state.backups.get(project_id, []) if b.get("id") == backup_id),
@@ -101,6 +107,7 @@ def preview_backup(
                 status_code=400,
                 content={"error": val_err, "details": {}},
             )
+        assert manifest is not None
 
         with ZipFile(BytesIO(zip_bytes), "r") as zf:
             project_data = json.loads(zf.read("project/project.json"))
@@ -142,6 +149,7 @@ def restore_backup(
     project, err = _require_project(project_id, user_id)
     if err is not None:
         return err
+    assert project is not None
 
     if payload.mode not in ["create_new", "overwrite"]:
         return JSONResponse(
@@ -198,6 +206,7 @@ def restore_backup(
                 status_code=400,
                 content={"error": val_err, "details": {}},
             )
+        assert manifest is not None
 
         with ZipFile(BytesIO(zip_bytes), "r") as zf:
             project_data = json.loads(zf.read("project/project.json"))

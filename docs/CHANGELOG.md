@@ -7,6 +7,39 @@
 
 ------
 
+## v0.3.33（2026-04-15）
+
+### 工程门禁修复：Snapshot 测试对齐、OAuth lint 修复、Playwright 本地代理规避、Python 3.11 环境恢复
+#### 修正 (Fixed)
+- 修复 `workspace/apps/web/src/features/epic-3/components/Snapshot/SnapshotPanel.test.tsx` 与 `workspace/apps/web/src/features/epic-3/__tests__/Snapshot.test.tsx` 的 API mock 结构，使其与真实快照接口契约 `{ snapshot } / { snapshots }` 对齐，并补齐 `extractApiErrorMessage` mock。
+- 修复 `workspace/apps/web/src/features/epic-1/components/OAuthCallbackPage.tsx` 在 `useEffect` 中同步 `setState` 触发的 React Hooks lint 错误。
+- 更新 `workspace/playwright.config.ts`：为 `127.0.0.1/localhost` 显式设置 `NO_PROXY/no_proxy`，避免本地代理把 `502` 误判成 `webServer` 已就绪；同时保留显式 `vite` 启动命令和等待超时。
+- 更新 `workspace/scripts/ensure_python_env.mjs`：补充 `python3.11`、Homebrew `python@3.11`、`pyenv` shim 的探测路径，恢复本机 Python 3.11 虚拟环境创建能力。
+- 重新安装本机 `python@3.11` 并重建 `workspace/.venv`，恢复后端测试执行环境。
+- 修复 `workspace/server/main.py` 的 Ruff import 排序问题。
+- 清理 `workspace/server/routes/auth.py`、`workspace/server/routes/projects.py`、`workspace/server/routes/us36_snapshots.py`、`workspace/server/routes/us55_restore.py` 的 strict mypy 类型债，并补齐若干 service/test 文件的类型声明与导出信息，恢复后端类型门禁。
+- 为 `workspace/apps/web/src/features/epic-2/components/KBCharacter/KBCharacterList.tsx`、`workspace/apps/web/src/features/epic-3/components/ChapterPanel/ChapterTree.tsx`、`workspace/apps/web/src/features/epic-6/components/NotificationPanel.tsx` 显式标注 TanStack Virtual 的 React Compiler 兼容豁免，清除前端 lint warning。
+- 更新 `workspace/playwright.config.ts`：Playwright 现在会同时拉起 `uvicorn server.main:app` 与 Vite，避免前端通过但后端未启动的假绿结果。
+- 重写 `workspace/e2e/auth.spec.ts`、`workspace/e2e/projects.spec.ts` 与新增 `workspace/e2e/helpers.ts`：E2E 改为每个用例注册独立用户、等待真实 API 2xx，并用真实后端创建/修改/归档项目。
+- 补齐 `workspace/server/main.py` 的开发态默认 `app.state` 初始化，新增 `goals`、`writing_stats`、`trash_items`、`chapter_contents`、`notifications`、`snapshots`、`volume_counter`、`chapter_counter` 与 `session_clock` 等运行时状态，修复设置页/大纲页在真实 E2E 下的 500。
+
+#### 测试 (Tests)
+- `cd workspace/apps/web && npx vitest run src/features/epic-3/components/Snapshot/SnapshotPanel.test.tsx src/features/epic-3/__tests__/Snapshot.test.tsx --coverage`：`19 passed`
+- `cd workspace && npm run test`：`95 files passed`，`839 passed / 3 skipped`，前端覆盖率 `Lines 74.27%`
+- `cd workspace && npm run lint`：通过（ESLint 0 warning / Ruff `All checks passed`）
+- `cd workspace && npm run test:backend`：`417 passed`，后端总覆盖率 `92.62%`
+- `cd workspace && npx playwright test`：`26 passed`
+- `cd workspace && npm run typecheck:backend`：`Success: no issues found in 86 source files`
+- `cd workspace && ./.venv/bin/python -m pytest --no-cov server/tests/epic_1/test_us11_auth_red.py server/tests/epic_1/test_us17_trash_red.py server/tests/epic_3/test_us36_snapshots_red.py server/tests/epic_5/test_us54_kb_transfer_red.py server/tests/epic_5/test_us55_restore_red.py`：全部通过
+
+#### 风险 (Known Issues)
+- Playwright 仍会输出 Node 的 `NO_COLOR/FORCE_COLOR` 提示；这是运行日志噪音，不影响结果或门禁。
+
+#### 契约说明 (Contract)
+- 本次未修改任何 `specs/epic-*/contract.md`。
+
+------
+
 ## v0.3.32（2026-04-11）
 
 ### Stage 0 Task 8 门禁矩阵补齐与 Checklist 闭合

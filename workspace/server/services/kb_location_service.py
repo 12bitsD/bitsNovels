@@ -137,25 +137,22 @@ def get_location(project_id: str, entity_id: str) -> dict[str, Any]:
 
 
 def create_location(project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-    return cast(
-        dict[str, Any],
-        create_kb_entity(
-            project_id,
-            "location",
-            {
-                "name": payload.get("name"),
-                "aliases": payload.get("aliases", []),
-                "locationType": payload.get("locationType", "other"),
-                "parentId": payload.get("parentId"),
-                "description": payload.get("description"),
-                "characterIds": payload.get("characterIds", []),
-                "chapterIds": payload.get("chapterIds", []),
-                "source": payload.get("source", "manual"),
-                "confirmed": payload.get("confirmed", False),
-                "rawAI": payload.get("rawAI"),
-                "remark": payload.get("remark"),
-            },
-        ),
+    return create_kb_entity(
+        project_id,
+        "location",
+        {
+            "name": payload.get("name"),
+            "aliases": payload.get("aliases", []),
+            "locationType": payload.get("locationType", "other"),
+            "parentId": payload.get("parentId"),
+            "description": payload.get("description"),
+            "characterIds": payload.get("characterIds", []),
+            "chapterIds": payload.get("chapterIds", []),
+            "source": payload.get("source", "manual"),
+            "confirmed": payload.get("confirmed", False),
+            "rawAI": payload.get("rawAI"),
+            "remark": payload.get("remark"),
+        },
     )
 
 
@@ -171,29 +168,21 @@ def update_location(
         normalized["chapterIds"] = merge_aliases(
             cast(list[str], normalized.get("chapterIds", []))
         )
-    return cast(
-        dict[str, Any],
-        update_kb_entity(project_id, "location", entity_id, normalized),
-    )
+    return update_kb_entity(project_id, "location", entity_id, normalized)
 
 
 def delete_location(project_id: str, entity_id: str) -> dict[str, Any]:
-    return cast(
-        dict[str, Any], soft_delete_kb_entity(project_id, "location", entity_id)
-    )
+    return soft_delete_kb_entity(project_id, "location", entity_id)
 
 
 def confirm_location(project_id: str, entity_id: str) -> dict[str, Any]:
-    return cast(dict[str, Any], confirm_kb_entity(project_id, "location", entity_id))
+    return confirm_kb_entity(project_id, "location", entity_id)
 
 
 def reject_location(
     project_id: str, entity_id: str, remark: Optional[str] = None
 ) -> dict[str, Any]:
-    entity = cast(
-        dict[str, Any],
-        reject_kb_entity(project_id, "location", entity_id, remark=remark),
-    )
+    entity = reject_kb_entity(project_id, "location", entity_id, remark=remark)
     _excluded_names(project_id).add(_normalized(cast(str, entity.get("name", ""))))
     for alias in cast(list[str], entity.get("aliases", [])):
         _excluded_names(project_id).add(_normalized(alias))
@@ -201,9 +190,7 @@ def reject_location(
 
 
 def bulk_confirm_locations(project_id: str, entity_ids: list[str]) -> dict[str, int]:
-    return cast(
-        dict[str, int], bulk_confirm_entities(project_id, "location", entity_ids)
-    )
+    return bulk_confirm_entities(project_id, "location", entity_ids)
 
 
 def location_response(entity: dict[str, Any]) -> dict[str, Any]:

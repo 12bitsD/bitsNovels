@@ -37,6 +37,7 @@ export default function NotificationPanel({
   const hasRead = notifications.some(n => n.read);
   const shouldVirtualize = notifications.length >= 80;
   const parentRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual intentionally opts this component out of React Compiler memoization.
   const virtualizer = useVirtualizer({
     count: notifications.length,
     getScrollElement: () => parentRef.current,

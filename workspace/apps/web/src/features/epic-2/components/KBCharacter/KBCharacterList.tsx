@@ -52,6 +52,7 @@ export default function KBCharacterList({
 
   const shouldVirtualize = orderedCharacters.length >= 80;
   const parentRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual intentionally opts this component out of React Compiler memoization.
   const virtualizer = useVirtualizer({
     count: orderedCharacters.length,
     getScrollElement: () => parentRef.current,

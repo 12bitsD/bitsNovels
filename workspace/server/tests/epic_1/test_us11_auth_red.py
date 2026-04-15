@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
@@ -7,7 +7,8 @@ from fastapi.testclient import TestClient
 
 def _oauth_state_from_redirect(response: Any) -> str:
     location = response.headers["location"]
-    return parse_qs(urlparse(location).query)["state"][0]
+    state_values = cast(list[str], parse_qs(urlparse(location).query)["state"])
+    return state_values[0]
 
 
 def test_register_reject_invalid_email_red(client: TestClient) -> None:

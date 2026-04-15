@@ -26,7 +26,18 @@ function runOrExit(command, args) {
 }
 
 function findSystemPython() {
-  for (const candidate of ['python3', 'python']) {
+  for (const candidate of [
+    'python3.11',
+    '/opt/homebrew/opt/python@3.11/bin/python3.11',
+    '/usr/local/opt/python@3.11/bin/python3.11',
+    `${process.env.HOME ?? ''}/.pyenv/shims/python3.11`,
+    'python3',
+    'python',
+  ]) {
+    if (!candidate) {
+      continue
+    }
+
     const result = spawnSync(
       candidate,
       [

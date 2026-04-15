@@ -1,8 +1,8 @@
 import secrets
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any, Optional, Protocol, cast
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from server.models.request_models import (
@@ -19,9 +19,40 @@ router = APIRouter(tags=["auth"])
 ALLOWED_PROVIDERS = {"google", "github"}
 
 
-def _m():
+class _MainModule(Protocol):
+    app: Any
+
+    def _email_valid(self, email: str) -> bool: ...
+    def _password_strong(self, password: str) -> bool: ...
+    def _ensure_user(
+        self,
+        email: str,
+        password: str,
+        auth_provider: str = "email",
+        *,
+        email_verified: bool = False,
+    ) -> dict[str, Any]: ...
+    def _now(self) -> datetime: ...
+    def _iso_z(self, ts: datetime) -> str: ...
+    def _error(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        details: Optional[dict[str, Any]] = None,
+    ) -> JSONResponse: ...
+    def _verify_password(self, user: dict[str, Any], candidate_password: str) -> bool: ...
+    def _create_session(self, user_id: str, ttl: timedelta) -> tuple[str, datetime]: ...
+    def _user_payload(self, user: dict[str, Any]) -> dict[str, Any]: ...
+    def _resolve_user_id(self, authorization: Optional[str]) -> Optional[str]: ...
+    def _hash_password(self, password: str) -> str: ...
+    def _session_user_id(self, session: Any) -> Optional[str]: ...
+
+
+def _m() -> _MainModule:
     from server import main as _main
-    return _main
+
+    return cast(_MainModule, _main)
 
 
 @router.post("/api/auth/register")
@@ -244,7 +275,7 @@ def reset_password(payload: ResetPasswordRequest) -> JSONResponse:
 
 
 @router.get("/api/auth/oauth/{provider}/start")
-def oauth_start(provider: str) -> Any:
+def oauth_start(provider: str) -> Response:
     m = _m()
     if provider not in ALLOWED_PROVIDERS:
         return m._error(400, "OAUTH_PROVIDER_UNSUPPORTED", "Unsupported oauth provider")
@@ -265,7 +296,7 @@ def oauth_start(provider: str) -> Any:
 
 
 @router.get("/api/auth/oauth/{provider}/callback")
-def oauth_callback(provider: str, code: str, state: str) -> Any:
+def oauth_callback(provider: str, code: str, state: str) -> Response:
     m = _m()
     if provider not in ALLOWED_PROVIDERS:
         return m._error(400, "OAUTH_PROVIDER_UNSUPPORTED", "Unsupported oauth provider")

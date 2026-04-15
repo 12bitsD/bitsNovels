@@ -8,6 +8,7 @@ import server.services.kb_item_service as kb_item_service
 from server.routes._deps import require_project as _require_project
 
 router = APIRouter(prefix="/api/projects", tags=["us-2.4"])
+__all__ = ["router", "_require_project"]
 
 VALID_ITEM_TYPES = kb_item_service.VALID_ITEM_TYPES
 

@@ -1,6 +1,6 @@
-import importlib
 import hashlib
 import hmac
+import importlib
 import os
 import re
 from contextlib import asynccontextmanager
@@ -23,6 +23,11 @@ class _FakeDb:
         self.failpoints: set[str] = set()
 
 
+class _SessionClock:
+    def __init__(self) -> None:
+        self.now = datetime.now(timezone.utc)
+
+
 def _reset_app_state() -> None:
     _reset_core_state()
     _reset_auth_state()
@@ -37,6 +42,17 @@ def _reset_core_state() -> None:
     app.state.archived_project_ids = set()
     app.state.state_counter = 0
     app.state.project_counter = 0
+    app.state.volume_counter = 0
+    app.state.chapter_counter = 0
+    app.state.goals = {}
+    app.state.writing_stats = {}
+    app.state.trash_items = []
+    app.state.chapter_contents = {}
+    app.state.notifications = []
+    app.state.notification_counter = 0
+    app.state.snapshots = []
+    app.state.snapshot_counter = 0
+    app.state.session_clock = _SessionClock()
 
 
 def _reset_auth_state() -> None:

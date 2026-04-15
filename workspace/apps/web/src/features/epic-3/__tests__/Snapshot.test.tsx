@@ -15,6 +15,8 @@ vi.mock('../../../api/client', () => ({
     POST: vi.fn(),
     DELETE: vi.fn(),
   },
+  extractApiErrorMessage: (error: { detail?: string; error?: { message?: string } } | null | undefined, fallback: string) =>
+    error?.detail ?? error?.error?.message ?? fallback,
 }));
 
 // @ts-expect-error typecheck fix
@@ -233,7 +235,7 @@ describe('US-3.6 Snapshot Feature Integration', () => {
     ];
 
     beforeEach(() => {
-      mockClient.GET.mockResolvedValue({ data: mockSnapshots, error: undefined });
+      mockClient.GET.mockResolvedValue({ data: { snapshots: mockSnapshots }, error: undefined });
     });
 
     it('should load and display snapshots', async () => {
@@ -254,7 +256,7 @@ describe('US-3.6 Snapshot Feature Integration', () => {
     });
 
     it('should support creating snapshot', async () => {
-      mockClient.POST.mockResolvedValue({ data: mockSnapshots[0], error: undefined });
+      mockClient.POST.mockResolvedValue({ data: { snapshot: mockSnapshots[0] }, error: undefined });
 
       render(
         <SnapshotPanel
@@ -293,10 +295,12 @@ describe('US-3.6 Snapshot Feature Integration', () => {
   describe('useSnapshots Hook', () => {
     it('should calculate storage statistics', async () => {
       mockClient.GET.mockResolvedValue({
-        data: [
+        data: {
+          snapshots: [
           { id: '1', chapterId: 'c1', content: 'a'.repeat(1000), charCount: 100, type: 'manual', createdAt: new Date().toISOString() },
           { id: '2', chapterId: 'c1', content: 'b'.repeat(2000), charCount: 200, type: 'auto', createdAt: new Date().toISOString() },
-        ],
+          ],
+        },
         error: undefined,
       });
 

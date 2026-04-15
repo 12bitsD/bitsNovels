@@ -28,7 +28,9 @@ class TriggerBackupRequest(BaseModel):
     backup_type: str  # 'auto' or 'manual'
 
 
-def _create_backup_zip(project_id: str, backup_type: str) -> Optional[Tuple[dict, str]]:
+def _create_backup_zip(
+    project_id: str, backup_type: str
+) -> Optional[Tuple[dict[str, Any], str]]:
     """Create a backup ZIP and return (manifest, base64_data)."""
     from server.main import app
 

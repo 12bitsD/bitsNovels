@@ -9,6 +9,8 @@ vi.mock('../../../../api/client', () => ({
     POST: vi.fn(),
     DELETE: vi.fn(),
   },
+  extractApiErrorMessage: (error: { detail?: string; error?: { message?: string } } | null | undefined, fallback: string) =>
+    error?.detail ?? error?.error?.message ?? fallback,
 }));
 
 // @ts-expect-error typecheck fix
@@ -48,7 +50,7 @@ describe('SnapshotPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockClient.GET.mockResolvedValue({ data: mockSnapshots, error: undefined });
+    mockClient.GET.mockResolvedValue({ data: { snapshots: mockSnapshots }, error: undefined });
   });
 
   it('should not render when isOpen is false', () => {

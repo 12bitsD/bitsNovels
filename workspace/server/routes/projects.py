@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Protocol, cast
 
 from fastapi import APIRouter, Body, Header
 from fastapi.responses import JSONResponse
@@ -10,9 +10,26 @@ router = APIRouter(tags=["projects"])
 PROJECT_TAGS = {"玄幻", "都市", "科幻", "历史", "言情", "悬疑", "其他"}
 
 
-def _m():
+class _MainModule(Protocol):
+    app: Any
+
+    def _now(self) -> Any: ...
+    def _iso_z(self, ts: Any) -> str: ...
+    def _error(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        details: Optional[dict[str, Any]] = None,
+    ) -> JSONResponse: ...
+    def _require_user_id(self, authorization: Optional[str]) -> str | JSONResponse: ...
+    def _next_id(self, counter_key: str, prefix: str) -> str: ...
+
+
+def _m() -> _MainModule:
     from server import main as _main
-    return _main
+
+    return cast(_MainModule, _main)
 
 
 def _project_response_item(project: dict[str, Any]) -> dict[str, Any]:

@@ -200,7 +200,7 @@ def mark_faction_not_entity(project_id: str, entity_id: str) -> dict[str, Any]:
     settings = _project_settings(project_id)
     parser_excludes = cast(dict[str, list[str]], settings["parserExcludes"])
     parser_excludes["factionNames"] = merge_aliases(
-        cast(list[str], parser_excludes.get("factionNames", [])),
+        parser_excludes.get("factionNames", []),
         [cast(str, deleted.get("name", ""))],
     )
     return deleted

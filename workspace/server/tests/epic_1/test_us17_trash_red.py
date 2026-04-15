@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import cast
 
 from fastapi.testclient import TestClient
 
@@ -22,7 +23,7 @@ def _create_item(client: TestClient, name: str = "玄铁剑") -> dict[str, str]:
         headers=_auth_headers(),
     )
     assert response.status_code == 201
-    return response.json()["item"]
+    return cast(dict[str, str], response.json()["item"])
 
 
 def _soft_delete_item(client: TestClient, item_id: str) -> None:

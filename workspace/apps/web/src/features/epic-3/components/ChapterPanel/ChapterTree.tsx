@@ -159,6 +159,7 @@ function VolumeTreeItem({
 }: VolumeTreeItemProps) {
   const shouldVirtualize = isExpanded && !activeDragId && volume.chapters.length >= 200;
   const parentRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual intentionally opts this component out of React Compiler memoization.
   const virtualizer = useVirtualizer({
     count: volume.chapters.length,
     getScrollElement: () => parentRef.current,

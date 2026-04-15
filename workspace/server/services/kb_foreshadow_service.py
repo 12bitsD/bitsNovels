@@ -189,7 +189,9 @@ def list_foreshadows(
     items.sort(key=lambda item: (item["status"], item["createdAt"], item["id"]))
     response = {"items": items, "total": len(items)}
     if group_by_status:
-        groups = {status_name: [] for status_name in FORESHADOW_STATUSES}
+        groups: dict[str, list[dict[str, Any]]] = {
+            status_name: [] for status_name in FORESHADOW_STATUSES
+        }
         for item in items:
             groups[item["status"]].append(item)
         response["groups"] = groups

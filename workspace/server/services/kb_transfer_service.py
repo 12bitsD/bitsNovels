@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from server.main import _iso_z, _now, app
 
@@ -77,6 +77,7 @@ def create_kb_export(
     project, err = _get_project(project_id)
     if err is not None:
         return None, err
+    assert project is not None
 
     export_id = f"kb_export-{getattr(app.state, 'kb_export_counter', 0) + 1}"
     app.state.kb_export_counter = getattr(app.state, "kb_export_counter", 0) + 1
@@ -107,7 +108,7 @@ def create_kb_export(
 def get_kb_export(
     export_id: str, project_id: str
 ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
-    export = app.state.kb_exports.get(export_id)
+    export = cast(Optional[Dict[str, Any]], app.state.kb_exports.get(export_id))
     if export is None:
         return None, {"error": "EXPORT_NOT_FOUND", "message": "Export not found"}
     if export["projectMeta"]["projectId"] != project_id:
@@ -140,7 +141,7 @@ def _find_existing_entity(
     if singular_type not in SINGULAR_TO_STORE:
         return None
     store_name = SINGULAR_TO_STORE[singular_type]
-    entity_store = getattr(app.state, store_name, {})
+    entity_store = cast(dict[str, Dict[str, Any]], getattr(app.state, store_name, {}))
     if not entity_store:
         return None
     for entity in entity_store.values():

@@ -141,25 +141,22 @@ def get_item(project_id: str, entity_id: str) -> dict[str, Any]:
 
 
 def create_item(project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-    return cast(
-        dict[str, Any],
-        create_kb_entity(
-            project_id,
-            "item",
-            {
-                "name": payload.get("name"),
-                "aliases": payload.get("aliases", []),
-                "itemType": payload.get("itemType", "other"),
-                "summary": payload.get("summary"),
-                "ownerCharacterId": payload.get("ownerCharacterId"),
-                "ownershipHistory": payload.get("ownershipHistory", []),
-                "chapterIds": payload.get("chapterIds", []),
-                "source": payload.get("source", "manual"),
-                "confirmed": payload.get("confirmed", False),
-                "rawAI": payload.get("rawAI"),
-                "remark": payload.get("remark"),
-            },
-        ),
+    return create_kb_entity(
+        project_id,
+        "item",
+        {
+            "name": payload.get("name"),
+            "aliases": payload.get("aliases", []),
+            "itemType": payload.get("itemType", "other"),
+            "summary": payload.get("summary"),
+            "ownerCharacterId": payload.get("ownerCharacterId"),
+            "ownershipHistory": payload.get("ownershipHistory", []),
+            "chapterIds": payload.get("chapterIds", []),
+            "source": payload.get("source", "manual"),
+            "confirmed": payload.get("confirmed", False),
+            "rawAI": payload.get("rawAI"),
+            "remark": payload.get("remark"),
+        },
     )
 
 
@@ -183,25 +180,21 @@ def update_item(
         normalized["ownershipHistory"] = history
     normalized.pop("ownershipChapterId", None)
     normalized.pop("ownershipNote", None)
-    return cast(
-        dict[str, Any], update_kb_entity(project_id, "item", entity_id, normalized)
-    )
+    return update_kb_entity(project_id, "item", entity_id, normalized)
 
 
 def delete_item(project_id: str, entity_id: str) -> dict[str, Any]:
-    return cast(dict[str, Any], soft_delete_kb_entity(project_id, "item", entity_id))
+    return soft_delete_kb_entity(project_id, "item", entity_id)
 
 
 def confirm_item(project_id: str, entity_id: str) -> dict[str, Any]:
-    return cast(dict[str, Any], confirm_kb_entity(project_id, "item", entity_id))
+    return confirm_kb_entity(project_id, "item", entity_id)
 
 
 def reject_item(
     project_id: str, entity_id: str, remark: Optional[str] = None
 ) -> dict[str, Any]:
-    entity = cast(
-        dict[str, Any], reject_kb_entity(project_id, "item", entity_id, remark=remark)
-    )
+    entity = reject_kb_entity(project_id, "item", entity_id, remark=remark)
     _excluded_names(project_id).add(_normalized(cast(str, entity.get("name", ""))))
     for alias in cast(list[str], entity.get("aliases", [])):
         _excluded_names(project_id).add(_normalized(alias))
@@ -209,16 +202,13 @@ def reject_item(
 
 
 def bulk_confirm_items(project_id: str, entity_ids: list[str]) -> dict[str, int]:
-    return cast(dict[str, int], bulk_confirm_entities(project_id, "item", entity_ids))
+    return bulk_confirm_entities(project_id, "item", entity_ids)
 
 
 def merge_item_entities(
     project_id: str, source_id: str, target_id: str
 ) -> dict[str, dict[str, Any]]:
-    return cast(
-        dict[str, dict[str, Any]],
-        merge_entities(project_id, "item", source_id, target_id),
-    )
+    return merge_entities(project_id, "item", source_id, target_id)
 
 
 def get_item_references(project_id: str, entity_id: str) -> list[dict[str, Any]]:
