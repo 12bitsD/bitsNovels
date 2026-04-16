@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Settings, ChevronLeft, Sidebar, BookOpen, Download, Archive } from 'lucide-react';
+import { Settings, ChevronLeft, Sidebar, BookOpen, Download, Archive, Sparkles } from 'lucide-react';
 
 import NotificationBell from '../../features/epic-6/components/NotificationBell';
 import { EditorWorkspace } from '../../features/epic-3/components/EditorWorkspace';
 import { ChapterPanel } from '../../features/epic-3/components/ChapterPanel/ChapterPanel';
 import KBCharacterPanel from '../../features/epic-2/components/KBCharacter/KBCharacterPanel';
+import StoryCopilotPanel from '../../features/epic-4/components/StoryCopilotPanel';
+import { useStoryCopilotScaffold } from '../../features/epic-4/hooks/useStoryCopilotScaffold';
 import { ExportPanel } from '../../features/epic-5/components/ExportPanel';
 import { BackupRestorePanel } from '../../features/epic-5/components/BackupRestorePanel';
 
@@ -19,6 +21,7 @@ export function WorkbenchShell() {
   // For modals
   const [showExportModal, setShowExportModal] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
+  const storyCopilot = useStoryCopilotScaffold(projectId ?? '');
 
   if (!projectId) {
     return <div>Missing Project ID</div>;
@@ -67,6 +70,16 @@ export function WorkbenchShell() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={storyCopilot.toggle}
+            className={utilityButtonClasses}
+            title="Story Copilot"
+            aria-label="Story Copilot"
+          >
+            <Sparkles size={18} />
+            <span>Story Copilot</span>
+          </button>
+
           {/* Epic 5: Export / Backup entries */}
           <button
             onClick={() => setShowExportModal(true)}
@@ -134,6 +147,7 @@ export function WorkbenchShell() {
           {chapterId ? (
             <div className="py-6 px-4 md:px-8">
               <EditorWorkspace
+                key={`${projectId}:${chapterId}`}
                 projectId={projectId}
                 chapterId={chapterId}
                 initialTitle="章节标题"
@@ -195,6 +209,15 @@ export function WorkbenchShell() {
           </div>
         </div>
       )}
+
+      <StoryCopilotPanel
+        isOpen={storyCopilot.isOpen}
+        onClose={storyCopilot.close}
+        activeMode={storyCopilot.activeMode}
+        onModeChange={storyCopilot.setActiveMode}
+        state={storyCopilot.state}
+        sessions={storyCopilot.sessions}
+      />
     </div>
   );
 }

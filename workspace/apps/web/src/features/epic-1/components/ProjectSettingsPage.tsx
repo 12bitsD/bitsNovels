@@ -8,6 +8,7 @@ import { LoadingButton } from '../../../components/ui/LoadingButton';
 import { Card, CardContent } from '../../../components/ui/Card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/Tabs';
 import { Modal } from '../../../components/ui/Modal';
+import AIConfigTab from '../../epic-4/components/AIConfigTab';
 import type { ProjectType } from '@bitsnovels/api-types';
 
 type TabId = 'basic' | 'goals' | 'ai' | 'backup';
@@ -43,7 +44,6 @@ type ProjectSettingsState = {
   description: string;
   dailyGoal: number;
   totalGoal: number;
-  aiStyle: string;
   stats: {
     volumeCount: number;
     chapterCount: number;
@@ -67,7 +67,6 @@ const initialState: ProjectSettingsState = {
   description: '',
   dailyGoal: 2000,
   totalGoal: 100000,
-  aiStyle: 'balanced',
   stats: {
     volumeCount: 0,
     chapterCount: 0,
@@ -88,7 +87,7 @@ export default function ProjectSettingsPage() {
   const {
     activeTab, loading, saving, showDeleteModal, showArchiveModal,
     deleteConfirmName, error, success, name, type, tags, description,
-    dailyGoal, totalGoal, aiStyle, stats
+    dailyGoal, totalGoal, stats
   } = state;
 
   useEffect(() => {
@@ -117,7 +116,6 @@ export default function ProjectSettingsPage() {
         description: settings.project.description || '',
         dailyGoal: goals?.dailyWordTarget ?? 2000,
         totalGoal: goals?.totalWordTarget ?? 100000,
-        aiStyle: 'balanced',
         stats: {
           volumeCount: settings.stats.volumeCount || 0,
           chapterCount: settings.stats.chapterCount || 0,
@@ -384,25 +382,7 @@ export default function ProjectSettingsPage() {
               </TabsContent>
 
               <TabsContent value="ai">
-                <div className="space-y-6">
-                <h3 className="font-bold text-lg">AI 配置</h3>
-                <p className="text-sm text-ink-light">配置 AI 写作助手的风格和偏好。</p>
-                <div>
-                  <label htmlFor="ai-style" className="block text-sm font-medium text-ink-light mb-1.5">
-                    续写风格
-                  </label>
-                  <select
-                    id="ai-style"
-                    value={aiStyle}
-                    onChange={e => dispatch({ aiStyle: e.target.value })}
-                    className="input-base cursor-pointer"
-                  >
-                    <option value="concise">简洁</option>
-                    <option value="balanced">平衡</option>
-                    <option value="flowery">华丽</option>
-                  </select>
-                </div>
-                </div>
+                <AIConfigTab projectId={projectId ?? ''} />
               </TabsContent>
 
               <TabsContent value="backup">

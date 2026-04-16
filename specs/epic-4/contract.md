@@ -11,7 +11,7 @@
 ## 核心结论
 1. `AITaskType` 必须同时覆盖 Epic 4 写作任务与 EPIC2 的 `parse`，否则项目级 AI 配置无法复用。- 证据：US-4.8 说明 Parser 与续写、润色等任务共用项目级 AI 配置。
 2. `AIProjectConfig` 只描述项目级覆盖值，最终生效值仍需通过“项目级 > 用户级 > 系统默认”解析。- 证据：US-4.8 AC#3 明确给出三级覆盖机制。
-3. `AIResult` 要兼容流式文本、Diff、建议列表、名字列表与错误态，这样前后端才能共享任务状态机。- 证据：US-4.1~US-4.7 输出形态不同，但都属于同一 AI 任务域。
+3. `AIResult` 应改成判别式 payload，而不是横向扩字段，这样前后端才能在能力扩张时保持稳定。- 证据：US-4.1~US-4.7 输出形态不同，但状态机和承载方式仍应统一。
 
 ## 共享 TypeScript 定义
 
@@ -43,13 +43,86 @@ interface AIProjectConfig {
 interface AIResult {
   taskId: string
   type: AITaskType
-  status: 'generating' | 'done' | 'stopped' | 'failed'
-  content?: string       // 润色/扩写/缩写/对话/建议的内容
-  diff?: AIDiffChange[]  // Diff 格式
-  suggestions?: string[] // 大纲建议列表
-  names?: string[]       // 起名候选列表
+  status: 'draft' | 'generating' | 'awaiting_confirmation' | 'done' | 'stopped' | 'failed'
+  payloadType: AIResultPayloadType
+  payload: AIResultPayload
   error?: string
   createdAt: string
+}
+
+type AIResultPayloadType =
+  | 'text'
+  | 'diff'
+  | 'suggestions'
+  | 'names'
+  | 'copilot_worldbuild'
+  | 'copilot_plot'
+
+type AIResultPayload =
+  | AITextPayload
+  | AIDiffPayload
+  | AISuggestionsPayload
+  | AINamesPayload
+  | CopilotWorldbuildPayload
+  | CopilotPlotPayload
+
+interface AITextPayload {
+  content: string
+}
+
+interface AIDiffPayload {
+  diff: AIDiffChange[]
+  // Optional: full revised text, used by FE to apply the diff without
+  // requiring positional metadata in v1.
+  revisedText?: string
+}
+
+interface AISuggestionsPayload {
+  suggestions: string[]
+}
+
+interface AINamesPayload {
+  names: string[]
+}
+
+interface WorldbuildEntryDraft {
+  title: string
+  category: string
+  content: string
+  relatedEntityRefs?: Array<{ entityType: string; entityId: string }>
+  confidence: 'high' | 'medium' | 'low'
+}
+
+interface CopilotWorldbuildPayload {
+  reply?: string
+  entries: WorldbuildEntryDraft[]
+}
+
+interface PlotDeriveLiteResult {
+  impactedCharacters: Array<{ characterId: string; impact: string }>
+  impactedFactions: Array<{ factionId: string; impact: string }>
+  triggeredForeshadows: Array<{ foreshadowId: string; reason: string }>
+  conflicts: Array<{ description: string; severity: 'high' | 'medium' | 'low' }>
+  branches: Array<{ title: string; summary: string; plotPoints: string[] }>
+}
+
+interface CopilotPlotPayload {
+  derivation: PlotDeriveLiteResult
+}
+
+type StoryCopilotMode =
+  | 'worldbuild'
+  | 'plot_derive_lite'
+  | 'story_diagnose'
+
+interface StoryCopilotSession {
+  id: string
+  projectId: string
+  mode: StoryCopilotMode
+  title?: string
+  status: 'active' | 'completed' | 'archived'
+  createdAt: string
+  updatedAt: string
 }
 
 interface AIDiffChange {
@@ -65,14 +138,17 @@ interface AIDiffChange {
 - `polish`、`expand`、`summarize` 归类为 Diff 输出任务。
 - `outline`、`name_gen`、`advice` 归类为结构化结果任务。
 - `parse` 由 EPIC2 使用，但必须保留在同一枚举里，因为它共享项目级 AI 配置与模型选择。
+- `worldbuild`、`plot_derive_lite` 不再扩充顶层 `AITaskType`，而是作为 `StoryCopilotSession.mode` 落地。
 
 ### `AIProjectConfig` 只存项目级覆盖值，最终生效值要由配置解析器计算
 - `model`、`temperature`、`maxLength`、`parseDepth` 任一字段为空时，表示该字段继续继承全局或系统默认。
 - `useGlobalAsDefault` 表示项目仍以全局偏好为基线，而不是脱离全局独立运作。
 - 配置保存后只影响新任务；正在执行中的任务继续使用创建时快照。
 
-### `AIResult` 要兼容不同结果形态，但状态语义必须固定
-- `generating`：只用于流式任务或仍在生成中的任务。
+### `AIResult` 要兼容不同结果形态，但通过 `payloadType` 明确判别
+- `draft`：结果还在整理，尚不适合直接采纳。
+- `generating`：流式任务或仍在生成中的任务。
+- `awaiting_confirmation`：结果需要用户逐条确认后落库或采纳。
 - `done`：生成成功，且结果可被采纳或展示。
 - `stopped`：用户主动中止，允许保留部分结果。
 - `failed`：任务失败，需附带 `error`。
@@ -94,6 +170,11 @@ interface AIDiffChange {
 - `advice`：当前章节全文 + 段落索引映射。
 - `parse`：沿用 EPIC2 解析链路，但读取同一项目级 AI 配置。
 
+### Story Copilot 按 session mode 复用上下文框架
+- `worldbuild`：已有世界观设定（全量 KBSetting）+ 会话消息历史 + 用户本轮输入。
+- `plot_derive_lite`：角色关系图谱 + 势力同盟/敌对关系 + 未回收伏笔列表 + 世界观核心约束。
+- `story_diagnose`：当前章节全文 + 段落索引 + 最近一致性问题 / 建议摘要（可选）。
+
 ## 共享字段补充建议
 
 ### 如果后续要增强结构化结果，建议在不破坏当前 Schema 的前提下新增扩展字段
@@ -113,6 +194,8 @@ interface AIDiffChange {
 | US-4.6 | `name_gen` 类型、名字列表 |
 | US-4.7 | `advice` 类型、结果状态与内容承载 |
 | US-4.8 | `AIProjectConfig`、三级覆盖说明 |
+| US-2.10 缝补 | `StoryCopilotSession.mode = worldbuild`、`WorldbuildEntryDraft`、会话上下文规则 |
+| US-4.5 缝补 | `StoryCopilotSession.mode = plot_derive_lite`、`PlotDeriveLiteResult`、轻量推演规则 |
 | EPIC2 共享 | `parse` 类型、`parseDepth` 配置 |
 
 ## 下一步

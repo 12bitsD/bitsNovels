@@ -15,6 +15,8 @@ __pycache__/
 .venv/
 venv/
 .env
+.env.local
+.env.*.local
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
@@ -22,6 +24,7 @@ venv/
 # IDE
 .idea/
 .vscode/
+.trae/
 *.swp
 *.swo
 
@@ -32,6 +35,9 @@ coverage-report.json
 
 # Build artifacts
 *.egg-info/
+workspace/build/
 
 # Local config (if any)
 *.local
+workspace/.env
+workspace/.env.local

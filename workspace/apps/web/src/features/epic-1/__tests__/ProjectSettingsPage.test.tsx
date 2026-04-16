@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ProjectSettingsPage from '../components/ProjectSettingsPage';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
+import { client } from '../../../api/client';
 
 const renderWithRouter = (ui: React.ReactElement, initialPath = '/projects/1/settings') => {
   return render(
@@ -18,6 +19,64 @@ const renderWithRouter = (ui: React.ReactElement, initialPath = '/projects/1/set
 };
 
 describe('ProjectSettingsPage', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+
+    const realGET = client.GET.bind(client) as typeof client.GET;
+    const realPATCH = client.PATCH.bind(client) as typeof client.PATCH;
+
+    vi.spyOn(client, 'GET').mockImplementation((path, options) => {
+      if (typeof path === 'string' && path.includes('/ai-config')) {
+        return Promise.resolve({
+          data: {
+            projectConfig: {
+              projectId: '1',
+              model: 'kimi2.5',
+              temperature: 0.7,
+              useGlobalAsDefault: true,
+              updatedAt: '2026-04-16T12:00:00.000Z',
+            },
+            resolvedConfig: {
+              model: { value: 'kimi2.5', source: 'project', fallbackValue: 'gpt-4.1-mini', fallbackSource: 'global' },
+              temperature: { value: 0.7, source: 'project', fallbackValue: 0.6, fallbackSource: 'global' },
+              maxLength: { value: 2200, source: 'global', fallbackValue: 1500, fallbackSource: 'system' },
+              parseDepth: { value: 'deep', source: 'system' },
+            },
+          },
+          error: undefined,
+          response: new Response(),
+        });
+      }
+      return realGET(path, options);
+    });
+
+    vi.spyOn(client, 'PATCH').mockImplementation((path, options) => {
+      if (typeof path === 'string' && path.includes('/ai-config')) {
+        const body = (options as { body?: { model?: string; temperature?: number } } | undefined)?.body;
+        return Promise.resolve({
+          data: {
+            projectConfig: {
+              projectId: '1',
+              model: body?.model ?? 'kimi2.5',
+              temperature: body?.temperature ?? 0.7,
+              useGlobalAsDefault: true,
+              updatedAt: '2026-04-16T12:30:00.000Z',
+            },
+            resolvedConfig: {
+              model: { value: body?.model ?? 'kimi2.5', source: 'project', fallbackValue: 'gpt-4.1-mini', fallbackSource: 'global' },
+              temperature: { value: body?.temperature ?? 0.7, source: 'project', fallbackValue: 0.6, fallbackSource: 'global' },
+              maxLength: { value: 2200, source: 'global', fallbackValue: 1500, fallbackSource: 'system' },
+              parseDepth: { value: 'deep', source: 'system' },
+            },
+          },
+          error: undefined,
+          response: new Response(),
+        });
+      }
+      return realPATCH(path, options);
+    });
+  });
+
   it('should render loading state initially', () => {
     renderWithRouter(<ProjectSettingsPage />);
     expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
@@ -107,7 +166,8 @@ describe('ProjectSettingsPage', () => {
     expect(await screen.findByText(/每日写作目标/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: /AI 配置/ }));
-    expect(await screen.findByText(/续写风格/)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^模型选择$/)).toBeInTheDocument();
+    expect(screen.getByText(/当前页仅作用于本项目/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: /备份与恢复/ }));
     expect(await screen.findByRole('button', { name: '导出项目' })).toBeInTheDocument();
@@ -130,8 +190,9 @@ describe('ProjectSettingsPage', () => {
     fireEvent.change(screen.getByLabelText(/总字数目标/), { target: { value: '200000' } });
 
     fireEvent.click(screen.getByRole('tab', { name: /AI 配置/ }));
-    await waitFor(() => expect(screen.getByLabelText(/续写风格/)).toBeInTheDocument());
-    fireEvent.change(screen.getByLabelText(/续写风格/), { target: { value: 'flowery' } });
+    await waitFor(() => expect(screen.getByLabelText(/^模型选择$/)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/^模型选择$/), { target: { value: 'doubao-pro-32k' } });
+    fireEvent.change(screen.getByLabelText(/^Temperature$/), { target: { value: '0.45' } });
   });
 
   it('should close archive modal when cancel is clicked', async () => {

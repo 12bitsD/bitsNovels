@@ -7,6 +7,109 @@
 
 ------
 
+## v0.3.37（2026-04-16）
+
+### Epic 4 AI 写作核心：真实 Provider 接入 + 文档同步
+#### 新增 (Added)
+- 新增 `workspace/server/services/mimo_client.py`：接入 MiMo OpenAI 兼容接口，支持非流式与 SSE 流式 Chat Completions。
+- 新增 `workspace/apps/web/.env.example`：补充前端 Vite 本地环境变量模板，明确 `VITE_ENABLE_MOCK=false` 为真实后端默认配置。
+- 新增 `workspace/server/tests/epic_4/*` 的真实 AI 回归用例补充，覆盖 MiMo provider、任务结果协议、停止语义与配置读写。
+
+#### 调整 (Changed)
+- `workspace/server/services/ai_service.py` 调整为按任务结果类型分流：`continue/dialogue/parse -> text`、`polish/expand/summarize -> diff`、`outline/advice -> suggestions`、`name_gen -> names`。
+- `workspace/server/routes/us41_ai.py` 与 `workspace/server/config.py` 调整：AI provider/base url/默认模型统一收敛到配置层，并兼容 `PATCH /api/projects/:projectId/ai-config`。
+- `workspace/apps/web/src/features/epic-3/components/EditorWorkspace.tsx` 调整：修复 AI 任务停止按钮误显、章节切换残留 AI 状态、续写/对话完成态回写不稳定的问题。
+- `workspace/apps/web/src/components/WorkbenchShell/WorkbenchShell.tsx` 调整：以 `projectId:chapterId` 作为 `EditorWorkspace` 重挂载 key，确保切章时编辑器与 AI 状态同步重置。
+- `workspace/apps/web/src/mocks/projectHandlers.ts` 调整：移除 AI 配置 mock 真值源，Epic 4 前端测试改为直接 `spyOn(client.GET/PATCH)`，避免掩盖真实后端契约。
+- `docs/SPRINT_LOG.md`、`design/AI_SYSTEM.md`、`specs/epic-4/*.md` 同步更新：补充当前已落地范围、Provider 现状与 Sprint 7 最新进展。
+
+#### 修复 (Fixed)
+- 修复 MiMo 下 `continue` 可能返回空正文的问题：当流式未产出用户可见内容时，自动回退到非流式补全并切块回放。
+- 修复 `outline`、`advice`、`name_gen` 的 `payloadType` 与返回结构不匹配问题，现已与 Epic 4 契约对齐。
+- 修复 `ai-config` 的 `resolvedConfig` 为空与旧字段兼容问题，现同时返回 `projectConfig/resolvedConfig` 与 `config/effectiveConfig/sources`。
+- 修复任务停止后重新订阅 SSE 无法稳定看到终态事件的问题，现 `stopped/done/failed` 任务支持终态回放。
+
+#### 测试 (Tests)
+- `cd workspace && npm run test:backend`：通过
+- `cd workspace && npm run -w @bitsnovels/web test`：通过
+- `cd workspace && npm run lint`：通过
+- `cd workspace && npm run verify:generated`：通过
+
+------
+
+## v0.3.36（2026-04-16）
+
+### Epic 4 前端脚手架：Story Copilot 入口 + 项目级 AI 配置页
+#### 新增 (Added)
+- 新增 `workspace/apps/web/src/features/epic-4/types.ts`：沉淀 `AITaskType`、`AIProjectConfig`、`StoryCopilotSession` 等最小前端契约类型。
+- 新增 `workspace/apps/web/src/features/epic-4/hooks/useAIProjectConfig.ts`：封装项目级 AI 配置的加载、字段重置、保存成功 toast 与错误态。
+- 新增 `workspace/apps/web/src/features/epic-4/hooks/useStoryCopilotScaffold.ts` 与 `workspace/apps/web/src/features/epic-4/components/StoryCopilotPanel.tsx`：在工作台提供 `Story Copilot` 统一入口与三种 mode 的前端脚手架。
+- 新增 `workspace/apps/web/src/features/epic-4/components/AIConfigTab.tsx`：在项目设置页落地 `AI 配置` Tab，展示模型、Temperature、最大长度、解析深度及来源标签。
+- 新增 `workspace/apps/web/src/features/epic-4/__tests__/AIConfigTab.test.tsx` 与 `workspace/apps/web/src/features/epic-4/__tests__/useAIProjectConfig.test.tsx`：覆盖字段来源、重置继承、保存成功与失败分支。
+
+#### 调整 (Changed)
+- `workspace/apps/web/src/features/epic-1/components/ProjectSettingsPage.tsx` 的 `AI 配置` Tab 由旧的单字段“续写风格”占位替换为 Epic 4 配置面板。
+- `workspace/apps/web/src/components/WorkbenchShell/WorkbenchShell.tsx` 顶栏新增 `Story Copilot` 按钮，打开统一 AI 创作侧栏。
+- `workspace/apps/web/src/mocks/projectHandlers.ts` 补充 `/api/projects/:projectId/ai-config` GET/PATCH mocks，并支持字段级“跟随全局”重置。
+
+#### 测试 (Tests)
+- `cd workspace/apps/web && npm run test -- src/features/epic-4/__tests__/useAIProjectConfig.test.tsx src/features/epic-4/__tests__/AIConfigTab.test.tsx src/features/epic-1/__tests__/ProjectSettingsPage.test.tsx src/components/WorkbenchShell/__tests__/WorkbenchShell.test.tsx --coverage.enabled=false`：`4 files passed, 31 tests passed`
+
+#### 契约说明 (Contract)
+- 本次未修改 `specs/epic-4/contract.md`；前端类型与 mock 按既有 Epic 4 契约最小集实现。
+
+### Epic 4 后端脚手架：AI 配置 + 任务基础设施 + SSE 通道
+#### 新增 (Added)
+- 新增 Epic 4 AI 基础接口：创建任务、订阅 SSE、停止任务、项目 AI 配置读写（`/api/ai/tasks*`、`/api/projects/:projectId/ai-config`）。
+- 新增契约对齐的后端模型：`AITaskType` / `AIProjectConfig` / `AIResult`（判别式 payload）。
+- 新增 Epic 4 后端测试：覆盖配置三级合并、任务配置快照、上下文裁剪优先级、SSE 事件序列、停止语义。
+
+------
+
+## v0.3.35（2026-04-16）
+
+### AI 架构收敛重构：三核能力 + Story Copilot 会话层
+#### 调整 (Changed)
+- `design/AI_SYSTEM.md` 重构为 `Story Extractor / Story Writer / Story Copilot` 三核架构，不再以功能按钮视角组织 AI 系统。
+- 阶段 3 从 `WritingGraph` 重型编排思路调整为 `StoryPlan` 轻量计划执行模型；阶段 4 明确新增 `Story Reasoning Service`，统一承接一致性检查与剧情推演。
+- `specs/epic-4/contract.md` 回退顶层 `AITaskType` 膨胀：移除 `worldbuild`、`plot_derive` 两个顶层任务类型，恢复为 9 种稳定任务类型。
+- `specs/epic-4/contract.md` 中 `AIResult` 改为判别式 `payloadType + payload` 结构，避免继续横向加字段。
+- 新增 `StoryCopilotMode`、`StoryCopilotSession`、`WorldbuildEntryDraft`、`PlotDeriveLiteResult` 等会话层与草稿层契约。
+- `specs/epic-4/be.md` 调整：世界构建与剧情推演改为 `StoryCopilotSession.mode`，并新增 Copilot 会话接口建议。
+- `specs/epic-4/fe.md` 调整：把世界构建、剧情推演、写作建议统一收口到 `Story Copilot` 入口，替代分散面板。
+- `specs/epic-2/be.md`、`specs/epic-2/fe.md` 调整：US-2.10 改为通过 Copilot `worldbuild` mode 接入，不再依赖新增 task type。
+- `docs/SPRINT_LOG.md` 调整：把 AI 平台收敛重构放入 Sprint 7，Sprint 8 交付 Story Copilot V1，Sprint 9 再升级到 `Story Reasoning Service V2`。
+- 新增 Sprint 7 可执行计划文档 `.opencode/plans/2026-04-16-sprint-7-ai-platform-story-writer.md`，用于指导 agent 按统一顺序完成本 Sprint。
+- 新增 `.opencode/plans/2026-04-16-sprint-7-task-breakdown.md`，把 Sprint 7 拆成可直接执行的任务卡与并行矩阵。
+- 新增 `.opencode/plans/2026-04-16-sprint-7-ac-test-mapping-template.md`，用于落实 `process/dod.md` 要求的 AC -> 测试映射。
+
+#### 契约说明 (Contract)
+- `specs/epic-4/contract.md` 变更：删除 `worldbuild` / `plot_derive` 顶层 task type；`AIResult` 改为判别式 payload；新增 `StoryCopilotSession` 相关类型。
+- `specs/epic-4/contract.md` 变更：`AIDiffPayload` 新增可选 `revisedText`，用于 FE 在 v1 无位置元数据时直接采纳替换选区。
+
+------
+
+## v0.3.34（2026-04-16）
+
+### 新增 AI 能力：对话式世界构建 + 情节线推演
+#### 新增 (Added)
+- `AITaskType` 新增 `worldbuild`（对话式世界构建）和 `plot_derive`（情节线推演）两种任务类型。
+- `AIResult` 新增 `worldbuildEntries?: WorldbuildEntry[]` 和 `plotDerivation?: PlotDerivation` 字段。
+- 新增 `WorldbuildEntry` 接口：对话式世界构建提取的单条设定条目结构。
+- 新增 `PlotDerivation` 接口：情节线推演结果结构（受影响角色/势力/伏笔、矛盾预警、分支路径）。
+- `design/AI_SYSTEM.md` 阶段 3 新增 Worldbuilding Agent（5.2.1）和 PlotDerive Agent（5.2.2）架构设计。
+- `specs/epic-4/contract.md` 更新：AITaskType 从 9 种扩展为 11 种，新增共享约束和上下文注入规则。
+- `specs/epic-4/be.md` 更新：新增 worldbuild/plot_derive 任务路由、上下文构造和结果处理规则。
+- `specs/epic-4/fe.md` 更新：新增对话式世界构建面板和情节推演面板的交互规范。
+- `specs/epic-2/be.md` US-2.10 缝补：新增 worldbuild 任务后端 AC（SessionScopedMemory、并发控制、KBSetting 写入）。
+- `specs/epic-2/fe.md` US-2.10 缝补：新增对话面板、设定卡片确认/跳过、会话管理等前端 AC。
+- `docs/SPRINT_LOG.md` Sprint 8 更新：US-4.5 扩展情节推演，新增 US-2.10 对话式世界构建任务。
+
+#### 契约说明 (Contract)
+- `specs/epic-4/contract.md` 变更：`AITaskType` 新增 `worldbuild` | `plot_derive`；`AIResult` 新增 `worldbuildEntries` 和 `plotDerivation` 字段；新增 `WorldbuildEntry` 和 `PlotDerivation` 接口定义。
+
+------
+
 ## v0.3.33（2026-04-15）
 
 ### 工程门禁修复：Snapshot 测试对齐、OAuth lint 修复、Playwright 本地代理规避、Python 3.11 环境恢复

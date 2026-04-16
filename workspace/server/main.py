@@ -10,7 +10,7 @@ from typing import Any, AsyncGenerator, Optional, Union
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from .config import get_settings
+from .config import get_ai_system_defaults, get_settings
 from .models.request_models import ErrorBody, ErrorEnvelope, HealthResponse
 
 
@@ -31,6 +31,7 @@ class _SessionClock:
 def _reset_app_state() -> None:
     _reset_core_state()
     _reset_auth_state()
+    _reset_ai_state()
     _reset_export_state()
     _reset_kb_state()
     _reset_parser_state()
@@ -65,6 +66,14 @@ def _reset_auth_state() -> None:
     app.state.verify_tokens = {}
     app.state.verify_token_first_seen = set()
     app.state.reset_tokens = {}
+
+
+def _reset_ai_state() -> None:
+    app.state.ai_system_defaults = dict(get_ai_system_defaults())
+    app.state.ai_user_defaults = {}
+    app.state.ai_project_configs = {}
+    app.state.ai_tasks = {}
+    app.state.ai_task_counter = 0
 
 
 def _reset_export_state() -> None:
@@ -140,6 +149,7 @@ us17_trash_router = getattr(
 us18_archive_router = getattr(
     importlib.import_module("server.routes.us18_archive"), "router"
 )
+us41_ai_router = getattr(importlib.import_module("server.routes.us41_ai"), "router")
 us24_item_router = getattr(importlib.import_module("server.routes.us24_item"), "router")
 us25_faction_router = getattr(
     importlib.import_module("server.routes.us25_faction"), "router"
@@ -398,6 +408,7 @@ app.include_router(us15_outline_router)
 app.include_router(us16_goals_router)
 app.include_router(us17_trash_router)
 app.include_router(us18_archive_router)
+app.include_router(us41_ai_router)
 app.include_router(us24_item_router)
 app.include_router(us25_faction_router)
 app.include_router(us26_foreshadow_router)

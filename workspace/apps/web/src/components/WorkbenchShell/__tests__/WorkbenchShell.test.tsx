@@ -122,4 +122,15 @@ describe('WorkbenchShell', () => {
     expect(screen.getByText('通知中心')).toBeInTheDocument();
     expect(screen.getByTestId('notification-bell')).toBeInTheDocument();
   });
+
+  it('opens Epic 4 story copilot scaffold from the workbench header', () => {
+    renderWithRouter('/projects/1/workspace/chapter-1');
+
+    fireEvent.click(screen.getByRole('button', { name: /Story Copilot/ }));
+
+    expect(screen.getByText('统一 AI 创作入口')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '想设定' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '推剧情' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '看建议' })).toBeInTheDocument();
+  });
 });

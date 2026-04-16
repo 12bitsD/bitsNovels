@@ -13,6 +13,13 @@
 2. US-4.1 的上下文注入规则必须写成明确算法，因为它同时要求当前章节、前章末尾、知识库条目与 Token 优先级裁剪。- 证据：US-4.1 AC#3 明确给出注入来源和保留优先级。
 3. 流式协议要优先服务续写和对话，其它任务可复用同一通道，但结果解析策略不同。- 证据：US-4.1、US-4.4 明确要求流式输出；Diff、大纲、起名、建议需要结构化落地。
 
+## 当前实现状态（2026-04-16）
+- 已落地统一任务入口：`POST /api/ai/tasks`、`GET /api/ai/tasks/:taskId/stream`、`POST /api/ai/tasks/:taskId/stop`。
+- 已落地项目 AI 配置接口：`GET/PUT/PATCH /api/projects/:projectId/ai-config`，并返回 `projectConfig + resolvedConfig`。
+- 已落地真实 Provider 适配层：当前支持 `moonshot` 与 `mimo`，通过 env 配置切换；本地回归以 MiMo 为主。
+- 已落地结果分流：`continue/dialogue/parse -> text`、`polish/expand/summarize -> diff`、`outline/advice -> suggestions`、`name_gen -> names`。
+- 未落地范围：`StoryCopilotSession` 会话持久化、`worldbuild/plot_derive_lite` 会话接口、ARQ/Redis 级任务队列与更完整的 Provider Registry。
+
 ## 推荐后端架构
 
 ### Epic 4 应共用一条 AI 调用链，而不是为每个故事单独接第三方接口
@@ -40,6 +47,15 @@
 - `continue`、`dialogue` 返回自由文本。
 - `polish`、`expand`、`summarize` 先拿到候选文本，再与原文做 Diff，Diff 在服务端产出，前端直接消费结构化结果。
 - `outline`、`name_gen`、`advice` 要求模型输出 JSON 或可稳定解析的结构化文本，再转成统一 `AIResult`。
+
+## Story Copilot 会话层
+
+### 世界构建和剧情推演不再新增顶层 task type，而是挂到 `StoryCopilotSession.mode`
+- `Story Copilot` 是产品入口，会话是真相源；单次模型调用只是会话中的一步。
+- 会话建议单独建模，例如 `StoryCopilotSession` + `StoryCopilotMessage` + `CopilotDraftArtifact`。
+- `worldbuild` 通过会话持续追问和提取设定草稿，再逐条确认写入 `KBSetting`。
+- `plot_derive_lite` 通过会话接收用户剧情节点、回传轻量推演结果，并允许继续追问或再次推演。
+- `story_diagnose` 预留给“为什么这章写不顺 / 哪里有风险”之类的诊断型能力。
 
 ## US-4.1 核心：上下文注入规则
 
@@ -73,6 +89,11 @@
 - `name_gen`：命名类型、风格/文化背景、性别、附加要求 + 项目世界观与命名风格约束。
 - `advice`：当前章节全文 + 段落编号映射，要求模型按节奏、人物、描写、情节四个维度输出建议。
 
+### Story Copilot 的上下文由 session mode 决定
+- `worldbuild`：已有世界观设定（全量 KBSetting）+ 会话消息历史 + 用户本轮自然语言输入；模型在“追问”和“提取草稿”之间切换。
+- `plot_derive_lite`：角色关系图谱（KBGraphEdge）+ 势力同盟/敌对关系 + 未回收伏笔列表 + 世界观核心约束 + 用户输入的剧情节点；V1 不依赖摘要链和全书级深推理。
+- `story_diagnose`：当前章节全文 + 段落编号映射 + 最近建议 / 一致性问题摘要（可选）。
+
 ## 流式响应处理
 
 ### 流式协议要先解决增量、停止和失败三件事，续写体验才会稳定
@@ -81,6 +102,7 @@
 - `polish`、`expand`、`summarize` 即使开启流式，也应先在服务端累计完整文本，待生成结束后再计算 Diff 并下发 `AIResult`。
 - 收到停止请求后，服务端应立即中断上游连接，并把当前累计内容作为部分结果保存到任务上下文，状态改为 `stopped`。
 - 任何流式错误都要落成可展示错误信息，不能只断流不返回状态。
+- `Story Copilot` 流式返回的优先是会话消息；需要确认的草稿结果应以 `awaiting_confirmation` 状态返回，而不是假装一次 task 已完成。
 
 ## Diff 与结构化结果生成
 
@@ -90,6 +112,8 @@
 - `outline` 输出为建议列表，每项至少包含标题、要点、涉及角色。
 - `name_gen` 输出为名字数组。
 - `advice` 输出为建议数组，每项至少包含维度、内容、段落位置。
+- `Story Copilot worldbuild` 输出 `copilot_worldbuild` payload：包含回复文本和 `WorldbuildEntryDraft[]`。
+- `Story Copilot plot_derive_lite` 输出 `copilot_plot` payload：包含轻量推演结果、冲突提示和后续分支。
 
 ## 项目 AI 配置与生效规则
 
@@ -101,12 +125,15 @@
 
 ## 建议的数据流
 
-### 后端接口最好围绕“创建任务、订阅结果、停止任务、保存配置”四个动作组织
+### 后端接口最好围绕“创建任务、订阅结果、停止任务、保存配置、维护 Copilot 会话”五个动作组织
 - `POST /api/ai/tasks`：创建任务并返回 `taskId`。
 - `GET /api/ai/tasks/:taskId/stream`：订阅流式事件或最终结果。
 - `POST /api/ai/tasks/:taskId/stop`：停止任务。
 - `GET /api/projects/:projectId/ai-config`：读取项目 AI 配置与生效来源。
 - `PUT /api/projects/:projectId/ai-config`：保存项目 AI 配置。
+- `POST /api/projects/:projectId/copilot/sessions`：创建 Copilot 会话。
+- `POST /api/projects/:projectId/copilot/sessions/:sessionId/messages`：追加会话消息并返回流式回复。
+- `POST /api/projects/:projectId/copilot/sessions/:sessionId/artifacts/:artifactId/confirm`：确认某条设定草稿或采用某个推演分支。
 
 ## Epic 4 覆盖检查
 
@@ -120,6 +147,8 @@
 | US-4.6 | 命名参数构造、10 个候选名字返回 |
 | US-4.7 | 四维度建议生成、段落位置返回、反馈接口预留 |
 | US-4.8 | 项目配置读取/保存、三级覆盖、生效快照 |
+| US-2.10 缝补 | Copilot `worldbuild` mode、会话持久化、设定草稿提取与确认写入 |
+| US-4.5 缝补 | Copilot `plot_derive_lite` mode、显式 KB 轻量推演、结果结构化输出 |
 
 ## 下一步
 

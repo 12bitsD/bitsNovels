@@ -180,6 +180,16 @@ def app_state(
     app.state.session_counter = 0
     app.state.project_counter = 100
     app.state.user_counter = 100
+    app.state.ai_system_defaults = {
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxLength": 1200,
+        "parseDepth": "standard",
+    }
+    app.state.ai_user_defaults = {}
+    app.state.ai_project_configs = {}
+    app.state.ai_tasks = {}
+    app.state.ai_task_counter = 0
     # Sprint 2 fixtures: volumes, chapters, goals, writing_stats, trash_items
     app.state.fake_db.volumes = []
     app.state.fake_db.chapters = []

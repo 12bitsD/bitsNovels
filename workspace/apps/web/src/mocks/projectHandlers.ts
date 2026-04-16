@@ -63,6 +63,8 @@ const updateFailureResponse = new HttpResponse(
   { status: 500 },
 );
 
+export function resetProjectMockState() {}
+
 export const projectHandlers = [
   http.get('http://localhost:5173/api/projects/:projectId/settings', () => {
     return HttpResponse.json(mockProjectSettings);
@@ -232,4 +234,5 @@ export const projectHandlers = [
     }
     return HttpResponse.json({ ok: true });
   }),
+
 ];
