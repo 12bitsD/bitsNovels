@@ -5,8 +5,9 @@ import { Settings, ChevronLeft, Sidebar, BookOpen, Download, Archive, Sparkles }
 import NotificationBell from '../../features/epic-6/components/NotificationBell';
 import { EditorWorkspace } from '../../features/epic-3/components/EditorWorkspace';
 import { ChapterPanel } from '../../features/epic-3/components/ChapterPanel/ChapterPanel';
-import KBCharacterPanel from '../../features/epic-2/components/KBCharacter/KBCharacterPanel';
+import KnowledgeBasePanel from '../../features/epic-2/components/KnowledgeBasePanel';
 import StoryCopilotPanel from '../../features/epic-4/components/StoryCopilotPanel';
+import { NameGeneratorModal } from '../../features/epic-4/components/NameGeneratorModal';
 import { useStoryCopilotScaffold } from '../../features/epic-4/hooks/useStoryCopilotScaffold';
 import { ExportPanel } from '../../features/epic-5/components/ExportPanel';
 import { BackupRestorePanel } from '../../features/epic-5/components/BackupRestorePanel';
@@ -21,6 +22,7 @@ export function WorkbenchShell() {
   // For modals
   const [showExportModal, setShowExportModal] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
   const storyCopilot = useStoryCopilotScaffold(projectId ?? '');
 
   if (!projectId) {
@@ -78,6 +80,14 @@ export function WorkbenchShell() {
           >
             <Sparkles size={18} />
             <span>Story Copilot</span>
+          </button>
+
+          <button
+            onClick={() => setShowNameModal(true)}
+            className={`${utilityButtonClasses} hidden sm:inline-flex`}
+            title="名字生成器"
+          >
+            <span>名字生成器</span>
           </button>
 
           {/* Epic 5: Export / Backup entries */}
@@ -171,13 +181,18 @@ export function WorkbenchShell() {
               <h2 className="font-semibold">知识库</h2>
             </div>
             <div className="p-5">
-              <KBCharacterPanel projectId={projectId} />
+              <KnowledgeBasePanel projectId={projectId} />
             </div>
           </aside>
         )}
       </div>
 
       {/* Modals for Export and Backup */}
+      <NameGeneratorModal
+        isOpen={showNameModal}
+        onClose={() => setShowNameModal(false)}
+        projectId={projectId}
+      />
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-surface-panel shadow-xl">
@@ -211,12 +226,17 @@ export function WorkbenchShell() {
       )}
 
       <StoryCopilotPanel
+        projectId={projectId ?? ''}
+        chapterId={chapterId}
         isOpen={storyCopilot.isOpen}
         onClose={storyCopilot.close}
         activeMode={storyCopilot.activeMode}
         onModeChange={storyCopilot.setActiveMode}
         state={storyCopilot.state}
         sessions={storyCopilot.sessions}
+        sessionsLoading={storyCopilot.sessionsLoading}
+        sessionsError={storyCopilot.sessionsError}
+        reloadSessions={storyCopilot.reloadSessions}
       />
     </div>
   );

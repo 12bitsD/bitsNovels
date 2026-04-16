@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { EditorWorkspace } from '../components/EditorWorkspace';
 
 // Track mock calls and captured callbacks
@@ -124,26 +124,30 @@ describe('EditorWorkspace', () => {
     vi.restoreAllMocks();
   });
 
-  it('should render loading state when editor is not initialized', () => {
+  it('should render loading state when editor is not initialized', async () => {
     mockUseEditor.mockReturnValue(null);
 
     render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
-    const skeleton = document.querySelector('.animate-pulse');
-    expect(skeleton).toBeInTheDocument();
+    await waitFor(() => {
+      const skeleton = document.querySelector('.animate-pulse');
+      expect(skeleton).toBeInTheDocument();
+    });
   });
 
-  it('should render editor workspace when initialized', () => {
+  it('should render editor workspace when initialized', async () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
     render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
 
-    expect(screen.getByTestId('editor-content')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('章节标题')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('editor-content')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('章节标题')).toBeInTheDocument();
+    });
   });
 
-  it('should render with initial title', () => {
+  it('should render with initial title', async () => {
     const mockEditor = createMockEditor();
     mockUseEditor.mockReturnValue(mockEditor);
 
@@ -155,8 +159,10 @@ describe('EditorWorkspace', () => {
       />
     );
 
-    const titleInput = screen.getByPlaceholderText('章节标题') as HTMLInputElement;
-    expect(titleInput.value).toBe('Test Chapter Title');
+    await waitFor(() => {
+      const titleInput = screen.getByPlaceholderText('章节标题') as HTMLInputElement;
+      expect(titleInput.value).toBe('Test Chapter Title');
+    });
   });
 
   it('should render with initial content', () => {
@@ -271,12 +277,18 @@ describe('EditorWorkspace', () => {
     render(<EditorWorkspace projectId="project-123" chapterId="chapter-123" />);
     // Simulate TipTap onCreate being called (to set selectionCount > 0).
     const config = mockUseEditor.mock.calls[0]?.[0] as { onCreate?: (args: { editor: unknown }) => void } | undefined;
-    config?.onCreate?.({ editor: mockEditor });
+    await act(async () => {
+      config?.onCreate?.({ editor: mockEditor });
+    });
 
     await waitFor(() => expect((screen.getByRole('button', { name: 'AI 润色' }) as HTMLButtonElement).disabled).toBe(false));
-    fireEvent.click(screen.getByRole('button', { name: 'AI 润色' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'AI 润色' }));
+    });
     await waitFor(() => expect(mockCreateAITask).toHaveBeenCalled());
-    fireEvent.click(screen.getByText('采纳'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('采纳'));
+    });
     expect(mockEditor.commands.insertContentAt).toHaveBeenCalledWith({ from: 1, to: 5 }, 'REV');
   });
 
@@ -402,7 +414,7 @@ describe('EditorWorkspace', () => {
     expect(screen.getByText('字数:')).toBeInTheDocument();
   });
 
-  it('should initialize word count on mount', () => {
+  it('should initialize word count on mount', async () => {
     const mockGetJSON = vi.fn(() => ({
       type: 'doc',
       content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Initial content' }] }],
@@ -415,7 +427,9 @@ describe('EditorWorkspace', () => {
 
     const config = mockUseEditor.mock.calls[0]?.[0] as { onCreate?: (args: { editor: unknown }) => void } | undefined;
     expect(config?.onCreate).toBeTypeOf('function');
-    config?.onCreate?.({ editor: mockEditor });
+    await act(async () => {
+      config?.onCreate?.({ editor: mockEditor });
+    });
     expect(mockGetJSON).toHaveBeenCalled();
   });
 

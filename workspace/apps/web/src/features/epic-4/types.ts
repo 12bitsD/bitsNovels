@@ -101,6 +101,42 @@ export interface StoryCopilotSession {
   updatedAt: string;
 }
 
+export type StoryCopilotMessageRole = 'user' | 'assistant' | 'system';
+export type StoryCopilotEventType = 'message' | 'card' | 'card_action';
+export type StoryCopilotCardKind = 'draft' | 'result';
+export type StoryCopilotCardStatus = 'pending' | 'adopted' | 'dismissed';
+export type StoryCopilotCardActionType = 'adopt' | 'dismiss' | 'regenerate';
+
+export interface StoryCopilotMessage {
+  id: string;
+  role: StoryCopilotMessageRole;
+  content: string;
+}
+
+export interface StoryCopilotCard {
+  id: string;
+  kind: StoryCopilotCardKind;
+  title: string;
+  summary: string;
+  status: StoryCopilotCardStatus;
+  payload?: Record<string, unknown>;
+}
+
+export interface StoryCopilotCardAction {
+  id: string;
+  cardId: string;
+  action: StoryCopilotCardActionType;
+}
+
+export interface StoryCopilotEvent {
+  id: string;
+  type: StoryCopilotEventType;
+  createdAt: string;
+  message?: StoryCopilotMessage;
+  card?: StoryCopilotCard;
+  cardAction?: StoryCopilotCardAction;
+}
+
 export interface StoryCopilotDraftCard {
   id: string;
   title: string;

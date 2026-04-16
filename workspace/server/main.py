@@ -134,6 +134,9 @@ us22_character_router = getattr(
 us23_location_router = getattr(
     importlib.import_module("server.routes.us23_location"), "router"
 )
+us210_settings_router = getattr(
+    importlib.import_module("server.routes.us210_settings"), "router"
+)
 us14_settings_router = getattr(
     importlib.import_module("server.routes.us14_settings"), "router"
 )
@@ -150,6 +153,9 @@ us18_archive_router = getattr(
     importlib.import_module("server.routes.us18_archive"), "router"
 )
 us41_ai_router = getattr(importlib.import_module("server.routes.us41_ai"), "router")
+us45_copilot_router = getattr(
+    importlib.import_module("server.routes.us45_copilot"), "router"
+)
 us24_item_router = getattr(importlib.import_module("server.routes.us24_item"), "router")
 us25_faction_router = getattr(
     importlib.import_module("server.routes.us25_faction"), "router"
@@ -403,12 +409,14 @@ app.include_router(projects_router)
 app.include_router(us21_parser_router)
 app.include_router(us22_character_router)
 app.include_router(us23_location_router)
+app.include_router(us210_settings_router)
 app.include_router(us14_settings_router)
 app.include_router(us15_outline_router)
 app.include_router(us16_goals_router)
 app.include_router(us17_trash_router)
 app.include_router(us18_archive_router)
 app.include_router(us41_ai_router)
+app.include_router(us45_copilot_router)
 app.include_router(us24_item_router)
 app.include_router(us25_faction_router)
 app.include_router(us26_foreshadow_router)

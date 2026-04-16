@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Check, Edit2, Save, ShieldBan, X, XCircle } from 'lucide-react';
 import type { KBCharacter, KBCharacterChapterReference, UpdateKBCharacterInput } from './types';
+import { NameGeneratorModal } from '../../../epic-4/components/NameGeneratorModal';
 
 interface KBCharacterDetailProps {
+  projectId: string;
   character: KBCharacter;
   chapters?: KBCharacterChapterReference[];
   factionName?: string;
@@ -45,6 +47,7 @@ function normalizeCommaSeparated(value: string): string[] {
 }
 
 export default function KBCharacterDetail({
+  projectId,
   character,
   chapters = [],
   factionName,
@@ -56,6 +59,7 @@ export default function KBCharacterDetail({
 }: KBCharacterDetailProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<CharacterFormState>(() => toDraft(character));
+  const [showNameGen, setShowNameGen] = useState(false);
 
   const chapterList = useMemo(
     () =>
@@ -131,7 +135,16 @@ export default function KBCharacterDetail({
         {editing ? (
           <div className="space-y-4">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-[var(--color-ink-light)]">角色姓名</span>
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <span className="block text-xs font-medium text-[var(--color-ink-light)]">角色姓名</span>
+                <button
+                  type="button"
+                  onClick={() => setShowNameGen(true)}
+                  className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1 text-xs text-[var(--color-ink-light)] transition-colors hover:bg-[var(--color-parchment)]"
+                >
+                  AI 起名
+                </button>
+              </div>
               <input value={draft.name} onChange={(event) => updateDraft('name', event.target.value)} className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-amber)] focus:ring-2 focus:ring-[var(--color-amber)]/20" />
             </label>
             <label className="block">
@@ -299,6 +312,17 @@ export default function KBCharacterDetail({
           )
         )}
       </div>
+
+      <NameGeneratorModal
+        isOpen={showNameGen}
+        onClose={() => setShowNameGen(false)}
+        projectId={projectId}
+        nameType="character"
+        onFill={(name) => {
+          updateDraft('name', name);
+          setShowNameGen(false);
+        }}
+      />
     </div>
   );
 }

@@ -65,6 +65,216 @@ export const handlers = [
     return HttpResponse.json({ message: '重发成功' });
   }),
 
+  // Story Copilot (Epic 4) minimal handlers
+  http.get('http://localhost:5173/api/projects/:projectId/copilot/sessions', () => {
+    return HttpResponse.json({ sessions: [] });
+  }),
+  http.post('http://localhost:5173/api/projects/:projectId/copilot/sessions', () => {
+    return HttpResponse.json(
+      {
+        session: {
+          id: 'copilot-session-mock',
+          projectId: '1',
+          mode: 'worldbuild',
+          title: 'Mock Session',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.get('http://localhost:5173/api/copilot/sessions/:sessionId', () => {
+    return HttpResponse.json({
+      session: {
+        id: 'copilot-session-mock',
+        projectId: '1',
+        mode: 'worldbuild',
+        title: 'Mock Session',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      events: [],
+    });
+  }),
+  http.post('http://localhost:5173/api/copilot/sessions/:sessionId/messages', async ({ request }) => {
+    const body = (await request.json()) as { role?: string; content?: string };
+    return HttpResponse.json(
+      {
+        message: { id: 'copilot-message-mock', role: body.role ?? 'user', content: body.content ?? '' },
+        event: {
+          id: 'copilot-event-mock',
+          type: 'message',
+          createdAt: new Date().toISOString(),
+          message: { id: 'copilot-message-mock', role: body.role ?? 'user', content: body.content ?? '' },
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.post('http://localhost:5173/api/copilot/sessions/:sessionId/cards/:cardId/actions', async ({ params, request }) => {
+    const { cardId } = params;
+    const body = (await request.json()) as { action?: string };
+    const status = body.action === 'adopt' ? 'adopted' : body.action === 'dismiss' ? 'dismissed' : 'pending';
+    return HttpResponse.json({
+      card: { id: cardId, kind: 'draft', title: 'Mock Card', summary: 'Mock', status },
+      event: {
+        id: 'copilot-event-action-mock',
+        type: 'card_action',
+        createdAt: new Date().toISOString(),
+        cardAction: { id: 'copilot-action-mock', cardId, action: body.action ?? 'adopt' },
+      },
+    });
+  }),
+
+  // Relative path fallbacks
+  http.get('/api/projects/:projectId/copilot/sessions', () => {
+    return HttpResponse.json({ sessions: [] });
+  }),
+  http.post('/api/projects/:projectId/copilot/sessions', () => {
+    return HttpResponse.json(
+      {
+        session: {
+          id: 'copilot-session-mock',
+          projectId: '1',
+          mode: 'worldbuild',
+          title: 'Mock Session',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.get('/api/copilot/sessions/:sessionId', () => {
+    return HttpResponse.json({
+      session: {
+        id: 'copilot-session-mock',
+        projectId: '1',
+        mode: 'worldbuild',
+        title: 'Mock Session',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      events: [],
+    });
+  }),
+  http.post('/api/copilot/sessions/:sessionId/messages', async ({ request }) => {
+    const body = (await request.json()) as { role?: string; content?: string };
+    return HttpResponse.json(
+      {
+        message: { id: 'copilot-message-mock', role: body.role ?? 'user', content: body.content ?? '' },
+        event: {
+          id: 'copilot-event-mock',
+          type: 'message',
+          createdAt: new Date().toISOString(),
+          message: { id: 'copilot-message-mock', role: body.role ?? 'user', content: body.content ?? '' },
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.post('/api/copilot/sessions/:sessionId/turn', async ({ request }) => {
+    const body = (await request.json()) as { content?: string };
+    const now = new Date().toISOString();
+    return HttpResponse.json({
+      events: [
+        {
+          id: 'copilot-event-user-mock',
+          type: 'message',
+          createdAt: now,
+          message: { id: 'copilot-message-user-mock', role: 'user', content: body.content ?? '' },
+        },
+        {
+          id: 'copilot-event-assistant-mock',
+          type: 'message',
+          createdAt: now,
+          message: { id: 'copilot-message-assistant-mock', role: 'assistant', content: 'Mock reply' },
+        },
+      ],
+    });
+  }),
+  http.post('/api/copilot/sessions/:sessionId/feedback', async ({ request }) => {
+    const body = (await request.json()) as {
+      suggestionId?: string;
+      action?: string;
+      comment?: string;
+    };
+    return HttpResponse.json({
+      feedback: {
+        id: 'copilot-feedback-mock',
+        suggestionId: body.suggestionId ?? '',
+        action: body.action ?? 'helpful',
+        comment: body.comment ?? null,
+        createdAt: new Date().toISOString(),
+      },
+    });
+  }),
+  http.post('/api/copilot/sessions/:sessionId/cards/:cardId/actions', async ({ params, request }) => {
+    const { cardId } = params;
+    const body = (await request.json()) as { action?: string };
+    const status = body.action === 'adopt' ? 'adopted' : body.action === 'dismiss' ? 'dismissed' : 'pending';
+    return HttpResponse.json({
+      card: { id: cardId, kind: 'draft', title: 'Mock Card', summary: 'Mock', status },
+      event: {
+        id: 'copilot-event-action-mock',
+        type: 'card_action',
+        createdAt: new Date().toISOString(),
+        cardAction: { id: 'copilot-action-mock', cardId, action: body.action ?? 'adopt' },
+      },
+    });
+  }),
+
+  // KB Settings (Epic 2 / US-2.10) minimal handlers
+  http.get('http://localhost:5173/api/projects/:projectId/kb/settings', () => {
+    return HttpResponse.json({ items: [], total: 0 });
+  }),
+  http.get('http://localhost:5173/api/projects/:projectId/kb/settings/:id', ({ params }) => {
+    const { id, projectId } = params;
+    return HttpResponse.json({
+      setting: {
+        id,
+        projectId,
+        type: 'setting',
+        source: 'ai',
+        confirmed: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        title: 'Mock Setting',
+        category: '历史',
+        content: 'Mock',
+        order: 0,
+        relatedEntityRefs: [],
+      },
+    });
+  }),
+  http.get('/api/projects/:projectId/kb/settings', () => {
+    return HttpResponse.json({ items: [], total: 0 });
+  }),
+  http.get('/api/projects/:projectId/kb/settings/:id', ({ params }) => {
+    const { id, projectId } = params;
+    return HttpResponse.json({
+      setting: {
+        id,
+        projectId,
+        type: 'setting',
+        source: 'ai',
+        confirmed: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        title: 'Mock Setting',
+        category: '历史',
+        content: 'Mock',
+        order: 0,
+        relatedEntityRefs: [],
+      },
+    });
+  }),
+
   // Chapter Note handlers
   http.get('http://localhost:5173/api/projects/:projectId/chapters/:chapterId/note', ({ params }) => {
     const { chapterId } = params;

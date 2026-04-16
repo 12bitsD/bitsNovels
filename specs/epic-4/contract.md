@@ -125,6 +125,45 @@ interface StoryCopilotSession {
   updatedAt: string
 }
 
+type StoryCopilotMessageRole = 'user' | 'assistant' | 'system'
+
+interface StoryCopilotMessage {
+  id: string
+  role: StoryCopilotMessageRole
+  content: string
+}
+
+type StoryCopilotCardStatus = 'pending' | 'adopted' | 'dismissed'
+type StoryCopilotCardKind = 'draft' | 'result'
+
+interface StoryCopilotCard {
+  id: string
+  kind: StoryCopilotCardKind
+  title: string
+  summary: string
+  status: StoryCopilotCardStatus
+  payload?: Record<string, unknown>
+}
+
+type StoryCopilotCardActionType = 'adopt' | 'dismiss' | 'regenerate'
+
+interface StoryCopilotCardAction {
+  id: string
+  cardId: string
+  action: StoryCopilotCardActionType
+}
+
+type StoryCopilotEventType = 'message' | 'card' | 'card_action'
+
+interface StoryCopilotEvent {
+  id: string
+  type: StoryCopilotEventType
+  createdAt: string
+  message?: StoryCopilotMessage
+  card?: StoryCopilotCard
+  cardAction?: StoryCopilotCardAction
+}
+
 interface AIDiffChange {
   type: 'insert' | 'delete'
   content: string
@@ -205,3 +244,76 @@ interface AIDiffChange {
 | 将本文件中的共享类型沉淀为前后端共用类型包或接口文档 | 前端 + 后端 | API 冻结前 |
 | 把 Token 裁剪顺序写进后端单元测试与联调用例 | 后端 | 开发启动前 |
 | 在 EPIC2 Parser 设计中引用同一 `AIProjectConfig` 与 `AITaskType` | 后端 | Parser 联调前 |
+
+---
+
+## Story Copilot Session API (Sprint 8 Phase A)
+
+> 目标：让 Copilot 具备最小“会话”能力：创建/恢复会话、消息追加、结果卡片插入、状态机可回放。
+>
+> 说明：本阶段只冻结“会话与事件流”契约；具体各 mode 的业务字段（US-4.5/4.7/US-2.10）在后续 Phase 再细化扩展 `payload`。
+
+### 端点
+
+#### 创建会话
+- `POST /api/projects/{projectId}/copilot/sessions`
+- Request
+  - `mode: StoryCopilotMode`
+  - `title?: string`
+- Response `201`
+  - `{ session: StoryCopilotSession }`
+- Errors
+  - `401 UNAUTHORIZED`
+  - `403 FORBIDDEN`
+  - `404 PROJECT_NOT_FOUND`
+  - `400 VALIDATION_ERROR`（mode/title 非法）
+
+#### 列出会话（最近优先）
+- `GET /api/projects/{projectId}/copilot/sessions?mode={StoryCopilotMode?}&limit={number?}`
+- Response `200`
+  - `{ sessions: StoryCopilotSession[] }`
+
+#### 获取会话回放（事件流）
+- `GET /api/copilot/sessions/{sessionId}`
+- Response `200`
+  - `{ session: StoryCopilotSession, events: StoryCopilotEvent[] }`
+- Errors
+  - `401 UNAUTHORIZED`
+  - `403 FORBIDDEN`
+  - `404 COPILOT_SESSION_NOT_FOUND`
+
+#### 追加消息
+- `POST /api/copilot/sessions/{sessionId}/messages`
+- Request
+  - `role: StoryCopilotMessageRole`
+  - `content: string`
+- Response `201`
+  - `{ message: StoryCopilotMessage, event: StoryCopilotEvent }`
+- Errors
+  - `401 UNAUTHORIZED`
+  - `403 FORBIDDEN`
+  - `404 COPILOT_SESSION_NOT_FOUND`
+  - `400 VALIDATION_ERROR`（role/content 非法）
+
+#### 插入卡片
+- `POST /api/copilot/sessions/{sessionId}/cards`
+- Request
+  - `kind: StoryCopilotCardKind`
+  - `title: string`
+  - `summary: string`
+  - `payload?: Record<string, unknown>`
+- Response `201`
+  - `{ card: StoryCopilotCard, event: StoryCopilotEvent }`
+
+#### 卡片动作（统一 adopt/dismiss/regenerate）
+- `POST /api/copilot/sessions/{sessionId}/cards/{cardId}/actions`
+- Request
+  - `action: StoryCopilotCardActionType`
+- Response `200`
+  - `{ card: StoryCopilotCard, event: StoryCopilotEvent }`
+- Errors
+  - `401 UNAUTHORIZED`
+  - `403 FORBIDDEN`
+  - `404 COPILOT_SESSION_NOT_FOUND`
+  - `404 COPILOT_CARD_NOT_FOUND`
+  - `400 VALIDATION_ERROR`（action 非法）

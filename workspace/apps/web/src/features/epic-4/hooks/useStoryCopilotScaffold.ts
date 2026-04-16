@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import type {
   StoryCopilotDraftCard,
@@ -6,36 +6,7 @@ import type {
   StoryCopilotScaffoldState,
   StoryCopilotSession,
 } from '../types';
-
-const SESSION_FIXTURES: StoryCopilotSession[] = [
-  {
-    id: 'copilot-worldbuild-1',
-    projectId: 'demo-project',
-    mode: 'worldbuild',
-    title: '帝国年代与地理设定',
-    status: 'active',
-    createdAt: '2026-04-16T09:00:00.000Z',
-    updatedAt: '2026-04-16T09:40:00.000Z',
-  },
-  {
-    id: 'copilot-plot-1',
-    projectId: 'demo-project',
-    mode: 'plot_derive_lite',
-    title: '主线冲突升级推演',
-    status: 'completed',
-    createdAt: '2026-04-16T08:10:00.000Z',
-    updatedAt: '2026-04-16T08:48:00.000Z',
-  },
-  {
-    id: 'copilot-diagnose-1',
-    projectId: 'demo-project',
-    mode: 'story_diagnose',
-    title: '当前章节写作建议',
-    status: 'active',
-    createdAt: '2026-04-16T07:10:00.000Z',
-    updatedAt: '2026-04-16T07:22:00.000Z',
-  },
-];
+import { client, extractApiErrorMessage } from '../../../api/client';
 
 const MODE_STATE: Record<StoryCopilotMode, StoryCopilotScaffoldState> = {
   worldbuild: {
@@ -97,28 +68,82 @@ const MODE_STATE: Record<StoryCopilotMode, StoryCopilotScaffoldState> = {
 export function useStoryCopilotScaffold(projectId: string) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<StoryCopilotMode>('worldbuild');
+  const [sessions, setSessions] = useState<StoryCopilotSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState('');
 
-  const sessions = useMemo(
-    () =>
-      SESSION_FIXTURES.filter((session) => session.projectId === 'demo-project').map((session) => ({
-        ...session,
-        projectId,
-      })),
-    [projectId],
+  const loadSessionsForMode = useCallback(async (mode: StoryCopilotMode) => {
+    if (!projectId) {
+      setSessions([]);
+      return;
+    }
+
+    setSessionsLoading(true);
+    setSessionsError('');
+
+    const qs = new URLSearchParams({
+      mode,
+      limit: '10',
+    });
+
+    const { data, error } = await client.GET(
+      `/api/projects/${projectId}/copilot/sessions?${qs.toString()}`,
+    );
+
+    if (error || !data) {
+      setSessionsError(extractApiErrorMessage(error, '加载 Copilot 会话失败'));
+      setSessions([]);
+      setSessionsLoading(false);
+      return;
+    }
+
+    setSessions((data as { sessions: StoryCopilotSession[] }).sessions);
+    setSessionsLoading(false);
+  }, [projectId]);
+
+  const loadSessions = useCallback(async () => {
+    await loadSessionsForMode(activeMode);
+  }, [activeMode, loadSessionsForMode]);
+
+  const open = useCallback(() => {
+    setIsOpen(true);
+    void loadSessionsForMode(activeMode);
+  }, [activeMode, loadSessionsForMode]);
+
+  const changeMode = useCallback(
+    (mode: StoryCopilotMode) => {
+      setActiveMode(mode);
+      if (isOpen) {
+        void loadSessionsForMode(mode);
+      }
+    },
+    [isOpen, loadSessionsForMode],
   );
 
+  const toggle = useCallback(() => {
+    setIsOpen((current) => {
+      const next = !current;
+      if (next) {
+        void loadSessionsForMode(activeMode);
+      }
+      return next;
+    });
+  }, [activeMode, loadSessionsForMode]);
+
   const state = MODE_STATE[activeMode];
-  const activeSessions = sessions.filter((session) => session.mode === activeMode);
 
   return {
     isOpen,
     activeMode,
     state,
-    sessions: activeSessions,
-    open: () => setIsOpen(true),
+    sessions,
+    sessionsLoading,
+    sessionsError,
+    reloadSessions: loadSessions,
+    open,
     close: () => setIsOpen(false),
-    toggle: () => setIsOpen((current) => !current),
-    setActiveMode,
+    toggle,
+    setActiveMode: changeMode,
   };
 }
 

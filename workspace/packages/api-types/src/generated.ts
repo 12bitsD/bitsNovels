@@ -555,6 +555,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/kb/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Settings */
+        get: operations["list_settings_api_projects__project_id__kb_settings_get"];
+        put?: never;
+        /** Create Setting */
+        post: operations["create_setting_api_projects__project_id__kb_settings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/kb/settings/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reorder Settings */
+        patch: operations["reorder_settings_api_projects__project_id__kb_settings_reorder_patch"];
+        trace?: never;
+    };
+    "/api/projects/{project_id}/kb/settings/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Setting */
+        get: operations["get_setting_api_projects__project_id__kb_settings__entity_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Setting */
+        delete: operations["delete_setting_api_projects__project_id__kb_settings__entity_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Setting */
+        patch: operations["patch_setting_api_projects__project_id__kb_settings__entity_id__patch"];
+        trace?: never;
+    };
+    "/api/projects/{project_id}/kb/settings/{entity_id}/references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Setting References */
+        post: operations["update_setting_references_api_projects__project_id__kb_settings__entity_id__references_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/settings": {
         parameters: {
             query?: never;
@@ -865,7 +936,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Put Project Ai Config */
+        patch: operations["put_project_ai_config_api_projects__project_id__ai_config_patch"];
         trace?: never;
     };
     "/api/ai/tasks": {
@@ -913,6 +985,126 @@ export interface paths {
         get: operations["stream_ai_task_api_ai_tasks__task_id__stream_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/copilot/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Copilot Sessions */
+        get: operations["list_copilot_sessions_api_projects__project_id__copilot_sessions_get"];
+        put?: never;
+        /** Create Copilot Session */
+        post: operations["create_copilot_session_api_projects__project_id__copilot_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Copilot Session Replay */
+        get: operations["get_copilot_session_replay_api_copilot_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/sessions/{session_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Append Copilot Message */
+        post: operations["append_copilot_message_api_copilot_sessions__session_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/sessions/{session_id}/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Copilot Card */
+        post: operations["create_copilot_card_api_copilot_sessions__session_id__cards_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/sessions/{session_id}/cards/{card_id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copilot Card Action */
+        post: operations["copilot_card_action_api_copilot_sessions__session_id__cards__card_id__actions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/sessions/{session_id}/turn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copilot Turn */
+        post: operations["copilot_turn_api_copilot_sessions__session_id__turn_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/sessions/{session_id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copilot Feedback */
+        post: operations["copilot_feedback_api_copilot_sessions__session_id__feedback_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1823,6 +2015,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AppendStoryCopilotMessageRequest */
+        AppendStoryCopilotMessageRequest: {
+            /** Role */
+            role: string;
+            /** Content */
+            content: string;
+        };
+        /** AppendStoryCopilotMessageResponse */
+        AppendStoryCopilotMessageResponse: {
+            message: components["schemas"]["StoryCopilotMessage"];
+            event: components["schemas"]["StoryCopilotEvent"];
+        };
         /** BatchParserRequest */
         BatchParserRequest: {
             /** Scope */
@@ -1964,12 +2168,50 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** CreateSettingRequest */
+        CreateSettingRequest: {
+            /** Title */
+            title: string;
+            /** Category */
+            category: string;
+            /** Content */
+            content: string;
+        };
         /** CreateSnapshotRequest */
         CreateSnapshotRequest: {
             /** Label */
             label?: string | null;
             /** Type */
             type?: string | null;
+        };
+        /** CreateStoryCopilotCardRequest */
+        CreateStoryCopilotCardRequest: {
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string;
+            /** Summary */
+            summary: string;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** CreateStoryCopilotCardResponse */
+        CreateStoryCopilotCardResponse: {
+            card: components["schemas"]["StoryCopilotCard"];
+            event: components["schemas"]["StoryCopilotEvent"];
+        };
+        /** CreateStoryCopilotSessionRequest */
+        CreateStoryCopilotSessionRequest: {
+            /** Mode */
+            mode: string;
+            /** Title */
+            title?: string | null;
+        };
+        /** CreateStoryCopilotSessionResponse */
+        CreateStoryCopilotSessionResponse: {
+            session: components["schemas"]["StoryCopilotSession"];
         };
         /** CreateVolumeRequest */
         CreateVolumeRequest: {
@@ -1998,6 +2240,12 @@ export interface components {
             /** Email */
             email: string;
         };
+        /** GetStoryCopilotSessionReplayResponse */
+        GetStoryCopilotSessionReplayResponse: {
+            session: components["schemas"]["StoryCopilotSession"];
+            /** Events */
+            events: components["schemas"]["StoryCopilotEvent"][];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2020,6 +2268,11 @@ export interface components {
             data: {
                 [key: string]: unknown;
             };
+        };
+        /** ListStoryCopilotSessionsResponse */
+        ListStoryCopilotSessionsResponse: {
+            /** Sessions */
+            sessions: components["schemas"]["StoryCopilotSession"][];
         };
         /** LoginRequest */
         LoginRequest: {
@@ -2140,6 +2393,21 @@ export interface components {
             /** Remark */
             remark?: string | null;
         };
+        /** PatchSettingRequest */
+        PatchSettingRequest: {
+            /** Title */
+            title?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Confirmed */
+            confirmed?: boolean | null;
+            /** Relatedentityrefs */
+            relatedEntityRefs?: {
+                [key: string]: string;
+            }[] | null;
+        };
         /** PatchVolumeRequest */
         PatchVolumeRequest: {
             /** Name */
@@ -2165,6 +2433,11 @@ export interface components {
             chapterIds: string[];
             /** Targetvolumeid */
             targetVolumeId?: string | null;
+        };
+        /** ReorderSettingsRequest */
+        ReorderSettingsRequest: {
+            /** Orderedids */
+            orderedIds: string[];
         };
         /** ReorderVolumesRequest */
         ReorderVolumesRequest: {
@@ -2200,6 +2473,124 @@ export interface components {
             chapterId?: string | null;
             /** Targetdurationseconds */
             targetDurationSeconds?: number | null;
+        };
+        /** StoryCopilotCard */
+        StoryCopilotCard: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "draft" | "result";
+            /** Title */
+            title: string;
+            /** Summary */
+            summary: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "adopted" | "dismissed";
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** StoryCopilotCardAction */
+        StoryCopilotCardAction: {
+            /** Id */
+            id: string;
+            /** Cardid */
+            cardId: string;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "adopt" | "dismiss" | "regenerate";
+        };
+        /** StoryCopilotCardActionRequest */
+        StoryCopilotCardActionRequest: {
+            /** Action */
+            action: string;
+        };
+        /** StoryCopilotCardActionResponse */
+        StoryCopilotCardActionResponse: {
+            card: components["schemas"]["StoryCopilotCard"];
+            event: components["schemas"]["StoryCopilotEvent"];
+        };
+        /** StoryCopilotEvent */
+        StoryCopilotEvent: {
+            /** Id */
+            id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "message" | "card" | "card_action";
+            /** Createdat */
+            createdAt: string;
+            message?: components["schemas"]["StoryCopilotMessage"] | null;
+            card?: components["schemas"]["StoryCopilotCard"] | null;
+            cardAction?: components["schemas"]["StoryCopilotCardAction"] | null;
+        };
+        /** StoryCopilotFeedbackRequest */
+        StoryCopilotFeedbackRequest: {
+            /** Suggestionid */
+            suggestionId: string;
+            /** Action */
+            action: string;
+            /** Comment */
+            comment?: string | null;
+        };
+        /** StoryCopilotMessage */
+        StoryCopilotMessage: {
+            /** Id */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant" | "system";
+            /** Content */
+            content: string;
+        };
+        /** StoryCopilotSession */
+        StoryCopilotSession: {
+            /** Id */
+            id: string;
+            /** Projectid */
+            projectId: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "worldbuild" | "plot_derive_lite" | "story_diagnose";
+            /** Title */
+            title?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "completed" | "archived";
+            /** Createdat */
+            createdAt: string;
+            /** Updatedat */
+            updatedAt: string;
+        };
+        /** StoryCopilotTurnRequest */
+        StoryCopilotTurnRequest: {
+            /** Content */
+            content: string;
+            /** Chapterid */
+            chapterId?: string | null;
+        };
+        /** StoryCopilotTurnResponse */
+        StoryCopilotTurnResponse: {
+            /** Events */
+            events: {
+                [key: string]: unknown;
+            }[];
         };
         /** TriggerParserRequest */
         TriggerParserRequest: {
@@ -2253,6 +2644,13 @@ export interface components {
         UpdateSessionRequest: {
             /** Status */
             status: string;
+        };
+        /** UpdateSettingReferencesRequest */
+        UpdateSettingReferencesRequest: {
+            /** Relatedentityrefs */
+            relatedEntityRefs: {
+                [key: string]: string;
+            }[];
         };
         /** ValidationError */
         ValidationError: {
@@ -3645,6 +4043,260 @@ export interface operations {
             };
         };
     };
+    list_settings_api_projects__project_id__kb_settings_get: {
+        parameters: {
+            query?: {
+                query?: string;
+                category?: string;
+            };
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_setting_api_projects__project_id__kb_settings_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSettingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_settings_api_projects__project_id__kb_settings_reorder_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_setting_api_projects__project_id__kb_settings__entity_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_setting_api_projects__project_id__kb_settings__entity_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_setting_api_projects__project_id__kb_settings__entity_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchSettingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_setting_references_api_projects__project_id__kb_settings__entity_id__references_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSettingReferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_settings_api_projects__project_id__settings_get: {
         parameters: {
             query?: never;
@@ -4526,6 +5178,43 @@ export interface operations {
             };
         };
     };
+    put_project_ai_config_api_projects__project_id__ai_config_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAIProjectConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_ai_task_api_ai_tasks_post: {
         parameters: {
             query?: never;
@@ -4606,6 +5295,298 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_copilot_sessions_api_projects__project_id__copilot_sessions_get: {
+        parameters: {
+            query?: {
+                mode?: string | null;
+                limit?: number;
+            };
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListStoryCopilotSessionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_copilot_session_api_projects__project_id__copilot_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStoryCopilotSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateStoryCopilotSessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_copilot_session_replay_api_copilot_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetStoryCopilotSessionReplayResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    append_copilot_message_api_copilot_sessions__session_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppendStoryCopilotMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppendStoryCopilotMessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_copilot_card_api_copilot_sessions__session_id__cards_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStoryCopilotCardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateStoryCopilotCardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copilot_card_action_api_copilot_sessions__session_id__cards__card_id__actions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryCopilotCardActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryCopilotCardActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copilot_turn_api_copilot_sessions__session_id__turn_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryCopilotTurnRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryCopilotTurnResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copilot_feedback_api_copilot_sessions__session_id__feedback_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryCopilotFeedbackRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

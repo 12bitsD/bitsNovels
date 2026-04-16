@@ -47,7 +47,9 @@ describe('AuthContext', () => {
     );
 
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
-    await result.current.login('test@test.com', 'password');
+    await act(async () => {
+      await result.current.login('test@test.com', 'password');
+    });
     await waitFor(() => expect(result.current.token).toBe('new-token'));
     expect(result.current.isAuthenticated).toBe(true);
     expect(result.current.isVerified).toBe(true);

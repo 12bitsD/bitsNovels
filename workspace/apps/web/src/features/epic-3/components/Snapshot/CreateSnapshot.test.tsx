@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { CreateSnapshot } from './CreateSnapshot';
 
 describe('CreateSnapshot', () => {
@@ -71,7 +71,9 @@ describe('CreateSnapshot', () => {
     fireEvent.change(textarea, { target: { value: 'My snapshot label' } });
 
     const submitButton = screen.getAllByRole('button').find(b => b.textContent?.includes('创建快照') && b.className?.includes('bg-[#8B6914]'));
-    fireEvent.click(submitButton!);
+    await act(async () => {
+      fireEvent.click(submitButton!);
+    });
 
     await waitFor(() => {
       expect(mockOnCreate).toHaveBeenCalledWith('My snapshot label');
@@ -86,7 +88,9 @@ describe('CreateSnapshot', () => {
     fireEvent.click(screen.getByRole('button', { name: '创建快照' }));
 
     const submitButton = screen.getAllByRole('button').find(b => b.textContent?.includes('创建快照') && b.className?.includes('bg-[#8B6914]'));
-    fireEvent.click(submitButton!);
+    await act(async () => {
+      fireEvent.click(submitButton!);
+    });
 
     await waitFor(() => {
       expect(mockOnCreate).toHaveBeenCalledWith(undefined);
@@ -104,7 +108,9 @@ describe('CreateSnapshot', () => {
     fireEvent.change(textarea, { target: { value: '  Test label  ' } });
 
     const submitButton = screen.getAllByRole('button').find(b => b.textContent?.includes('创建快照') && b.className?.includes('bg-[#8B6914]'));
-    fireEvent.click(submitButton!);
+    await act(async () => {
+      fireEvent.click(submitButton!);
+    });
 
     await waitFor(() => {
       expect(mockOnCreate).toHaveBeenCalledWith('Test label');
@@ -122,7 +128,9 @@ describe('CreateSnapshot', () => {
     expect(screen.getByText('超过字数限制')).toBeInTheDocument();
 
     const submitButton = screen.getAllByRole('button').find(b => b.textContent?.includes('创建快照') && b.className?.includes('bg-[#8B6914]'));
-    fireEvent.click(submitButton!);
+    await act(async () => {
+      fireEvent.click(submitButton!);
+    });
 
     expect(mockOnCreate).not.toHaveBeenCalled();
   });
@@ -135,7 +143,9 @@ describe('CreateSnapshot', () => {
     fireEvent.click(screen.getByRole('button', { name: '创建快照' }));
 
     const submitButton = screen.getAllByRole('button').find(b => b.textContent?.includes('创建快照') && b.className?.includes('bg-[#8B6914]'));
-    fireEvent.click(submitButton!);
+    await act(async () => {
+      fireEvent.click(submitButton!);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Failed to create snapshot')).toBeInTheDocument();
@@ -165,8 +175,9 @@ describe('CreateSnapshot', () => {
       expect(screen.getByText('创建中...')).toBeInTheDocument();
     });
 
-    // @ts-expect-error typecheck fix
-    resolvePromise();
+    await act(async () => {
+      resolvePromise();
+    });
   });
 
   it('should close modal on Escape key', () => {

@@ -28,9 +28,7 @@ describe('useChapterNote', () => {
   };
 
   it('should initialize with loading state', () => {
-    vi.mocked(client.GET).mockResolvedValueOnce({ 
-      data: null, error: null, response: new Response() 
-    } as never);
+    vi.mocked(client.GET).mockImplementationOnce(() => new Promise(() => {}));
     
     const { result } = renderHook(() => useChapterNote('chapter-1', { projectId: 'project-1' }));
     

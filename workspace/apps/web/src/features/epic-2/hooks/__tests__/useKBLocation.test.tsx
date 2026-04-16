@@ -36,6 +36,7 @@ describe('useKBLocation', () => {
 
   describe('initial state', () => {
     it('should start with empty locations and loading state', () => {
+      vi.mocked(client.GET).mockImplementationOnce(() => new Promise(() => {}));
       const { result } = renderHook(() => useKBLocation('project1'));
       
       expect(result.current.locations).toEqual([]);

@@ -16,8 +16,8 @@ vi.mock('../../../features/epic-3/components/ChapterPanel/ChapterPanel', () => (
   ChapterPanel: () => <div data-testid="chapter-panel" />
 }));
 
-vi.mock('../../../features/epic-2/components/KBCharacter/KBCharacterPanel', () => ({
-  default: () => <div data-testid="kb-character-panel" />
+vi.mock('../../../features/epic-2/components/KnowledgeBasePanel', () => ({
+  default: () => <div data-testid="knowledge-base-panel" />
 }));
 
 vi.mock('../../../features/epic-5/components/ExportPanel', () => ({
@@ -82,13 +82,13 @@ describe('WorkbenchShell', () => {
   it('toggles right panel', () => {
     renderWithRouter();
     const toggleBtn = screen.getByTitle('切换知识库面板');
-    expect(screen.getByTestId('kb-character-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('knowledge-base-panel')).toBeInTheDocument();
     
     fireEvent.click(toggleBtn);
-    expect(screen.queryByTestId('kb-character-panel')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('knowledge-base-panel')).not.toBeInTheDocument();
     
     fireEvent.click(toggleBtn);
-    expect(screen.getByTestId('kb-character-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('knowledge-base-panel')).toBeInTheDocument();
   });
 
   it('opens and closes export modal', () => {

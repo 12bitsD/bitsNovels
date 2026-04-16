@@ -69,6 +69,7 @@ describe('SnapshotPanel', () => {
   });
 
   it('should render panel when isOpen is true', () => {
+    mockClient.GET.mockImplementation(() => new Promise(() => {}));
     render(
       <SnapshotPanel
         projectId={projectId}
@@ -84,6 +85,7 @@ describe('SnapshotPanel', () => {
   });
 
   it('should call onClose when close button is clicked', () => {
+    mockClient.GET.mockImplementation(() => new Promise(() => {}));
     render(
       <SnapshotPanel
         projectId={projectId}

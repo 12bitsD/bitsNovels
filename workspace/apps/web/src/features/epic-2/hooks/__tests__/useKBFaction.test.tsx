@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { useKBFaction } from '../useKBFaction';
 import { client } from '../../../../api/client';
 
@@ -33,11 +33,7 @@ describe('useKBFaction', () => {
   });
 
   it('should return initial state', () => {
-    vi.mocked(client.GET).mockResolvedValue({
-      data: { items: [], has_more: false },
-      error: undefined,
-      response: {} as Response,
-    });
+    vi.mocked(client.GET).mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useKBFaction({ projectId: 'project1' }));
 
@@ -51,11 +47,7 @@ describe('useKBFaction', () => {
   });
 
   it('should have setSearch function', () => {
-    vi.mocked(client.GET).mockResolvedValue({
-      data: { items: [], has_more: false },
-      error: undefined,
-      response: {} as Response,
-    });
+    vi.mocked(client.GET).mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useKBFaction({ projectId: 'project1' }));
 
@@ -64,11 +56,7 @@ describe('useKBFaction', () => {
   });
 
   it('should have setTypeFilter function', () => {
-    vi.mocked(client.GET).mockResolvedValue({
-      data: { items: [], has_more: false },
-      error: undefined,
-      response: {} as Response,
-    });
+    vi.mocked(client.GET).mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useKBFaction({ projectId: 'project1' }));
 
@@ -92,9 +80,11 @@ describe('useKBFaction', () => {
 
     const { result } = renderHook(() => useKBFaction({ projectId: 'project1' }));
 
-    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    await result.current.confirmFaction('1');
+    await act(async () => {
+      await result.current.confirmFaction('1');
+    });
 
     expect(client.POST).toHaveBeenCalledWith('/api/projects/project1/knowledge-base/factions/1/confirm');
   });
@@ -115,9 +105,11 @@ describe('useKBFaction', () => {
 
     const { result } = renderHook(() => useKBFaction({ projectId: 'project1' }));
 
-    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    await result.current.rejectFaction('1');
+    await act(async () => {
+      await result.current.rejectFaction('1');
+    });
 
     expect(client.DELETE).toHaveBeenCalledWith('/api/projects/project1/knowledge-base/factions/1');
   });
@@ -127,7 +119,7 @@ describe('useKBFaction', () => {
 
     const { result } = renderHook(() => useKBFaction({ projectId: 'project1' }));
 
-    await vi.waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.error).toBe('Network error');
   });

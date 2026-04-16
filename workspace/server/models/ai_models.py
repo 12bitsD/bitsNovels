@@ -33,6 +33,11 @@ AIResultPayloadType = Literal[
     "copilot_plot",
 ]
 StoryCopilotMode = Literal["worldbuild", "plot_derive_lite", "story_diagnose"]
+StoryCopilotMessageRole = Literal["user", "assistant", "system"]
+StoryCopilotEventType = Literal["message", "card", "card_action"]
+StoryCopilotCardKind = Literal["draft", "result"]
+StoryCopilotCardStatus = Literal["pending", "adopted", "dismissed"]
+StoryCopilotCardActionType = Literal["adopt", "dismiss", "regenerate"]
 
 
 class AIProjectConfig(BaseModel):
@@ -151,6 +156,93 @@ class StoryCopilotSession(BaseModel):
     status: Literal["active", "completed", "archived"]
     createdAt: str
     updatedAt: str
+
+
+class StoryCopilotMessage(BaseModel):
+    id: str
+    role: StoryCopilotMessageRole
+    content: str
+
+
+class StoryCopilotCard(BaseModel):
+    id: str
+    kind: StoryCopilotCardKind
+    title: str
+    summary: str
+    status: StoryCopilotCardStatus
+    payload: Optional[dict[str, Any]] = None
+
+
+class StoryCopilotCardAction(BaseModel):
+    id: str
+    cardId: str
+    action: StoryCopilotCardActionType
+
+
+class StoryCopilotEvent(BaseModel):
+    id: str
+    type: StoryCopilotEventType
+    createdAt: str
+    message: Optional[StoryCopilotMessage] = None
+    card: Optional[StoryCopilotCard] = None
+    cardAction: Optional[StoryCopilotCardAction] = None
+
+
+class CreateStoryCopilotSessionRequest(BaseModel):
+    mode: str
+    title: Optional[str] = None
+
+    model_config = {"extra": "forbid"}
+
+
+class CreateStoryCopilotSessionResponse(BaseModel):
+    session: StoryCopilotSession
+
+
+class ListStoryCopilotSessionsResponse(BaseModel):
+    sessions: list[StoryCopilotSession]
+
+
+class GetStoryCopilotSessionReplayResponse(BaseModel):
+    session: StoryCopilotSession
+    events: list[StoryCopilotEvent]
+
+
+class AppendStoryCopilotMessageRequest(BaseModel):
+    role: str
+    content: str
+
+    model_config = {"extra": "forbid"}
+
+
+class AppendStoryCopilotMessageResponse(BaseModel):
+    message: StoryCopilotMessage
+    event: StoryCopilotEvent
+
+
+class CreateStoryCopilotCardRequest(BaseModel):
+    kind: str
+    title: str
+    summary: str
+    payload: Optional[dict[str, Any]] = None
+
+    model_config = {"extra": "forbid"}
+
+
+class CreateStoryCopilotCardResponse(BaseModel):
+    card: StoryCopilotCard
+    event: StoryCopilotEvent
+
+
+class StoryCopilotCardActionRequest(BaseModel):
+    action: str
+
+    model_config = {"extra": "forbid"}
+
+
+class StoryCopilotCardActionResponse(BaseModel):
+    card: StoryCopilotCard
+    event: StoryCopilotEvent
 
 
 class AIContextBlock(BaseModel):

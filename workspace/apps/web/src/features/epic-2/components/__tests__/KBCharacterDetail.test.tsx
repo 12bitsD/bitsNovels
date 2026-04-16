@@ -39,6 +39,7 @@ describe('KBCharacterDetail', () => {
   it('renders full character detail fields', () => {
     render(
       <KBCharacterDetail
+        projectId="project-1"
         character={createCharacter()}
         factionName="夜行司"
         chapters={chapters}
@@ -61,6 +62,7 @@ describe('KBCharacterDetail', () => {
 
     render(
       <KBCharacterDetail
+        projectId="project-1"
         character={createCharacter()}
         chapters={chapters}
         onChapterSelect={onChapterSelect}
@@ -77,6 +79,7 @@ describe('KBCharacterDetail', () => {
 
     render(
       <KBCharacterDetail
+        projectId="project-1"
         character={createCharacter()}
         chapters={chapters}
         onConfirm={onConfirm}
@@ -96,6 +99,7 @@ describe('KBCharacterDetail', () => {
 
     render(
       <KBCharacterDetail
+        projectId="project-1"
         character={createCharacter()}
         chapters={chapters}
         factionName="夜行司"
@@ -104,7 +108,7 @@ describe('KBCharacterDetail', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '编辑角色 沈墨' }));
-    fireEvent.change(screen.getByLabelText('角色姓名'), { target: { value: '沈砚' } });
+    fireEvent.change(screen.getByDisplayValue('沈墨'), { target: { value: '沈砚' } });
     fireEvent.change(screen.getByLabelText('别名'), { target: { value: '阿砚, 砚哥' } });
     fireEvent.change(screen.getByLabelText('性格标签'), { target: { value: '克制, 谨慎' } });
     fireEvent.change(screen.getByLabelText('备注'), { target: { value: '新的备注' } });

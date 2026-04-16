@@ -25,7 +25,7 @@ describe('ProjectSettingsPage', () => {
     const realGET = client.GET.bind(client) as typeof client.GET;
     const realPATCH = client.PATCH.bind(client) as typeof client.PATCH;
 
-    vi.spyOn(client, 'GET').mockImplementation((path, options) => {
+    vi.spyOn(client, 'GET').mockImplementation((path) => {
       if (typeof path === 'string' && path.includes('/ai-config')) {
         return Promise.resolve({
           data: {
@@ -47,7 +47,7 @@ describe('ProjectSettingsPage', () => {
           response: new Response(),
         });
       }
-      return realGET(path, options);
+      return realGET(path);
     });
 
     vi.spyOn(client, 'PATCH').mockImplementation((path, options) => {

@@ -11,7 +11,9 @@ describe('useApi', () => {
     );
 
     const { result } = renderHook(() => useApi<{ result: string }>());
-    await result.current.execute('/test', { body: {} });
+    await act(async () => {
+      await result.current.execute('/test', { body: {} });
+    });
 
     await waitFor(() => expect(result.current.data).toEqual({ result: 'ok' }));
     expect(result.current.error).toBe('');
@@ -26,7 +28,9 @@ describe('useApi', () => {
     );
 
     const { result } = renderHook(() => useApi<{ result: string }>());
-    await result.current.execute('/test-err', { body: {} });
+    await act(async () => {
+      await result.current.execute('/test-err', { body: {} });
+    });
 
     await waitFor(() => expect(result.current.error).toBe('Invalid request'));
     expect(result.current.data).toBeUndefined();
@@ -54,7 +58,9 @@ describe('useApi', () => {
     );
 
     const { result } = renderHook(() => useApi({ onSuccess }));
-    await result.current.execute('/test', { body: {} });
+    await act(async () => {
+      await result.current.execute('/test', { body: {} });
+    });
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledWith({ result: 'ok' }));
   });
@@ -65,7 +71,9 @@ describe('useApi', () => {
     );
 
     const { result } = renderHook(() => useApi());
-    await result.current.execute('/test', { body: {} });
+    await act(async () => {
+      await result.current.execute('/test', { body: {} });
+    });
     await waitFor(() => expect(result.current.data).toBeDefined());
     act(() => {
       result.current.reset();

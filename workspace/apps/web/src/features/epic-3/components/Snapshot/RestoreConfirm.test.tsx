@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { RestoreConfirm } from './RestoreConfirm';
 import type { Snapshot } from '../../hooks/useSnapshots';
 
@@ -145,7 +145,9 @@ describe('RestoreConfirm', () => {
       expect(screen.getByText('恢复中...')).toBeInTheDocument();
     });
 
-    resolvePromise!();
+    await act(async () => {
+      resolvePromise!();
+    });
   });
 
   it('should render without label when snapshot has no label', () => {

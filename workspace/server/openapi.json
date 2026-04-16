@@ -2425,6 +2425,488 @@
         }
       }
     },
+    "/api/projects/{project_id}/kb/settings": {
+      "get": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "List Settings",
+        "operationId": "list_settings_api_projects__project_id__kb_settings_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Query"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "Create Setting",
+        "operationId": "create_setting_api_projects__project_id__kb_settings_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSettingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/kb/settings/reorder": {
+      "patch": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "Reorder Settings",
+        "operationId": "reorder_settings_api_projects__project_id__kb_settings_reorder_patch",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/kb/settings/{entity_id}": {
+      "get": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "Get Setting",
+        "operationId": "get_setting_api_projects__project_id__kb_settings__entity_id__get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entity Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "Patch Setting",
+        "operationId": "patch_setting_api_projects__project_id__kb_settings__entity_id__patch",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entity Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchSettingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "Delete Setting",
+        "operationId": "delete_setting_api_projects__project_id__kb_settings__entity_id__delete",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entity Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/kb/settings/{entity_id}/references": {
+      "post": {
+        "tags": [
+          "us-2.10"
+        ],
+        "summary": "Update Setting References",
+        "operationId": "update_setting_references_api_projects__project_id__kb_settings__entity_id__references_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entity Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingReferencesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{project_id}/settings": {
       "get": {
         "tags": [
@@ -3970,6 +4452,71 @@
           }
         }
       },
+      "patch": {
+        "tags": [
+          "us-4.1",
+          "us-4.8"
+        ],
+        "summary": "Put Project Ai Config",
+        "operationId": "put_project_ai_config_api_projects__project_id__ai_config_patch",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAIProjectConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": [
           "us-4.1",
@@ -4186,6 +4733,563 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/copilot/sessions": {
+      "post": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Create Copilot Session",
+        "operationId": "create_copilot_session_api_projects__project_id__copilot_sessions_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoryCopilotSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateStoryCopilotSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "List Copilot Sessions",
+        "operationId": "list_copilot_sessions_api_projects__project_id__copilot_sessions_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListStoryCopilotSessionsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/copilot/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Get Copilot Session Replay",
+        "operationId": "get_copilot_session_replay_api_copilot_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoryCopilotSessionReplayResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/copilot/sessions/{session_id}/messages": {
+      "post": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Append Copilot Message",
+        "operationId": "append_copilot_message_api_copilot_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppendStoryCopilotMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppendStoryCopilotMessageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/copilot/sessions/{session_id}/cards": {
+      "post": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Create Copilot Card",
+        "operationId": "create_copilot_card_api_copilot_sessions__session_id__cards_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoryCopilotCardRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateStoryCopilotCardResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/copilot/sessions/{session_id}/cards/{card_id}/actions": {
+      "post": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Copilot Card Action",
+        "operationId": "copilot_card_action_api_copilot_sessions__session_id__cards__card_id__actions_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Card Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoryCopilotCardActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryCopilotCardActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/copilot/sessions/{session_id}/turn": {
+      "post": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Copilot Turn",
+        "operationId": "copilot_turn_api_copilot_sessions__session_id__turn_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoryCopilotTurnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryCopilotTurnResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/copilot/sessions/{session_id}/feedback": {
+      "post": {
+        "tags": [
+          "us-4.copilot"
+        ],
+        "summary": "Copilot Feedback",
+        "operationId": "copilot_feedback_api_copilot_sessions__session_id__feedback_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoryCopilotFeedbackRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -8805,6 +9909,41 @@
   },
   "components": {
     "schemas": {
+      "AppendStoryCopilotMessageRequest": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "AppendStoryCopilotMessageRequest"
+      },
+      "AppendStoryCopilotMessageResponse": {
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/StoryCopilotMessage"
+          },
+          "event": {
+            "$ref": "#/components/schemas/StoryCopilotEvent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "event"
+        ],
+        "title": "AppendStoryCopilotMessageResponse"
+      },
       "BatchParserRequest": {
         "properties": {
           "scope": {
@@ -9340,6 +10479,30 @@
         ],
         "title": "CreateProjectRequest"
       },
+      "CreateSettingRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "category",
+          "content"
+        ],
+        "title": "CreateSettingRequest"
+      },
       "CreateSnapshotRequest": {
         "properties": {
           "label": {
@@ -9368,6 +10531,95 @@
         "additionalProperties": false,
         "type": "object",
         "title": "CreateSnapshotRequest"
+      },
+      "CreateStoryCopilotCardRequest": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "title",
+          "summary"
+        ],
+        "title": "CreateStoryCopilotCardRequest"
+      },
+      "CreateStoryCopilotCardResponse": {
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/StoryCopilotCard"
+          },
+          "event": {
+            "$ref": "#/components/schemas/StoryCopilotEvent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "card",
+          "event"
+        ],
+        "title": "CreateStoryCopilotCardResponse"
+      },
+      "CreateStoryCopilotSessionRequest": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "title": "CreateStoryCopilotSessionRequest"
+      },
+      "CreateStoryCopilotSessionResponse": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/StoryCopilotSession"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session"
+        ],
+        "title": "CreateStoryCopilotSessionResponse"
       },
       "CreateVolumeRequest": {
         "properties": {
@@ -9459,6 +10711,26 @@
         ],
         "title": "ForgotPasswordRequest"
       },
+      "GetStoryCopilotSessionReplayResponse": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/StoryCopilotSession"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/StoryCopilotEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session",
+          "events"
+        ],
+        "title": "GetStoryCopilotSessionReplayResponse"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -9514,6 +10786,22 @@
           "data"
         ],
         "title": "ImportRequest"
+      },
+      "ListStoryCopilotSessionsResponse": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/StoryCopilotSession"
+            },
+            "type": "array",
+            "title": "Sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sessions"
+        ],
+        "title": "ListStoryCopilotSessionsResponse"
       },
       "LoginRequest": {
         "properties": {
@@ -10085,6 +11373,74 @@
         "type": "object",
         "title": "PatchLocationRequest"
       },
+      "PatchSettingRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "confirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed"
+          },
+          "relatedEntityRefs": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relatedentityrefs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PatchSettingRequest"
+      },
       "PatchVolumeRequest": {
         "properties": {
           "name": {
@@ -10177,6 +11533,23 @@
           "chapterIds"
         ],
         "title": "ReorderChaptersRequest"
+      },
+      "ReorderSettingsRequest": {
+        "properties": {
+          "orderedIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Orderedids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "orderedIds"
+        ],
+        "title": "ReorderSettingsRequest"
       },
       "ReorderVolumesRequest": {
         "properties": {
@@ -10295,6 +11668,336 @@
           "mode"
         ],
         "title": "StartSessionRequest"
+      },
+      "StoryCopilotCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "result"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "adopted",
+              "dismissed"
+            ],
+            "title": "Status"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "summary",
+          "status"
+        ],
+        "title": "StoryCopilotCard"
+      },
+      "StoryCopilotCardAction": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "cardId": {
+            "type": "string",
+            "title": "Cardid"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "adopt",
+              "dismiss",
+              "regenerate"
+            ],
+            "title": "Action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "cardId",
+          "action"
+        ],
+        "title": "StoryCopilotCardAction"
+      },
+      "StoryCopilotCardActionRequest": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "StoryCopilotCardActionRequest"
+      },
+      "StoryCopilotCardActionResponse": {
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/StoryCopilotCard"
+          },
+          "event": {
+            "$ref": "#/components/schemas/StoryCopilotEvent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "card",
+          "event"
+        ],
+        "title": "StoryCopilotCardActionResponse"
+      },
+      "StoryCopilotEvent": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "message",
+              "card",
+              "card_action"
+            ],
+            "title": "Type"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoryCopilotMessage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "card": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoryCopilotCard"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cardAction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoryCopilotCardAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "createdAt"
+        ],
+        "title": "StoryCopilotEvent"
+      },
+      "StoryCopilotFeedbackRequest": {
+        "properties": {
+          "suggestionId": {
+            "type": "string",
+            "title": "Suggestionid"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "suggestionId",
+          "action"
+        ],
+        "title": "StoryCopilotFeedbackRequest"
+      },
+      "StoryCopilotMessage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant",
+              "system"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "content"
+        ],
+        "title": "StoryCopilotMessage"
+      },
+      "StoryCopilotSession": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "projectId": {
+            "type": "string",
+            "title": "Projectid"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "worldbuild",
+              "plot_derive_lite",
+              "story_diagnose"
+            ],
+            "title": "Mode"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "archived"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "projectId",
+          "mode",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "StoryCopilotSession"
+      },
+      "StoryCopilotTurnRequest": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "chapterId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapterid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "StoryCopilotTurnRequest"
+      },
+      "StoryCopilotTurnResponse": {
+        "properties": {
+          "events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "events"
+        ],
+        "title": "StoryCopilotTurnResponse"
       },
       "TriggerParserRequest": {
         "properties": {
@@ -10553,6 +12256,26 @@
           "status"
         ],
         "title": "UpdateSessionRequest"
+      },
+      "UpdateSettingReferencesRequest": {
+        "properties": {
+          "relatedEntityRefs": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Relatedentityrefs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "relatedEntityRefs"
+        ],
+        "title": "UpdateSettingReferencesRequest"
       },
       "ValidationError": {
         "properties": {

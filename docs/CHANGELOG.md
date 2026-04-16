@@ -7,6 +7,33 @@
 
 ------
 
+## v0.3.39（2026-04-16）
+
+### Sprint 8 Phase B-E：Copilot turn / 世界观设定 / 起名与建议入口
+#### 新增 (Added)
+- 新增 `POST /api/copilot/sessions/:sessionId/turn`：同一接口收口 Copilot 对话轮次，支持在 `worldbuild / plot_derive_lite / story_diagnose` mode 下追加 user/assistant message 并生成结果卡片。
+- 新增 `POST /api/copilot/sessions/:sessionId/feedback`：记录写作建议反馈（`suggestionId + action + optional comment`）。
+- 新增 `POST /api/projects/:projectId/kb/settings`、`GET /api/projects/:projectId/kb/settings*`、`PATCH /api/projects/:projectId/kb/settings/reorder`、`POST /api/projects/:projectId/kb/settings/:id/references`：补齐世界观设定最小 CRUD 与引用能力。
+- 新增 `workspace/server/services/copilot_turn_service.py`：封装 Copilot mode 的 turn 生成逻辑，并提供测试环境 deterministic stub。
+- 新增 `workspace/server/services/kb_setting_service.py`：封装 KBSetting 的列表/详情/创建/更新/软删除。
+- 新增前端 `NameGeneratorModal`、`KnowledgeBasePanel`、`KBSettingPanel` 及相关 hooks/types：补齐起名弹窗与“世界观设定”知识库视图。
+
+#### 调整 (Changed)
+- `workspace/server/services/copilot_service.py`：支持 worldbuild adopt -> 写入 KBSetting、plot adopt -> 采纳到章节备注、story_diagnose feedback 记录。
+- `workspace/server/routes/us45_copilot.py`：接入 `turn` 与 `feedback` 路由；`workspace/server/main.py` 同步挂载 `us210_settings`。
+- `workspace/apps/web/src/features/epic-4/components/StoryCopilotPanel.tsx`：从“会话列表”升级为“会话 + 回放 + 发消息 + 结果卡片 + 建议反馈 + 段落定位”闭环。
+- `workspace/apps/web/src/features/epic-3/components/EditorWorkspace.tsx`：新增 `copilot:jumpToParagraph` 跳转处理与 `AI 起名` 入口。
+- `workspace/apps/web/src/features/epic-2/components/KBCharacter/KBCharacterDetail.tsx`：编辑态新增 `AI 起名` 按钮并支持回填角色名。
+- `workspace/apps/web/src/components/WorkbenchShell/WorkbenchShell.tsx`：知识库右侧面板改为多 tab 的 `KnowledgeBasePanel`，顶栏新增“名字生成器”入口。
+
+#### 测试 (Tests)
+- `cd workspace && npm run generate:api-types`：通过
+- `cd workspace && npm run test:backend`：通过（`432 passed, 2 skipped`）
+- `cd workspace && npm run -w @bitsnovels/web typecheck`：通过
+- `cd workspace && npm run -w @bitsnovels/web test -- src/features/epic-4/__tests__/NameGeneratorModal.test.tsx --coverage.enabled=false`：通过
+
+------
+
 ## v0.3.37（2026-04-16）
 
 ### Epic 4 AI 写作核心：真实 Provider 接入 + 文档同步
@@ -34,6 +61,33 @@
 - `cd workspace && npm run -w @bitsnovels/web test`：通过
 - `cd workspace && npm run lint`：通过
 - `cd workspace && npm run verify:generated`：通过
+
+------
+
+## v0.3.38（2026-04-16）
+
+### Sprint 8 Phase A：Story Copilot Session 持久化（最小可回放）
+#### 新增 (Added)
+- 新增 Copilot Session API：创建会话、会话列表、会话回放、追加消息、插入卡片、卡片动作（`adopt/dismiss/regenerate`）：
+  - `POST /api/projects/:projectId/copilot/sessions`
+  - `GET /api/projects/:projectId/copilot/sessions`
+  - `GET /api/copilot/sessions/:sessionId`
+  - `POST /api/copilot/sessions/:sessionId/messages`
+  - `POST /api/copilot/sessions/:sessionId/cards`
+  - `POST /api/copilot/sessions/:sessionId/cards/:cardId/actions`
+- 新增 `workspace/server/services/copilot_service.py`：内存态会话、事件流与卡片状态机，支持按时间顺序回放。
+- 新增 Epic 4 后端测试 `workspace/server/tests/epic_4/test_us4_copilot_session_red.py`：覆盖创建/回放/权限隔离/非法枚举。
+
+#### 调整 (Changed)
+- `workspace/server/main.py`：接入 `us45_copilot` 路由。
+- `workspace/server/models/ai_models.py`：补齐 `StoryCopilotSession` 相关 request/response models，用于 OpenAPI/types 生成。
+
+#### 契约说明 (Contract)
+- `specs/epic-4/contract.md`：补齐 `StoryCopilotMessage/Card/Event` 类型与 Session API 端点说明，并标注为 Sprint 8 Phase A 冻结契约。
+
+#### 测试 (Tests)
+- `cd workspace && npm run generate:api-types`：通过（OpenAPI + TS types 已更新）
+- `cd workspace && npm run test:backend`：通过（覆盖率门禁通过）
 
 ------
 

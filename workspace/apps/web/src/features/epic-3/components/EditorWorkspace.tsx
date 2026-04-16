@@ -10,6 +10,7 @@ import { client } from '../../../api/client';
 import { createAITask, stopAITask, streamAITask } from '../../epic-4/api/aiClient';
 import { AIDraftNode } from '../../epic-4/editor/aiDraftNode';
 import type { AIDiffChange, AIResult } from '../../epic-4/types';
+import { NameGeneratorModal } from '../../epic-4/components/NameGeneratorModal';
 
 function stripAIDrafts(json: unknown): unknown {
   if (json === null || json === undefined) return json;
@@ -84,6 +85,7 @@ export function EditorWorkspace({ projectId, chapterId, initialContent = '', ini
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const [dialogueCharacterName, setDialogueCharacterName] = useState('角色');
   const [dialogueScene, setDialogueScene] = useState('');
+  const [nameOpen, setNameOpen] = useState(false);
   const isGeneratingDraft = aiDraftId !== null && aiDraftStatus === 'generating';
 
   const handleSave = useCallback(async (content: string, source: SaveSource) => {
@@ -143,6 +145,50 @@ export function EditorWorkspace({ projectId, chapterId, initialContent = '', ini
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ paragraphIndex?: number }>;
+      const paragraphIndex = custom.detail?.paragraphIndex;
+      if (typeof paragraphIndex !== 'number' || paragraphIndex < 0) {
+        return;
+      }
+
+      let currentIndex = -1;
+      let targetPos: number | null = null;
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === 'paragraph') {
+          currentIndex += 1;
+          if (currentIndex === paragraphIndex) {
+            targetPos = pos;
+            return false;
+          }
+        }
+        return true;
+      });
+
+      if (targetPos === null) {
+        return;
+      }
+
+      try {
+        editor.commands.focus();
+        editor.commands.setTextSelection(targetPos + 1);
+        editor.view.dispatch(editor.state.tr.scrollIntoView());
+      } catch {
+        // no-op: jump is best-effort
+      }
+    };
+
+    window.addEventListener('copilot:jumpToParagraph', handler as EventListener);
+    return () => {
+      window.removeEventListener('copilot:jumpToParagraph', handler as EventListener);
+    };
+  }, [editor]);
 
   const findDraftPos = useCallback<(draftId: string) => { pos: number; nodeSize: number } | null>(
     (draftId: string) => {
@@ -517,6 +563,14 @@ export function EditorWorkspace({ projectId, chapterId, initialContent = '', ini
             >
               AI 缩写
             </button>
+            <button
+              type="button"
+              className="px-3 py-1 rounded border border-gray-200 dark:border-gray-700 text-sm text-ink dark:text-gray-100 disabled:opacity-50"
+              onClick={() => setNameOpen(true)}
+              disabled={isGeneratingDraft}
+            >
+              AI 起名
+            </button>
             {isGeneratingDraft ? (
               <button
                 type="button"
@@ -536,6 +590,13 @@ export function EditorWorkspace({ projectId, chapterId, initialContent = '', ini
           lastSavedAt={lastSavedAt}
         />
       </div>
+
+      <NameGeneratorModal
+        isOpen={nameOpen}
+        onClose={() => setNameOpen(false)}
+        projectId={projectId}
+        nameType="character"
+      />
 
       {aiDraftId && aiDraftStatus !== 'generating' ? (
         <div className="mt-3 flex items-center justify-end gap-2">
