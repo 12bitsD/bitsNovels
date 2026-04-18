@@ -1,5 +1,9 @@
 # ADR-007: Sprint 5 规划与 US-2.1 Parser 推迟决策
 
+> **历史归档 ADR**：用于记录 Sprint 4 结束时对 Sprint 5 的规划判断。
+>
+> 后续实际交付与时间线变更请以 `docs/SPRINT_LOG.md` 和 `docs/CHANGELOG.md` 为准。
+
 **日期**: 2026-04-02  
 **状态**: 已批准  
 **决策人**: Sprint 4 Team

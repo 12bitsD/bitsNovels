@@ -7,6 +7,23 @@
 
 ------
 
+## v0.3.40（2026-04-19）
+
+### 文档同步：README / Sprint / 工程说明口径统一
+#### 调整 (Changed)
+- 更新 `README.md`：重写项目简介、当前落地范围、最新 Sprint 状态、仓库结构、启动方式与环境变量说明。
+- 更新 `AGENTS.md`：同步当前项目进度，补充 Sprint 7 / Sprint 8 实际交付状态，并修正文档索引中的 `design/FRONTEND.md` 路径。
+- 更新 `docs/SPRINT_LOG.md`：将 Sprint 6 标记为“规划保留”，同步 Sprint 7 核心范围完成状态与 Sprint 8 当前进展。
+- 更新 `docs/ENGINEERING_WORKSPACE.md`：按当前真实目录补充前端 Epic 分层、后端 routes/services/models、E2E 与脚本入口说明。
+- 更新 `docs/decisions/tech-stack.md`：拆分“目标架构”与“当前实现”，修正 AI Provider、TanStack Query、当前 Python 依赖与内存态实现口径。
+- 更新 `workspace/apps/web/README.md`：补充前端目录职责、联调方式、测试门槛与开发入口建议。
+- 更新归档文档 `docs/archive/sprint-5-task-planning.md`、`docs/archive/adr-007-sprint5-parser-defer.md`：增加“历史归档”提示，避免与当前进度文档混淆。
+
+#### 契约说明 (Contract)
+- 本次未修改任何 `specs/epic-*/contract.md`，仅同步文档口径与工程说明。
+
+------
+
 ## v0.3.39（2026-04-16）
 
 ### Sprint 8 Phase B-E：Copilot turn / 世界观设定 / 起名与建议入口

@@ -15,7 +15,9 @@
 | Sprint | 状态 | 说明 |
 |--------|------|------|
 | S1 ~ S5 | ✅ 全部完成 | 详见 `docs/SPRINT_LOG.md` |
-| **S6**（下一个） | 🔲 待开始 | US-2.7~2.11 + US-6.4 + US-6.1~6.3 |
+| S6（路线保留） | ⏸️ 暂未单独推进 | Parser v2 / KB 高级能力 / 系统设置基础仍保留在路线图 |
+| S7 | ✅ 核心范围完成 | AI 平台收敛 + US-4.1~4.4 + US-4.8 已落地 |
+| **S8**（当前） | 🟡 进行中 | Phase A/B-E 已完成：Copilot Session/Turn、世界观设定、AI 起名与建议入口已接入 |
 
 完整 Roadmap 与依赖图见 `docs/SPRINT_LOG.md`。
 
@@ -37,7 +39,7 @@ process/dod.md              ← 完成标准（含 TDD / 契约冻结规则）
 ```
 specs/epic-N/fe.md          ← AC 和交互要求
 specs/epic-N/contract.md    ← 类型 + API 端点（唯一数据契约）
-design/frontend.md          ← 视觉规范
+design/FRONTEND.md          ← 视觉规范
 process/dod.md              ← 完成标准（含 TDD / 契约冻结规则）
 ```
 
@@ -71,7 +73,7 @@ process/dod.md              ← 完成标准（含 TDD / 契约冻结规则）
 | US 具体要求 | `specs/epic-N/fe.md` 或 `be.md` |
 | 类型 / API | `specs/epic-N/contract.md` |
 | 完成标准 + TDD + 契约冻结 | `process/dod.md` |
-| 视觉规范 | `design/frontend.md` |
+| 视觉规范 | `design/FRONTEND.md` |
 | 架构规范 | `design/BACKEND.md` |
 | NFR 数值约束 | `process/CONSTRAINTS.md` |
 | 技术选型 | `docs/decisions/tech-stack.md` |
